@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Sum, Count, F, Case, When
+from django.db.models.functions import Coalesce
 from django.db import models
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -198,7 +199,10 @@ def product_list(request):
     if sort_by == 'quantity':
         products = products.order_by('quantity')
     elif sort_by == 'value':
-        products = products.order_by(F('quantity') * F('cost_price'))
+        # חישוב ערך מלאי עם בדיקת NULL
+        products = products.annotate(
+            stock_value=F('quantity') * Coalesce(F('cost_price'), 0)
+        ).order_by('-stock_value')
     elif sort_by == 'updated':
         products = products.order_by('-updated_at')
     else:

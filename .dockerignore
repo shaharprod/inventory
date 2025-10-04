@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+db.sqlite3-journal
+staticfiles/
+
+# Virtual Environment
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation (לא צריך בקונטיינר)
+docs/
+*.md
+
+# Scripts (לא צריך בקונטיינר)
+*.ps1
+*.sh
+
+# Backups (לא צריך בתוך הקונטיינר, רק ב-volume)
+backups/
+
+# Python scripts שלא צריכים
+distribute_*.py
+fix_*.py
+create_sample_data.py
+convert_templates.py
+

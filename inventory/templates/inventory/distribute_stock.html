@@ -1,0 +1,255 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+
+{% block title %}חלוקת מלאי - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-balance-scale me-2"></i>חלוקת מלאי - {{ product.name }}</h4>
+            </div>
+            <div class="card-body">
+                <!-- מידע מוצר -->
+                <div class="alert alert-info mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-box me-2"></i>מוצר:</strong> {{ product.name }}<br>
+                            <strong><i class="fas fa-barcode me-2"></i>SKU:</strong> {{ product.sku }}
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <strong><i class="fas fa-boxes me-2"></i>מלאי כללי נוכחי:</strong>
+                            <span class="badge bg-primary fs-5">{{ total_quantity }} יחידות</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- מצב נוכחי -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="mb-3"><i class="fas fa-chart-pie me-2"></i>מצב מלאי נוכחי</h5>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="fas fa-warehouse fa-3x text-info mb-2"></i>
+                                <h5>{{ warehouse.name }}</h5>
+                                <h2 class="text-info">{{ warehouse_stock.quantity }}</h2>
+                                <small class="text-muted">יחידות במחסן</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="fas fa-store fa-3x text-primary mb-2"></i>
+                                <h5>{{ store.name }}</h5>
+                                <h2 class="text-primary">{{ store_stock.quantity }}</h2>
+                                <small class="text-muted">יחידות בחנות</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- טופס חלוקה -->
+                <form method="post" id="distributeForm">
+                    {% csrf_token %}
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3"><i class="fas fa-sliders-h me-2"></i>חלוקה חדשה</h5>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="warehouse_quantity" class="form-label">
+                                <i class="fas fa-warehouse me-1"></i>כמות במחסן
+                            </label>
+                            <input type="number" class="form-control form-control-lg" id="warehouse_quantity" name="warehouse_quantity"
+                                   value="{{ warehouse_stock.quantity }}" min="0" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="store_quantity" class="form-label">
+                                <i class="fas fa-store me-1"></i>כמות בחנות
+                            </label>
+                            <input type="number" class="form-control form-control-lg" id="store_quantity" name="store_quantity"
+                                   value="{{ store_stock.quantity }}" min="0" required>
+                        </div>
+                    </div>
+
+                    <!-- סיכום -->
+                    <div class="alert alert-warning mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>סה"כ אחרי החלוקה:</h6>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <h4 class="mb-0" id="newTotal">{{ total_quantity }}</h4>
+                                <small id="comparison" class="text-muted"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- התראה -->
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>סנכרון אוטומטי:</strong> המלאי הכללי יתעדכן אוטומטית לסכום המחסן + החנות
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>חשוב:</strong> המלאי הכללי = מלאי מחסן + מלאי חנות (מחושב אוטומטית)
+                    </div>
+
+                    <!-- כפתורים -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'product_detail' product.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>ביטול
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-check me-1"></i>חלק מלאי
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- טיפים -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>טיפים לחלוקת מלאי</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-percentage me-2"></i>חלוקות מומלצות:</h6>
+                        <ul>
+                            <li><strong>60/40 (מחסן/חנות):</strong> למוצרים מבוקשים - רוב במחסן</li>
+                            <li><strong>50/50:</strong> למוצרים עם ביקוש יציב</li>
+                            <li><strong>40/60 (מחסן/חנות):</strong> למוצרים עם מכירה גבוהה בחנות</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-info"><i class="fas fa-tasks me-2"></i>עצות ניהול:</h6>
+                        <ul>
+                            <li><strong>מעקב:</strong> עקוב אחר מכירות ועדכן את החלוקה</li>
+                            <li><strong>העברות:</strong> השתמש בדף העברות להעביר מלאי</li>
+                            <li><strong>גמישות:</strong> התאם את האחוזים לפי צרכי העסק</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // חישוב סה"כ בזמן אמת
+    const warehouseInput = document.getElementById('warehouse_quantity');
+    const storeInput = document.getElementById('store_quantity');
+    const newTotalEl = document.getElementById('newTotal');
+    const comparisonEl = document.getElementById('comparison');
+    const currentTotal = {{ total_quantity }};
+
+    function updateTotal() {
+        const warehouseQty = parseInt(warehouseInput.value) || 0;
+        const storeQty = parseInt(storeInput.value) || 0;
+        const total = warehouseQty + storeQty;
+
+        newTotalEl.textContent = total;
+
+        // השוואה
+        const diff = total - currentTotal;
+        if (diff > 0) {
+            comparisonEl.textContent = `(+${diff} מהמלאי הנוכחי)`;
+            comparisonEl.className = 'text-success';
+            newTotalEl.className = 'mb-0 text-success';
+        } else if (diff < 0) {
+            comparisonEl.textContent = `(${diff} מהמלאי הנוכחי)`;
+            comparisonEl.className = 'text-danger';
+            newTotalEl.className = 'mb-0 text-danger';
+        } else {
+            comparisonEl.textContent = '(ללא שינוי)';
+            comparisonEl.className = 'text-muted';
+            newTotalEl.className = 'mb-0';
+        }
+    }
+
+    warehouseInput.addEventListener('input', updateTotal);
+    storeInput.addEventListener('input', updateTotal);
+
+    // חישוב ראשוני
+    updateTotal();
+
+    // טיפ מהיר - חלוקות מהירות
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('distributeForm');
+
+        // הוספת כפתורי חלוקה מהירה
+        const tipDiv = document.createElement('div');
+        tipDiv.className = 'text-center mb-3';
+        tipDiv.innerHTML = `
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="split6040">
+                    <i class="fas fa-warehouse me-1"></i>60% מחסן / 40% חנות
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="splitEven">
+                    <i class="fas fa-balance-scale me-1"></i>50% / 50%
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info" id="split4060">
+                    <i class="fas fa-store me-1"></i>40% מחסן / 60% חנות
+                </button>
+            </div>
+        `;
+
+        form.querySelector('.row.mb-4').appendChild(tipDiv);
+
+        // חלוקה 60/40 (מחסן/חנות)
+        document.getElementById('split6040').addEventListener('click', function() {
+            const warehouseQty = Math.floor(currentTotal * 0.6);
+            const storeQty = currentTotal - warehouseQty;
+            warehouseInput.value = warehouseQty;
+            storeInput.value = storeQty;
+            updateTotal();
+            showDistributionToast('60% במחסן, 40% בחנות');
+        });
+
+        // חלוקה שווה 50/50
+        document.getElementById('splitEven').addEventListener('click', function() {
+            const half = Math.floor(currentTotal / 2);
+            warehouseInput.value = half;
+            storeInput.value = currentTotal - half;
+            updateTotal();
+            showDistributionToast('50% במחסן, 50% בחנות');
+        });
+
+        // חלוקה 40/60 (מחסן/חנות)
+        document.getElementById('split4060').addEventListener('click', function() {
+            const warehouseQty = Math.floor(currentTotal * 0.4);
+            const storeQty = currentTotal - warehouseQty;
+            warehouseInput.value = warehouseQty;
+            storeInput.value = storeQty;
+            updateTotal();
+            showDistributionToast('40% במחסן, 60% בחנות');
+        });
+    });
+
+    // הצגת הודעה על החלוקה
+    function showDistributionToast(message) {
+        // יצירת אלמנט הודעה זמני
+        const toast = document.createElement('div');
+        toast.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `<i class="fas fa-check-circle me-2"></i>${message}`;
+        document.body.appendChild(toast);
+
+        // הסרה אחרי 2 שניות
+        setTimeout(() => {
+            toast.style.transition = 'opacity 0.5s';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 2000);
+    }
+</script>
+{% endblock %}
+

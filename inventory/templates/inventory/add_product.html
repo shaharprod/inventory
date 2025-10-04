@@ -147,7 +147,7 @@
 {% block content %}
     <div class="container">
         <h1>הוסף מוצר חדש</h1>
-        
+
         <!-- הודעות -->
         {% if messages %}
             {% for message in messages %}
@@ -157,7 +157,7 @@
                 </div>
             {% endfor %}
         {% endif %}
-        
+
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="row">
@@ -178,16 +178,8 @@
                         <label for="{{ form.supplier.id_for_label }}">ספק:</label>
                         {{ form.supplier }}
                     </div>
-                    <div class="form-group">
-                        <label for="{{ form.location.id_for_label }}">מיקום:</label>
-                        {{ form.location }}
-                    </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="{{ form.quantity.id_for_label }}">כמות:</label>
-                        {{ form.quantity }}
-                    </div>
                     <div class="form-group">
                         <label for="{{ form.min_quantity.id_for_label }}">כמות מינימלית:</label>
                         {{ form.min_quantity }}
@@ -218,7 +210,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
@@ -233,7 +225,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="form-group">
                 <label for="{{ form.notes.id_for_label }}">הערות:</label>
                 {{ form.notes }}
@@ -311,25 +303,25 @@
                 };
 
                 cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-                
+
                 const video = document.getElementById('cameraPreview');
                 video.srcObject = cameraStream;
                 video.style.display = 'block';
-                
+
                 // המתנה שהמצלמה תיטען
                 video.onloadedmetadata = function() {
                     video.play();
                     console.log('מצלמה הופעלה בהצלחה');
                 };
-                
+
                 document.getElementById('startCamera').disabled = true;
                 document.getElementById('capturePhoto').disabled = false;
                 document.getElementById('stopCamera').disabled = false;
-                
+
             } catch (err) {
                 console.error('שגיאה במצלמה:', err);
                 let errorMessage = 'לא ניתן לגשת למצלמה: ';
-                
+
                 if (err.name === 'NotAllowedError') {
                     errorMessage += 'הגישה למצלמה נדחתה. אנא אשר את ההרשאה למצלמה.';
                 } else if (err.name === 'NotFoundError') {
@@ -339,7 +331,7 @@
                 } else {
                     errorMessage += err.message;
                 }
-                
+
                 alert(errorMessage);
             }
         });
@@ -348,14 +340,14 @@
             const video = document.getElementById('cameraPreview');
             const canvas = document.getElementById('photoCanvas');
             const ctx = canvas.getContext('2d');
-            
+
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0);
-            
+
             const imageData = canvas.toDataURL('image/jpeg', 0.8);
             capturedImages.push(imageData);
-            
+
             // הצגת התמונה שצולמה
             const photosDiv = document.getElementById('capturedPhotos');
             const img = document.createElement('img');
@@ -369,7 +361,7 @@
                 link.click();
             };
             photosDiv.appendChild(img);
-            
+
             // עדכון שדה העלאת התמונה
             updateProductImageField(imageData);
         });
@@ -379,7 +371,7 @@
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
             }
-            
+
             document.getElementById('cameraPreview').style.display = 'none';
             document.getElementById('startCamera').disabled = false;
             document.getElementById('capturePhoto').disabled = true;
@@ -396,7 +388,7 @@
                 }
 
                 const constraints = {
-                    video: { 
+                    video: {
                         facingMode: { ideal: 'environment' },
                         width: { ideal: 640, max: 1280 },
                         height: { ideal: 480, max: 720 }
@@ -405,20 +397,20 @@
                 };
 
                 barcodeStream = await navigator.mediaDevices.getUserMedia(constraints);
-                
+
                 const video = document.getElementById('barcodePreview');
                 video.srcObject = barcodeStream;
                 video.style.display = 'block';
-                
+
                 // המתנה שהמצלמה תיטען
                 video.onloadedmetadata = function() {
                     video.play();
                     console.log('סורק ברקוד הופעל');
                 };
-                
+
                 document.getElementById('startBarcodeScanner').disabled = true;
                 document.getElementById('stopBarcodeScanner').disabled = false;
-                
+
                 // הפעלת Quagga לסריקת ברקוד
                 Quagga.init({
                     inputStream: {
@@ -453,18 +445,18 @@
                     Quagga.start();
                     console.log('Quagga הופעל בהצלחה');
                 });
-                
+
                 Quagga.onDetected(function(data) {
                     const code = data.codeResult.code;
                     document.getElementById('barcodeResult').style.display = 'block';
                     document.getElementById('barcodeResult').textContent = 'ברקוד זוהה: ' + code;
-                    
+
                     // עדכון שם המוצר עם קוד הברקוד
                     const nameField = document.querySelector('input[name="name"]');
                     if (nameField && !nameField.value) {
                         nameField.value = 'מוצר ' + code;
                     }
-                    
+
                     // עצירת הסורק אחרי זיהוי
                     setTimeout(() => {
                         Quagga.stop();
@@ -477,11 +469,11 @@
                         document.getElementById('stopBarcodeScanner').disabled = true;
                     }, 2000);
                 });
-                
+
             } catch (err) {
                 console.error('שגיאה בסורק ברקוד:', err);
                 let errorMessage = 'לא ניתן לגשת למצלמה לסריקת ברקוד: ';
-                
+
                 if (err.name === 'NotAllowedError') {
                     errorMessage += 'הגישה למצלמה נדחתה. אנא אשר את ההרשאה למצלמה.';
                 } else if (err.name === 'NotFoundError') {
@@ -489,7 +481,7 @@
                 } else {
                     errorMessage += err.message;
                 }
-                
+
                 alert(errorMessage);
             }
         });
@@ -500,7 +492,7 @@
                 barcodeStream.getTracks().forEach(track => track.stop());
                 barcodeStream = null;
             }
-            
+
             document.getElementById('barcodePreview').style.display = 'none';
             document.getElementById('barcodeResult').style.display = 'none';
             document.getElementById('startBarcodeScanner').disabled = false;
@@ -513,7 +505,7 @@
             if (barcodeText && barcodeText.length >= 8) {
                 // הוספת אפסים אם הקוד קצר מ-13 ספרות
                 const paddedText = barcodeText.padStart(13, '0');
-                
+
                 fetch('/inventory/generate-barcode/', {
                     method: 'POST',
                     headers: {
@@ -530,7 +522,7 @@
                             <img src="${data.barcode_data}" alt="Generated Barcode">
                             <p>ברקוד נוצר: ${data.barcode_text}</p>
                         `;
-                        
+
                         // עדכון שדה העלאת תמונת הברקוד
                         updateBarcodeImageField(data.barcode_data);
                     } else {
@@ -555,10 +547,10 @@
             }
             const byteArray = new Uint8Array(byteNumbers);
             const blob = new Blob([byteArray], {type: 'image/jpeg'});
-            
+
             // יצירת File object
             const file = new File([blob], 'captured_photo.jpg', {type: 'image/jpeg'});
-            
+
             // עדכון שדה העלאת התמונה
             const fileInput = document.querySelector('input[name="product_image"]');
             const dataTransfer = new DataTransfer();
@@ -576,10 +568,10 @@
             }
             const byteArray = new Uint8Array(byteNumbers);
             const blob = new Blob([byteArray], {type: 'image/png'});
-            
+
             // יצירת File object
             const file = new File([blob], 'generated_barcode.png', {type: 'image/png'});
-            
+
             // עדכון שדה העלאת תמונת הברקוד
             const fileInput = document.querySelector('input[name="barcode_image"]');
             const dataTransfer = new DataTransfer();
@@ -591,7 +583,7 @@
         function calculateMargin() {
             const costPrice = parseFloat(document.querySelector('input[name="cost_price"]').value) || 0;
             const sellingPrice = parseFloat(document.querySelector('input[name="selling_price"]').value) || 0;
-            
+
             if (costPrice > 0 && sellingPrice > 0) {
                 const margin = ((sellingPrice - costPrice) / costPrice) * 100;
                 console.log(`אחוז רווח: ${margin.toFixed(2)}%`);
@@ -602,7 +594,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const costPriceField = document.querySelector('input[name="cost_price"]');
             const sellingPriceField = document.querySelector('input[name="selling_price"]');
-            
+
             if (costPriceField) {
                 costPriceField.addEventListener('input', calculateMargin);
             }

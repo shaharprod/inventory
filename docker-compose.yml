@@ -1,0 +1,25 @@
+services:
+  # מערכת ניהול מלאי
+  inventory:
+    build: .
+    container_name: inventory_system
+    ports:
+      - "8000:8000"
+    volumes:
+      # שמירת DB, מדיה ולוגים מחוץ לקונטיינר
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./media:/app/media
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+# הגדרת volumes לשמירת נתונים
+volumes:
+  db_data:
+  media_data:
+  logs_data:
+  backups_data:
+

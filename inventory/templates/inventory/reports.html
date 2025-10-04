@@ -7,28 +7,25 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2><i class="fas fa-chart-bar me-2"></i>דוחות ואנליטיקה</h2>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fas fa-download me-1"></i>ייצא דוחות
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'export_products_csv' %}">
-                                <i class="fas fa-file-csv me-2"></i>ייצא מוצרים (CSV)
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'export_low_stock_csv' %}">
-                                <i class="fas fa-exclamation-triangle me-2"></i>ייצא מלאי נמוך (CSV)
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'export_movements_csv' %}">
-                                <i class="fas fa-exchange-alt me-2"></i>ייצא תנועות (CSV)
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'export_reports_json' %}">
-                                <i class="fas fa-file-code me-2"></i>ייצא דוח מלא (JSON)
-                            </a></li>
-                        </ul>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'export_products_csv' %}" class="btn btn-success" title="ייצא מוצרים">
+                            <i class="fas fa-file-csv me-1"></i>מוצרים CSV
+                        </a>
+                        <a href="{% url 'export_low_stock_csv' %}" class="btn btn-warning" title="ייצא מלאי נמוך">
+                            <i class="fas fa-exclamation-triangle me-1"></i>מלאי נמוך CSV
+                        </a>
+                        <a href="{% url 'export_movements_csv' %}" class="btn btn-info" title="ייצא תנועות">
+                            <i class="fas fa-exchange-alt me-1"></i>תנועות CSV
+                        </a>
+                        <a href="{% url 'export_full_report_csv' %}" class="btn btn-primary" title="ייצא דוח מלא CSV">
+                            <i class="fas fa-file-csv me-1"></i>דוח מלא CSV
+                        </a>
+                        <a href="{% url 'export_reports_json' %}" class="btn btn-secondary" title="ייצא דוח מלא JSON">
+                            <i class="fas fa-file-code me-1"></i>JSON
+                        </a>
                     </div>
                 </div>
-                
+
                 <!-- כרטיסי סטטיסטיקות מהירות -->
                 <div class="row mb-4">
                     <div class="col-md-3 mb-3">
@@ -44,7 +41,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-3 mb-3">
                         <div class="card text-white bg-warning h-100">
                             <div class="card-body">
@@ -58,7 +55,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-3 mb-3">
                         <div class="card text-white bg-danger h-100">
                             <div class="card-body">
@@ -72,7 +69,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-3 mb-3">
                         <div class="card text-white bg-success h-100">
                             <div class="card-body">
@@ -140,7 +137,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- דוח קטגוריות -->
                     <div class="col-md-6 mb-4">
                         <div class="card">
@@ -213,7 +210,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- דוח מוצרים רווחיים -->
                     <div class="col-md-6 mb-4">
                         <div class="card">

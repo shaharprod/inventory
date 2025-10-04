@@ -6,7 +6,7 @@
 <div class="row">
             <div class="col-12">
                 <h2><i class="fas fa-shopping-cart me-2"></i>מכירה חדשה</h2>
-                
+
                 <!-- הודעות -->
                 {% if messages %}
                     {% for message in messages %}
@@ -19,7 +19,7 @@
 
                 <form method="post" id="saleForm">
                     {% csrf_token %}
-                    
+
                     <div class="row">
                         <!-- פרטי מכירה -->
                         <div class="col-md-4">
@@ -30,24 +30,41 @@
                                 <div class="card-body">
                                     <div class="mb-3">
                                         <label for="{{ form.customer.id_for_label }}" class="form-label">לקוח:</label>
-                                        {{ form.customer }}
+                                        <div class="d-flex gap-2">
+                                            <div class="flex-grow-1">
+                                                {{ form.customer }}
+                                            </div>
+                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#quickCustomerModal">
+                                                <i class="fas fa-user-plus"></i> לקוח חדש
+                                            </button>
+                                        </div>
                                     </div>
-                                    
+
+                                            <div class="mb-3">
+                                                <label for="{{ form.location.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>מיקום מכירה: *
+                                                </label>
+                                                {{ form.location }}
+                                                <small class="form-text text-muted d-block mt-1">
+                                                    <i class="fas fa-info-circle"></i> בחר חנות או מחסן - המלאי יורד מהמיקום שתבחר
+                                                </small>
+                                            </div>
+
                                     <div class="mb-3">
                                         <label for="{{ form.status.id_for_label }}" class="form-label">סטטוס:</label>
                                         {{ form.status }}
                                     </div>
-                                    
+
                                     <div class="mb-3">
                                         <label for="{{ form.payment_status.id_for_label }}" class="form-label">סטטוס תשלום:</label>
                                         {{ form.payment_status }}
                                     </div>
-                                    
+
                                     <div class="mb-3">
                                         <label for="{{ form.sale_date.id_for_label }}" class="form-label">תאריך מכירה:</label>
                                         {{ form.sale_date }}
                                     </div>
-                                    
+
                                     <div class="mb-3">
                                         <label for="{{ form.notes.id_for_label }}" class="form-label">הערות:</label>
                                         {{ form.notes }}
@@ -55,14 +72,25 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- פריטי מכירה -->
                         <div class="col-md-8">
                             <div class="card">
-                                <div class="card-header">
-                                    <h5>פריטי מכירה</h5>
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">פריטי מכירה</h5>
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#barcodeScannerModal">
+                                        <i class="fas fa-barcode me-1"></i>סרוק ברקוד
+                                    </button>
                                 </div>
                                 <div class="card-body">
+                                    <!-- תצוגת מוצרים שנסרקו -->
+                                    <div id="scanned-products" class="mb-3" style="display: none;">
+                                        <div class="alert alert-success">
+                                            <strong><i class="fas fa-check-circle me-2"></i>מוצרים שנסרקו:</strong>
+                                            <div id="scanned-list" class="mt-2"></div>
+                                        </div>
+                                    </div>
+
                                     <div id="sale-items">
                                         {{ formset.management_form }}
                                         {% for form in formset %}
@@ -90,7 +118,7 @@
                                             </div>
                                         {% endfor %}
                                     </div>
-                                    
+
                                     <button type="button" class="btn btn-outline-primary" id="add-item">
                                         <i class="fas fa-plus me-1"></i>הוסף פריט
                                     </button>
@@ -98,7 +126,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- סיכום -->
                     <div class="row mt-4">
                         <div class="col-md-6 offset-md-6">
@@ -138,7 +166,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row mt-4">
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary">
@@ -154,41 +182,491 @@
         </div>
     </div>
 
+<!-- מודאל הוספת לקוח מהירה -->
+<div class="modal fade" id="quickCustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>הוספת לקוח חדש מהר</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="quick_customer_name" class="form-label">שם לקוח *</label>
+                        <input type="text" class="form-control" id="quick_customer_name" name="quick_customer_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quick_customer_phone" class="form-label">טלפון</label>
+                        <input type="tel" class="form-control" id="quick_customer_phone" name="quick_customer_phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="quick_customer_email" class="form-label">אימייל</label>
+                        <input type="email" class="form-control" id="quick_customer_email" name="quick_customer_email">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        הלקוח יתווסף ישירות לרשימת הלקוחות וינבחר אוטומטית
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" name="add_quick_customer" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i>הוסף לקוח
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- מודאל סורק ברקוד -->
+<div class="modal fade" id="barcodeScannerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-barcode me-2"></i>סריקת ברקוד מוצר</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- בחירת מצלמה -->
+                <div class="mb-3">
+                    <label for="cameraSelect" class="form-label">בחר מצלמה:</label>
+                    <select id="cameraSelect" class="form-select">
+                        <option value="">טוען מצלמות...</option>
+                    </select>
+                </div>
+
+                <!-- אזור הסריקה -->
+                <div class="text-center">
+                    <div id="scanner-container" style="position: relative; max-width: 100%; margin: 0 auto;">
+                        <video id="scanner-video" style="width: 100%; max-width: 640px; border: 3px solid #007bff; border-radius: 10px;"></video>
+                        <div id="scanner-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 100px; border: 2px dashed #28a745; pointer-events: none;">
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px;">
+                                <i class="fas fa-barcode fa-2x"></i>
+                                <p class="mb-0 mt-2">מקם את הברקוד באזור זה</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- סטטוס -->
+                <div id="scanner-status" class="mt-3">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>הנחיות:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>אפשר גישה למצלמה כאשר הדפדפן מבקש</li>
+                            <li>הצב את הברקוד מול המצלמה באזור המסומן</li>
+                            <li>ודא תאורה טובה</li>
+                            <li>הסריקה תתבצע אוטומטית</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- תוצאות סריקה -->
+                <div id="scanner-result" class="mt-3" style="display: none;">
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>מוצר נמצא!</h6>
+                        <div id="found-product-info"></div>
+                    </div>
+                </div>
+
+                <!-- שגיאות -->
+                <div id="scanner-error" class="mt-3" style="display: none;">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="error-message"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeScanner">סגור</button>
+                <button type="button" class="btn btn-primary" id="addScannedProduct" style="display: none;">
+                    <i class="fas fa-plus me-1"></i>הוסף לחשבונית
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script>
-        // חישוב אוטומטי של סכומים
+        // נתוני מוצרים ולקוחות מהשרת
+        const productsData = {{ products_json|safe }};
+        const customersData = {{ customers_json|safe }};
+        let selectedCustomerDiscount = 0;
+
+        // מילוי אוטומטי של מחיר מוצר
+        function fillProductPrice(productSelect) {
+            const productId = productSelect.value;
+            if (productId && productsData[productId]) {
+                const product = productsData[productId];
+                const row = productSelect.closest('.sale-item');
+                const priceInput = row.querySelector('input[name$="-unit_price"]');
+                const discountInput = row.querySelector('input[name$="-discount_percent"]');
+
+                // מילוי מחיר אוטומטי
+                if (priceInput && !priceInput.value) {
+                    priceInput.value = product.price.toFixed(2);
+                }
+
+                // מילוי הנחת לקוח אוטומטית
+                if (discountInput && selectedCustomerDiscount > 0) {
+                    discountInput.value = selectedCustomerDiscount.toFixed(2);
+                }
+
+                calculateTotals();
+            }
+        }
+
+        // עדכון הנחת לקוח
+        function updateCustomerDiscount() {
+            const customerSelect = document.querySelector('select[name="customer"]');
+            if (customerSelect && customerSelect.value) {
+                const customerId = customerSelect.value;
+                if (customersData[customerId]) {
+                    selectedCustomerDiscount = customersData[customerId].discount || 0;
+
+                    // עדכן הנחה בכל השורות הקיימות
+                    document.querySelectorAll('.sale-item').forEach(row => {
+                        const discountInput = row.querySelector('input[name$="-discount_percent"]');
+                        if (discountInput && selectedCustomerDiscount > 0) {
+                            discountInput.value = selectedCustomerDiscount.toFixed(2);
+                        }
+                    });
+
+                    calculateTotals();
+                }
+            }
+        }
+
+        // חישוב אוטומטי של סכומים (מחיר כולל מע"מ)
         function calculateTotals() {
-            let subtotal = 0;
+            const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 18;
+            let totalWithVat = 0;
+
             document.querySelectorAll('.sale-item').forEach((item, index) => {
                 const quantity = parseFloat(item.querySelector('input[name$="-quantity"]').value) || 0;
-                const unitPrice = parseFloat(item.querySelector('input[name$="-unit_price"]').value) || 0;
+                const unitPriceWithVat = parseFloat(item.querySelector('input[name$="-unit_price"]').value) || 0;
                 const discount = parseFloat(item.querySelector('input[name$="-discount_percent"]').value) || 0;
-                
-                const itemTotal = (quantity * unitPrice) * (1 - discount / 100);
-                item.querySelector(`#total-${index}`).value = '₪' + itemTotal.toFixed(2);
-                subtotal += itemTotal;
+
+                // חישוב סכום כולל (המחיר כבר כולל מע"מ)
+                const itemTotalWithVat = (quantity * unitPriceWithVat) * (1 - discount / 100);
+                const totalField = item.querySelector(`#total-${index}`);
+                if (totalField) {
+                    totalField.value = '₪' + itemTotalWithVat.toFixed(2);
+                }
+                totalWithVat += itemTotalWithVat;
             });
-            
-            document.querySelector('input[name="subtotal"]').value = subtotal.toFixed(2);
-            
-            const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
-            const taxAmount = subtotal * (taxRate / 100);
-            const totalAmount = subtotal + taxAmount;
-            
+
+            // הפרדת מע"מ מהסכום הכולל
+            // נוסחה: מחיר לפני מע"מ = מחיר כולל / (1 + אחוז מע"מ/100)
+            const subtotalBeforeVat = totalWithVat / (1 + taxRate / 100);
+            const taxAmount = totalWithVat - subtotalBeforeVat;
+
+            // עדכון התצוגה
+            document.querySelector('input[name="subtotal"]').value = subtotalBeforeVat.toFixed(2);
             document.getElementById('tax-amount').textContent = '₪' + taxAmount.toFixed(2);
-            document.getElementById('total-amount').textContent = '₪' + totalAmount.toFixed(2);
+            document.getElementById('total-amount').textContent = '₪' + totalWithVat.toFixed(2);
         }
-        
+
         // הוספת event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Event listener לשינוי מוצר - מילוי מחיר אוטומטי
+            document.querySelectorAll('.sale-item select[name$="-product"]').forEach(select => {
+                select.addEventListener('change', function() {
+                    fillProductPrice(this);
+                });
+            });
+
+            // Event listener לשינוי לקוח - מילוי הנחה אוטומטית
+            const customerSelect = document.querySelector('select[name="customer"]');
+            if (customerSelect) {
+                customerSelect.addEventListener('change', updateCustomerDiscount);
+                // עדכון ראשוני
+                updateCustomerDiscount();
+            }
+
+            // Event listeners לחישובים
             document.querySelectorAll('.sale-item input').forEach(input => {
                 input.addEventListener('input', calculateTotals);
             });
-            
+
             document.querySelector('input[name="tax_rate"]').addEventListener('input', calculateTotals);
-            
+
             // חישוב ראשוני
             calculateTotals();
+
+            // בחירת לקוח חדש שנוסף
+            {% if new_customer_id %}
+            if (customerSelect) {
+                customerSelect.value = '{{ new_customer_id }}';
+                updateCustomerDiscount();
+            }
+            {% endif %}
+
+            // ========== הוספת פריט חדש למכירה ==========
+            const addItemBtn = document.getElementById('add-item');
+            const saleItemsContainer = document.getElementById('sale-items');
+            const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
+
+            if (addItemBtn && totalFormsInput) {
+                addItemBtn.addEventListener('click', function() {
+                    const formCount = parseInt(totalFormsInput.value);
+
+                    // יצירת שורה חדשה
+                    const newRow = document.createElement('div');
+                    newRow.className = 'row mb-3 sale-item';
+
+                    // בניית האופציות מתוך productsData
+                    let optionsHTML = '<option value="">בחר מוצר</option>';
+                    for (const [productId, productData] of Object.entries(productsData)) {
+                        optionsHTML += `<option value="${productId}">${productData.name} - ₪${productData.price.toFixed(2)}</option>`;
+                    }
+
+                    newRow.innerHTML = `
+                        <div class="col-md-4">
+                            <label class="form-label">מוצר:</label>
+                            <select name="items-${formCount}-product" class="form-control" id="id_items-${formCount}-product" required>
+                                ${optionsHTML}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">כמות:</label>
+                            <input type="number" name="items-${formCount}-quantity" class="form-control" id="id_items-${formCount}-quantity" min="1" value="1" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">מחיר יחידה:</label>
+                            <input type="number" name="items-${formCount}-unit_price" class="form-control" id="id_items-${formCount}-unit_price" step="0.01" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">הנחה %:</label>
+                            <input type="number" name="items-${formCount}-discount_percent" class="form-control" id="id_items-${formCount}-discount_percent" step="0.01" value="0" min="0" max="100">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">סכום:</label>
+                            <input type="text" class="form-control" readonly id="total-${formCount}" value="₪0.00">
+                        </div>
+                        <input type="hidden" name="items-${formCount}-id" id="id_items-${formCount}-id">
+                    `;
+
+                    // הוספה לקונטיינר
+                    saleItemsContainer.appendChild(newRow);
+
+                    // עדכון מספר הטפסים
+                    totalFormsInput.value = formCount + 1;
+
+                    // הוספת event listeners לשורה החדשה
+                    const newProductSelect = newRow.querySelector('select[name$="-product"]');
+                    newProductSelect.addEventListener('change', function() {
+                        fillProductPrice(this);
+                    });
+
+                    const newInputs = newRow.querySelectorAll('input');
+                    newInputs.forEach(input => {
+                        input.addEventListener('input', calculateTotals);
+                    });
+                });
+            }
+        });
+
+        // ========== סורק ברקוד ==========
+        let quaggaRunning = false;
+        let lastScannedCode = '';
+        let lastScanTime = 0;
+
+        // פתיחת המודאל וסריקה
+        document.getElementById('barcodeScannerModal').addEventListener('shown.bs.modal', function() {
+            startBarcodeScanner();
+        });
+
+        // סגירת המודאל
+        document.getElementById('barcodeScannerModal').addEventListener('hidden.bs.modal', function() {
+            stopBarcodeScanner();
+        });
+
+        document.getElementById('closeScanner').addEventListener('click', function() {
+            stopBarcodeScanner();
+        });
+
+        // התחלת סריקה
+        function startBarcodeScanner() {
+            if (quaggaRunning) return;
+
+            // איפוס סטטוס
+            document.getElementById('scanner-result').style.display = 'none';
+            document.getElementById('scanner-error').style.display = 'none';
+            document.getElementById('addScannedProduct').style.display = 'none';
+
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner-video'),
+                    constraints: {
+                        width: 640,
+                        height: 480,
+                        facingMode: "environment"
+                    },
+                },
+                decoder: {
+                    readers: [
+                        "code_128_reader",
+                        "ean_reader",
+                        "ean_8_reader",
+                        "code_39_reader",
+                        "upc_reader",
+                        "upc_e_reader"
+                    ]
+                },
+                locate: true
+            }, function(err) {
+                if (err) {
+                    console.error('שגיאה באתחול Quagga:', err);
+                    showScannerError('לא ניתן לגשת למצלמה: ' + err.message);
+                    return;
+                }
+                console.log("Quagga initialized successfully");
+                Quagga.start();
+                quaggaRunning = true;
+            });
+
+            // טיפול בתוצאות סריקה
+            Quagga.onDetected(function(result) {
+                const code = result.codeResult.code;
+                const now = Date.now();
+
+                // מניעת סריקה כפולה (דבאונס של 2 שניות)
+                if (code === lastScannedCode && (now - lastScanTime) < 2000) {
+                    return;
+                }
+
+                lastScannedCode = code;
+                lastScanTime = now;
+
+                console.log('ברקוד נסרק:', code);
+                searchProductByBarcode(code);
+            });
+        }
+
+        // עצירת סריקה
+        function stopBarcodeScanner() {
+            if (quaggaRunning) {
+                Quagga.stop();
+                quaggaRunning = false;
+                console.log('סריקה הופסקה');
+            }
+        }
+
+        // חיפוש מוצר לפי ברקוד
+        function searchProductByBarcode(barcode) {
+            document.getElementById('scanner-status').innerHTML =
+                '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>מחפש מוצר...</div>';
+
+            fetch(`/api/products/barcode/?barcode=${encodeURIComponent(barcode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.product) {
+                        showProductFound(data.product);
+                    } else {
+                        showScannerError(data.message || 'מוצר לא נמצא במערכת');
+                    }
+                })
+                .catch(error => {
+                    console.error('שגיאה בחיפוש:', error);
+                    showScannerError('שגיאה בחיפוש המוצר');
+                });
+        }
+
+        // הצגת מוצר שנמצא
+        let foundProduct = null;
+        function showProductFound(product) {
+            foundProduct = product;
+
+            document.getElementById('scanner-status').style.display = 'none';
+            document.getElementById('scanner-error').style.display = 'none';
+
+            const resultDiv = document.getElementById('scanner-result');
+            const infoDiv = document.getElementById('found-product-info');
+
+            infoDiv.innerHTML = `
+                <table class="table table-sm table-bordered mt-2">
+                    <tr><th>שם:</th><td><strong>${product.name}</strong></td></tr>
+                    <tr><th>ברקוד:</th><td>${product.barcode}</td></tr>
+                    <tr><th>מחיר:</th><td>₪${product.price.toFixed(2)}</td></tr>
+                    <tr><th>מלאי:</th><td>${product.quantity} ${product.unit}</td></tr>
+                    ${product.category ? `<tr><th>קטגוריה:</th><td>${product.category}</td></tr>` : ''}
+                </table>
+            `;
+
+            resultDiv.style.display = 'block';
+            document.getElementById('addScannedProduct').style.display = 'inline-block';
+
+            // עצור סריקה זמנית
+            stopBarcodeScanner();
+        }
+
+        // הצגת שגיאה
+        function showScannerError(message) {
+            document.getElementById('scanner-status').style.display = 'none';
+            document.getElementById('scanner-result').style.display = 'none';
+
+            const errorDiv = document.getElementById('scanner-error');
+            document.getElementById('error-message').textContent = message;
+            errorDiv.style.display = 'block';
+
+            // המשך סריקה אחרי 3 שניות
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+                if (!quaggaRunning) {
+                    startBarcodeScanner();
+                }
+            }, 3000);
+        }
+
+        // הוספת מוצר שנסרק לחשבונית
+        document.getElementById('addScannedProduct').addEventListener('click', function() {
+            if (!foundProduct) return;
+
+            // מצא שורה ריקה או הוסף שורה חדשה
+            const emptyRow = Array.from(document.querySelectorAll('.sale-item')).find(row => {
+                const productSelect = row.querySelector('select[name$="-product"]');
+                return !productSelect.value;
+            });
+
+            let targetRow = emptyRow;
+            if (!targetRow) {
+                // TODO: הוסף שורה חדשה (צריך להוסיף פונקציונליות של formset)
+                alert('אנא הוסף שורה ריקה בטופס תחילה');
+                return;
+            }
+
+            // מלא את הנתונים
+            const productSelect = targetRow.querySelector('select[name$="-product"]');
+            const quantityInput = targetRow.querySelector('input[name$="-quantity"]');
+            const priceInput = targetRow.querySelector('input[name$="-unit_price"]');
+            const discountInput = targetRow.querySelector('input[name$="-discount_percent"]');
+
+            productSelect.value = foundProduct.id;
+            quantityInput.value = 1;
+            priceInput.value = foundProduct.price.toFixed(2);
+
+            if (selectedCustomerDiscount > 0) {
+                discountInput.value = selectedCustomerDiscount.toFixed(2);
+            }
+
+            // חשב סכומים
+            calculateTotals();
+
+            // סגור מודאל
+            const modal = bootstrap.Modal.getInstance(document.getElementById('barcodeScannerModal'));
+            modal.hide();
+
+            // הצג הודעה
+            alert(`${foundProduct.name} נוסף לחשבונית!`);
         });
     </script>
 {% endblock %}

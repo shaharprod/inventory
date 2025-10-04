@@ -26,19 +26,54 @@ body {
 .navbar {
     background-color: var(--bg-secondary) !important;
     border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
 }
 
-.navbar-brand, .navbar-nav .nav-link {
+.navbar-brand {
     color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    font-size: 1.25rem !important;
+}
+
+.navbar-brand:hover {
+    color: var(--accent-color) !important;
+}
+
+.navbar-collapse {
+    justify-content: flex-end !important;
+}
+
+.navbar-nav {
+    margin-right: 0 !important;
+    margin-left: auto !important;
+    flex-direction: row !important;
+}
+
+.navbar-nav .nav-link {
+    color: var(--text-primary) !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 4px !important;
+    margin: 0 0.2rem !important;
+    transition: all 0.3s ease !important;
 }
 
 .navbar-nav .nav-link:hover {
     color: var(--accent-color) !important;
+    background-color: rgba(0, 123, 255, 0.1) !important;
 }
 
 .navbar-nav .nav-link.active {
     color: var(--accent-color) !important;
     background-color: var(--bg-tertiary) !important;
+    font-weight: 600 !important;
+}
+
+.navbar-toggler {
+    border-color: var(--border-color) !important;
+}
+
+.navbar-toggler-icon {
+    filter: invert(1) !important;
 }
 
 /* Cards */
@@ -46,29 +81,63 @@ body {
     background-color: var(--bg-secondary) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
+    border-radius: 8px !important;
+    margin-bottom: 1.5rem !important;
 }
 
 .card-header {
     background-color: var(--bg-tertiary) !important;
     border-bottom: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    padding: 1rem 1.25rem !important;
+}
+
+.card-body {
+    padding: 1.25rem !important;
+}
+
+.card-footer {
+    background-color: var(--bg-tertiary) !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 1rem 1.25rem !important;
 }
 
 /* Tables */
 .table {
     color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.table thead th {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    font-weight: 600 !important;
+    padding: 0.75rem !important;
+}
+
+.table tbody td {
+    padding: 0.75rem !important;
+    border-color: var(--border-color) !important;
 }
 
 .table-dark {
     background-color: var(--bg-secondary) !important;
 }
 
-.table-striped > tbody > tr:nth-of-type(odd) > td {
-    background-color: var(--bg-tertiary) !important;
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.table-hover tbody tr {
+    transition: background-color 0.2s ease !important;
 }
 
 .table-hover tbody tr:hover {
     background-color: var(--bg-tertiary) !important;
+    cursor: pointer !important;
 }
 
 /* Forms */
@@ -76,6 +145,9 @@ body {
     background-color: var(--bg-tertiary) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 4px !important;
+    transition: all 0.3s ease !important;
 }
 
 .form-control:focus {
@@ -83,21 +155,39 @@ body {
     border-color: var(--accent-color) !important;
     color: var(--text-primary) !important;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+    outline: none !important;
+}
+
+.form-control::placeholder {
+    color: var(--text-muted) !important;
 }
 
 .form-label {
     color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
 }
 
 .form-select {
     background-color: var(--bg-tertiary) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem !important;
+    border-radius: 4px !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-select:focus {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+    outline: none !important;
 }
 
 .form-check-input {
     background-color: var(--bg-tertiary) !important;
     border: 1px solid var(--border-color) !important;
+    cursor: pointer !important;
 }
 
 .form-check-input:checked {
@@ -105,9 +195,43 @@ body {
     border-color: var(--accent-color) !important;
 }
 
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+    outline: none !important;
+}
+
+.form-check-label {
+    color: var(--text-primary) !important;
+    cursor: pointer !important;
+}
+
+textarea.form-control {
+    min-height: 100px !important;
+    resize: vertical !important;
+}
+
 /* Buttons */
 .btn {
     font-weight: 500 !important;
+    border-radius: 4px !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    border-width: 1px !important;
+}
+
+.btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+}
+
+.btn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+}
+
+.btn i {
+    margin-left: 0.5rem !important;
 }
 
 .btn-primary {

@@ -1,0 +1,83 @@
+{% extends 'inventory/base.html' %}
+
+{% block title %}מחיקת חשבונית {{ sale.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>אישור מחיקת חשבונית</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-info-circle me-2"></i>שים לב!</h5>
+                    <p class="mb-0">פעולה זו תמחק את החשבונית לצמיתות ותחזיר את המלאי.</p>
+                </div>
+
+                <h5>פרטי החשבונית שתימחק:</h5>
+                <table class="table table-bordered">
+                    <tr>
+                        <th style="width: 30%;">מספר חשבונית:</th>
+                        <td><strong class="text-danger">{{ sale.invoice_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>תאריך:</th>
+                        <td>{{ sale.sale_date|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>לקוח:</th>
+                        <td>{{ sale.customer.name|default:"לקוח כללי" }}</td>
+                    </tr>
+                    <tr>
+                        <th>חנות:</th>
+                        <td>{{ sale.location.name|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>סכום כולל:</th>
+                        <td><strong>₪{{ sale.total_amount|floatformat:2 }}</strong></td>
+                    </tr>
+                </table>
+
+                <h5 class="mt-4">פריטים שיוחזרו למלאי:</h5>
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>מוצר</th>
+                            <th>כמות</th>
+                            <th>מחיר</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in sale.items.all %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }} יחידות</td>
+                            <td>₪{{ item.total_price|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-undo me-2"></i>
+                    המלאי יוחזר אוטומטית ל{{ sale.location.name|default:"המלאי הכללי" }}
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i>ביטול
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash me-2"></i>אישור מחיקה
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

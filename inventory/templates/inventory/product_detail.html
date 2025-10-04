@@ -14,14 +14,20 @@
                                 <p class="mb-0 opacity-75">{{ product.description|default:"ללא תיאור" }}</p>
                             </div>
                             <div class="col-md-4 text-end">
-                                <div class="d-flex gap-2 justify-content-end">
-                                    <a href="{% url 'edit_product' product.pk %}" class="btn btn-light">
+                                <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                    <a href="{% url 'edit_product' product.pk %}" class="btn btn-warning">
                                         <i class="fas fa-edit me-1"></i>ערוך
                                     </a>
-                                    <a href="{% url 'stock_movement' product.pk %}" class="btn btn-outline-light">
+                                    <a href="{% url 'delete_product' product.pk %}" class="btn btn-danger">
+                                        <i class="fas fa-trash me-1"></i>מחק
+                                    </a>
+                                    <a href="{% url 'distribute_stock' product.pk %}" class="btn btn-success">
+                                        <i class="fas fa-balance-scale me-1"></i>חלק מלאי
+                                    </a>
+                                    <a href="{% url 'stock_movement' product.pk %}" class="btn btn-info">
                                         <i class="fas fa-exchange-alt me-1"></i>תנועת מלאי
                                     </a>
-                                    <a href="{% url 'product_list' %}" class="btn btn-outline-light">
+                                    <a href="{% url 'product_list' %}" class="btn btn-secondary">
                                         <i class="fas fa-arrow-right me-1"></i>חזור
                                     </a>
                                 </div>
@@ -50,7 +56,7 @@
                                 <code>{{ product.barcode|default:"ללא" }}</code>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-6">
                                 <strong>קטגוריה:</strong><br>
@@ -176,14 +182,14 @@
                                 {% if product.product_image %}
                                     <div class="col-md-6">
                                         <h6>תמונת מוצר:</h6>
-                                        <img src="{{ product.product_image.url }}" alt="תמונת מוצר" 
+                                        <img src="{{ product.product_image.url }}" alt="תמונת מוצר"
                                              class="img-fluid rounded" style="max-height: 300px;">
                                     </div>
                                 {% endif %}
                                 {% if product.barcode_image %}
                                     <div class="col-md-6">
                                         <h6>ברקוד:</h6>
-                                        <img src="{{ product.barcode_image.url }}" alt="ברקוד" 
+                                        <img src="{{ product.barcode_image.url }}" alt="ברקוד"
                                              class="img-fluid rounded" style="max-height: 300px;">
                                     </div>
                                 {% endif %}

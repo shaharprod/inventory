@@ -68,6 +68,108 @@
             </div>
         </div>
 
+        <!-- הפרדת מלאי: מחסן, חנות, כללי -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3"><i class="fas fa-warehouse me-2"></i>פילוח מלאי לפי מיקום</h4>
+            </div>
+
+            <!-- מלאי כללי -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>מלאי כללי</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6 mb-3">
+                                <h3 class="text-primary">{{ total_products }}</h3>
+                                <small class="text-muted">סה"כ מוצרים</small>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <h3 class="text-success">₪{{ total_stock_value|floatformat:0 }}</h3>
+                                <small class="text-muted">ערך מלאי</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-warning">{{ low_stock_products }}</h4>
+                                <small class="text-muted">מלאי נמוך</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-danger">{{ out_of_stock_products }}</h4>
+                                <small class="text-muted">אזל מהמלאי</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- מלאי מחסן -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-warehouse me-2"></i>מלאי מחסן</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6 mb-3">
+                                <h3 class="text-info">{{ warehouse_total }}</h3>
+                                <small class="text-muted">מוצרים שונים</small>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <h3 class="text-info">{{ warehouse_quantity }}</h3>
+                                <small class="text-muted">יח' במלאי</small>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <h4 class="text-success">₪{{ warehouse_value|floatformat:0 }}</h4>
+                                <small class="text-muted">ערך מלאי</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-warning">{{ warehouse_low_stock }}</h5>
+                                <small class="text-muted">נמוך</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-danger">{{ warehouse_out_of_stock }}</h5>
+                                <small class="text-muted">אזל</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- מלאי חנות -->
+            <div class="col-md-4 mb-3">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-store me-2"></i>מלאי חנות</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6 mb-3">
+                                <h3 class="text-success">{{ store_total }}</h3>
+                                <small class="text-muted">מוצרים שונים</small>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <h3 class="text-success">{{ store_quantity }}</h3>
+                                <small class="text-muted">יח' במלאי</small>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <h4 class="text-success">₪{{ store_value|floatformat:0 }}</h4>
+                                <small class="text-muted">ערך מלאי</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-warning">{{ store_low_stock }}</h5>
+                                <small class="text-muted">נמוך</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-danger">{{ store_out_of_stock }}</h5>
+                                <small class="text-muted">אזל</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <!-- התראות -->
             <div class="col-md-6 mb-4">

@@ -10,6 +10,15 @@ Pillow>=10.0.0
 # יצירת PDF לחשבוניות
 reportlab>=4.0.0
 
+# ברקודים
+python-barcode>=0.15.1
+
+# QR Codes (לחשבוניות דיגיטליות)
+qrcode[pil]>=7.4.2
+
+# תאריכים (לגיבוי ושחזור)
+python-dateutil>=2.8.2
+
 # שרת production (אופציונלי)
 # הסר # להתקנה
 # gunicorn>=21.0.0  # Linux/Mac

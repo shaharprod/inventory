@@ -1,6 +1,6 @@
 from django import forms
 from .models import (
-    Product, Category, Supplier, Location, StockMovement, Alert, 
+    Product, Category, Supplier, Location, StockMovement, Alert,
     Customer, Sale, SaleItem, InventoryTransfer, TransferItem,
     CustomerSaleHistory, CustomerNote, CustomerAlert, InvoiceTemplate
 )
@@ -35,8 +35,8 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = [
-            'name', 'description', 'category', 'supplier', 'location',
-            'quantity', 'min_quantity', 'max_quantity', 'unit',
+            'name', 'description', 'category', 'supplier',
+            'min_quantity', 'max_quantity', 'unit',
             'cost_price', 'selling_price', 'barcode', 'status',
             'weight', 'dimensions', 'notes', 'barcode_image', 'product_image'
         ]
@@ -45,12 +45,17 @@ class ProductForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'rows': 3}),
             'dimensions': forms.TextInput(attrs={'placeholder': 'LxWxH (לדוגמה: 10x5x3)'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # הוספת CSS classes
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+
+        # הפיכת שדות מסוימים לאופציונליים
+        self.fields['category'].required = False
+        self.fields['supplier'].required = False
+        self.fields['barcode'].required = False
 
 class StockMovementForm(forms.ModelForm):
     class Meta:
@@ -59,7 +64,7 @@ class StockMovementForm(forms.ModelForm):
         widgets = {
             'reason': forms.Textarea(attrs={'rows': 2}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         self.product = kwargs.pop('product', None)
         super().__init__(*args, **kwargs)
@@ -122,7 +127,7 @@ class BulkUpdateForm(forms.Form):
         ('change_status', 'שנה סטטוס'),
         ('change_category', 'שנה קטגוריה'),
     ]
-    
+
     action = forms.ChoiceField(choices=ACTION_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
     value = forms.DecimalField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     new_status = forms.ChoiceField(
@@ -176,9 +181,10 @@ class CustomerForm(forms.ModelForm):
 class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
-        fields = ['customer', 'status', 'payment_status', 'subtotal', 'tax_rate', 'notes', 'sale_date']
+        fields = ['customer', 'location', 'status', 'payment_status', 'subtotal', 'tax_rate', 'notes', 'sale_date']
         widgets = {
             'customer': forms.Select(attrs={'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'payment_status': forms.Select(attrs={'class': 'form-control'}),
             'subtotal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -186,6 +192,16 @@ class SaleForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'sale_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # הצג חנויות ומחסנים פעילים
+        from .models import Location
+        self.fields['location'].queryset = Location.objects.filter(
+            is_active=True
+        ).order_by('location_type', 'name')
+        self.fields['location'].label = "מיקום מכירה"
+        self.fields['location'].help_text = "בחר חנות או מחסן למכירה"
 
 class SaleItemForm(forms.ModelForm):
     class Meta:
@@ -224,7 +240,7 @@ class TransferItemForm(forms.ModelForm):
 
 # Formset לפריטי מכירה
 SaleItemFormSet = forms.inlineformset_factory(
-    Sale, SaleItem, 
+    Sale, SaleItem,
     form=SaleItemForm,
     extra=1,
     can_delete=True,
@@ -271,7 +287,7 @@ class InvoiceTemplateForm(forms.ModelForm):
         model = InvoiceTemplate
         fields = [
             'name', 'is_default', 'header_text', 'footer_text',
-            'company_name', 'company_address', 'company_phone', 
+            'company_name', 'company_address', 'company_phone',
             'company_email', 'company_tax_id', 'logo', 'is_active'
         ]
         widgets = {
@@ -324,7 +340,7 @@ class LocationForm(forms.ModelForm):
         model = Location
         fields = [
             'name', 'location_type', 'description', 'address', 'city', 'postal_code',
-            'phone', 'email', 'manager_name', 'capacity', 'is_active', 
+            'phone', 'email', 'manager_name', 'capacity', 'is_active',
             'is_main_warehouse', 'is_main_store'
         ]
         widgets = {

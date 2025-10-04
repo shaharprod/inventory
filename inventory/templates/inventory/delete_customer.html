@@ -1,0 +1,62 @@
+{% extends 'inventory/base.html' %}
+
+{% block title %}מחיקת לקוח - {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>אישור מחיקת לקוח</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-info-circle me-2"></i>שים לב!</h5>
+                    <p class="mb-0">מחיקת לקוח זה תמחק גם את כל ההיסטוריה, ההערות וההתראות המשויכות אליו.</p>
+                </div>
+
+                <h5>פרטי הלקוח שיימחק:</h5>
+                <table class="table table-bordered">
+                    <tr>
+                        <th style="width: 30%;">שם לקוח:</th>
+                        <td><strong class="text-danger">{{ customer.name }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>סוג לקוח:</th>
+                        <td>{{ customer.get_customer_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>טלפון:</th>
+                        <td>{{ customer.phone|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>אימייל:</th>
+                        <td>{{ customer.email|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>סה"כ רכישות:</th>
+                        <td>₪{{ customer.total_purchases|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>סה"כ הזמנות:</th>
+                        <td>{{ customer.total_orders }}</td>
+                    </tr>
+                </table>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i>ביטול
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash me-2"></i>אישור מחיקה
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

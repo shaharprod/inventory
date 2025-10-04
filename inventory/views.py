@@ -1846,3 +1846,156 @@ def customer_reports(request):
         'customers_without_purchases': customers_without_purchases,
     }
     return render(request, 'inventory/customer_reports.html', context)
+
+# פונקציות גיבוי ושחזור נתונים
+def backup_database(request):
+    """יצירת גיבוי של כל בסיס הנתונים"""
+    import os
+    import shutil
+    from datetime import datetime
+    
+    try:
+        # יצירת תיקיית גיבויים אם לא קיימת
+        backup_dir = os.path.join('backups')
+        os.makedirs(backup_dir, exist_ok=True)
+        
+        # שם קובץ הגיבוי עם תאריך ושעה
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_filename = f'backup_{timestamp}.sqlite3'
+        backup_path = os.path.join(backup_dir, backup_filename)
+        
+        # העתקת בסיס הנתונים
+        db_path = 'db.sqlite3'
+        if os.path.exists(db_path):
+            shutil.copy2(db_path, backup_path)
+            
+            # גיבוי קבצי מדיה
+            media_backup = os.path.join(backup_dir, f'media_{timestamp}')
+            if os.path.exists('media'):
+                shutil.copytree('media', media_backup, dirs_exist_ok=True)
+            
+            file_size = os.path.getsize(backup_path) / 1024 / 1024  # MB
+            messages.success(request, f'✅ גיבוי נוצר בהצלחה! ({file_size:.2f} MB)')
+            messages.info(request, f'📁 הקובץ נשמר ב: {backup_path}')
+        else:
+            messages.error(request, '❌ לא נמצא קובץ בסיס נתונים!')
+            
+    except Exception as e:
+        messages.error(request, f'❌ שגיאה ביצירת גיבוי: {str(e)}')
+    
+    return redirect('dashboard')
+
+def list_backups(request):
+    """הצגת רשימת גיבויים זמינים"""
+    import os
+    from datetime import datetime
+    
+    backup_dir = 'backups'
+    backups = []
+    
+    if os.path.exists(backup_dir):
+        for filename in sorted(os.listdir(backup_dir), reverse=True):
+            if filename.startswith('backup_') and filename.endswith('.sqlite3'):
+                filepath = os.path.join(backup_dir, filename)
+                file_stat = os.stat(filepath)
+                
+                backups.append({
+                    'filename': filename,
+                    'filepath': filepath,
+                    'size': file_stat.st_size / 1024 / 1024,  # MB
+                    'created': datetime.fromtimestamp(file_stat.st_mtime),
+                    'timestamp': filename.replace('backup_', '').replace('.sqlite3', '')
+                })
+    
+    context = {
+        'backups': backups,
+        'total_backups': len(backups),
+        'total_size': sum(b['size'] for b in backups)
+    }
+    return render(request, 'inventory/backup_list.html', context)
+
+def restore_database(request):
+    """שחזור בסיס נתונים מגיבוי"""
+    import os
+    import shutil
+    from datetime import datetime
+    
+    if request.method == 'POST':
+        backup_file = request.POST.get('backup_file')
+        
+        if not backup_file:
+            messages.error(request, '❌ לא נבחר קובץ גיבוי!')
+            return redirect('list_backups')
+        
+        try:
+            backup_path = os.path.join('backups', backup_file)
+            
+            if not os.path.exists(backup_path):
+                messages.error(request, '❌ קובץ הגיבוי לא נמצא!')
+                return redirect('list_backups')
+            
+            # יצירת גיבוי אוטומטי לפני השחזור
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            safety_backup = f'db_before_restore_{timestamp}.sqlite3'
+            shutil.copy2('db.sqlite3', os.path.join('backups', safety_backup))
+            
+            # שחזור בסיס הנתונים
+            shutil.copy2(backup_path, 'db.sqlite3')
+            
+            # שחזור קבצי מדיה אם קיימים
+            media_backup = backup_file.replace('backup_', 'media_').replace('.sqlite3', '')
+            media_backup_path = os.path.join('backups', media_backup)
+            if os.path.exists(media_backup_path):
+                if os.path.exists('media'):
+                    shutil.rmtree('media')
+                shutil.copytree(media_backup_path, 'media')
+            
+            messages.success(request, f'✅ בסיס הנתונים שוחזר בהצלחה מ: {backup_file}')
+            messages.info(request, f'💾 גיבוי אוטומטי נוצר: {safety_backup}')
+            messages.warning(request, '⚠️ יש לטעון מחדש את הדף כדי לראות את השינויים')
+            
+        except Exception as e:
+            messages.error(request, f'❌ שגיאה בשחזור: {str(e)}')
+    
+    return redirect('list_backups')
+
+def download_backup(request, filename):
+    """הורדת קובץ גיבוי"""
+    import os
+    from django.http import FileResponse
+    
+    backup_path = os.path.join('backups', filename)
+    
+    if os.path.exists(backup_path):
+        response = FileResponse(open(backup_path, 'rb'), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    else:
+        messages.error(request, '❌ קובץ הגיבוי לא נמצא!')
+        return redirect('list_backups')
+
+def delete_backup(request, filename):
+    """מחיקת קובץ גיבוי"""
+    import os
+    import shutil
+    
+    if request.method == 'POST':
+        backup_path = os.path.join('backups', filename)
+        
+        if os.path.exists(backup_path):
+            try:
+                os.remove(backup_path)
+                
+                # מחיקת תיקיית המדיה המתאימה
+                media_backup = filename.replace('backup_', 'media_').replace('.sqlite3', '')
+                media_backup_path = os.path.join('backups', media_backup)
+                if os.path.exists(media_backup_path):
+                    shutil.rmtree(media_backup_path)
+                
+                messages.success(request, f'✅ הגיבוי "{filename}" נמחק בהצלחה!')
+            except Exception as e:
+                messages.error(request, f'❌ שגיאה במחיקת הגיבוי: {str(e)}')
+        else:
+            messages.error(request, '❌ קובץ הגיבוי לא נמצא!')
+    
+    return redirect('list_backups')

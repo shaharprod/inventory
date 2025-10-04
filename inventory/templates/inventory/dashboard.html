@@ -348,6 +348,61 @@
             </div>
         </div>
 
+        <!-- גיבוי ושחזור נתונים -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>גיבוי ושחזור נתונים</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-light h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                                        <h6>גיבוי מהיר</h6>
+                                        <p class="small text-muted">צור גיבוי מלא של כל הנתונים</p>
+                                        <a href="{% url 'backup_database' %}" class="btn btn-primary w-100">
+                                            <i class="fas fa-save me-1"></i>צור גיבוי עכשיו
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-history fa-3x text-success mb-3"></i>
+                                        <h6>שחזור נתונים</h6>
+                                        <p class="small text-muted">שחזר נתונים מגיבוי קודם</p>
+                                        <a href="{% url 'list_backups' %}" class="btn btn-success w-100">
+                                            <i class="fas fa-undo me-1"></i>רשימת גיבויים
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-cog fa-3x text-info mb-3"></i>
+                                        <h6>ניהול גיבויים</h6>
+                                        <p class="small text-muted">צפה, הורד ומחק גיבויים</p>
+                                        <a href="{% url 'list_backups' %}" class="btn btn-info w-100">
+                                            <i class="fas fa-list me-1"></i>ניהול גיבויים
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>חשוב!</strong> מומלץ ליצור גיבוי באופן קבוע. הגיבוי כולל את כל הנתונים + קבצי מדיה.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- כפתורי פעולה מהירה -->
         <div class="row">
             <div class="col-12">

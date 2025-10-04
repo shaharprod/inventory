@@ -81,4 +81,11 @@ urlpatterns = [
     path('locations/<int:pk>/', views.location_detail, name='location_detail'),
     path('locations/<int:pk>/edit/', views.edit_location, name='edit_location'),
     path('locations/<int:pk>/delete/', views.delete_location, name='delete_location'),
+    
+    # גיבוי ושחזור
+    path('backup/create/', views.backup_database, name='backup_database'),
+    path('backup/list/', views.list_backups, name='list_backups'),
+    path('backup/restore/', views.restore_database, name='restore_database'),
+    path('backup/download/<str:filename>/', views.download_backup, name='download_backup'),
+    path('backup/delete/<str:filename>/', views.delete_backup, name='delete_backup'),
 ]

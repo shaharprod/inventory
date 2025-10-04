@@ -1,0 +1,216 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+
+{% block title %}ניהול גיבויים - מערכת ניהול מלאי{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-database me-2"></i>ניהול גיבויים</h2>
+                <div>
+                    <a href="{% url 'backup_database' %}" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>צור גיבוי חדש
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>חזור לדשבורד
+                    </a>
+                </div>
+            </div>
+
+            <!-- הודעות -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- סטטיסטיקות -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-folder-open fa-3x text-primary mb-2"></i>
+                            <h3>{{ total_backups }}</h3>
+                            <p class="text-muted mb-0">גיבויים זמינים</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-hdd fa-3x text-info mb-2"></i>
+                            <h3>{{ total_size|floatformat:2 }} MB</h3>
+                            <p class="text-muted mb-0">סה"כ נפח גיבויים</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-shield-alt fa-3x text-success mb-2"></i>
+                            <h3>{% if total_backups > 0 %}מוגן{% else %}לא מוגן{% endif %}</h3>
+                            <p class="text-muted mb-0">סטטוס גיבוי</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- רשימת גיבויים -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>רשימת גיבויים זמינים</h5>
+                </div>
+                <div class="card-body">
+                    {% if backups %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>שם קובץ</th>
+                                        <th>תאריך ושעה</th>
+                                        <th>גודל</th>
+                                        <th>פעולות</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for backup in backups %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-file-archive text-primary me-2"></i>
+                                            <strong>{{ backup.filename }}</strong>
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-calendar-alt text-muted me-1"></i>
+                                            {{ backup.created|date:"d/m/Y H:i" }}
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-hdd text-info me-1"></i>
+                                            {{ backup.size|floatformat:2 }} MB
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <!-- כפתור שחזור -->
+                                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#restoreModal{{ forloop.counter }}" title="שחזור">
+                                                    <i class="fas fa-undo"></i> שחזור
+                                                </button>
+                                                
+                                                <!-- כפתור הורדה -->
+                                                <a href="{% url 'download_backup' backup.filename %}" class="btn btn-info" title="הורדה">
+                                                    <i class="fas fa-download"></i> הורד
+                                                </a>
+                                                
+                                                <!-- כפתור מחיקה -->
+                                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ forloop.counter }}" title="מחיקה">
+                                                    <i class="fas fa-trash"></i> מחק
+                                                </button>
+                                            </div>
+
+                                            <!-- Modal שחזור -->
+                                            <div class="modal fade" id="restoreModal{{ forloop.counter }}" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-success text-white">
+                                                            <h5 class="modal-title">שחזור גיבוי</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="alert alert-warning">
+                                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                <strong>אזהרה!</strong> פעולה זו תחליף את כל הנתונים הנוכחיים.
+                                                            </div>
+                                                            <p><strong>שם קובץ:</strong> {{ backup.filename }}</p>
+                                                            <p><strong>תאריך:</strong> {{ backup.created|date:"d/m/Y H:i" }}</p>
+                                                            <p><strong>גודל:</strong> {{ backup.size|floatformat:2 }} MB</p>
+                                                            <p class="text-muted">גיבוי אוטומטי יווצר לפני השחזור.</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                <i class="fas fa-times me-1"></i>ביטול
+                                                            </button>
+                                                            <form method="post" action="{% url 'restore_database' %}" style="display: inline;">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="backup_file" value="{{ backup.filename }}">
+                                                                <button type="submit" class="btn btn-success">
+                                                                    <i class="fas fa-undo me-1"></i>אשר שחזור
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Modal מחיקה -->
+                                            <div class="modal fade" id="deleteModal{{ forloop.counter }}" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title">מחיקת גיבוי</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>האם אתה בטוח שברצונך למחוק את הגיבוי?</p>
+                                                            <p><strong>שם קובץ:</strong> {{ backup.filename }}</p>
+                                                            <p><strong>תאריך:</strong> {{ backup.created|date:"d/m/Y H:i" }}</p>
+                                                            <div class="alert alert-danger">
+                                                                <i class="fas fa-exclamation-circle me-2"></i>
+                                                                פעולה זו אינה הפיכה!
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                <i class="fas fa-times me-1"></i>ביטול
+                                                            </button>
+                                                            <form method="post" action="{% url 'delete_backup' backup.filename %}" style="display: inline;">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-danger">
+                                                                    <i class="fas fa-trash me-1"></i>אשר מחיקה
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <h5>אין גיבויים זמינים</h5>
+                            <p class="mb-3">לא נמצאו גיבויים במערכת. צור גיבוי ראשון כדי להתחיל.</p>
+                            <a href="{% url 'backup_database' %}" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>צור גיבוי ראשון
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- טיפים -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>טיפים חשובים</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li><strong>גיבוי קבוע:</strong> מומלץ ליצור גיבוי לפחות פעם ביום או לפני שינויים גדולים.</li>
+                        <li><strong>שמירה חיצונית:</strong> הורד גיבויים חשובים לדיסק חיצוני או ענן.</li>
+                        <li><strong>בדיקת גיבוי:</strong> בדוק מדי פעם שניתן לשחזר גיבוי בהצלחה.</li>
+                        <li><strong>גיבוי אוטומטי:</strong> המערכת יוצרת גיבוי אוטומטי לפני כל שחזור.</li>
+                        <li><strong>קבצי מדיה:</strong> הגיבוי כולל גם תמונות מוצרים וברקודים.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

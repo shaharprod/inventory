@@ -38,7 +38,7 @@ def dashboard(request):
     low_stock_products = Product.objects.filter(quantity__lte=F('min_quantity')).count()
     out_of_stock_products = Product.objects.filter(quantity=0).count()
     total_stock_value = Product.objects.aggregate(
-        total=Sum(F('quantity') * F('cost_price'))
+        total=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     )['total'] or 0
 
     # סטטיסטיקות מחסן (מתוך ProductLocationStock)
@@ -49,7 +49,7 @@ def dashboard(request):
     warehouse_low_stock = warehouse_stock.filter(quantity__lte=F('min_quantity')).count()
     warehouse_out_of_stock = warehouse_stock.filter(quantity=0).count()
     warehouse_value = warehouse_stock.aggregate(
-        total=Sum(F('quantity') * F('product__cost_price'))
+        total=Sum(F('quantity') * Coalesce(F('product__cost_price'), 0))
     )['total'] or 0
 
     # סטטיסטיקות חנות (מתוך ProductLocationStock)
@@ -60,7 +60,7 @@ def dashboard(request):
     store_low_stock = store_stock.filter(quantity__lte=F('min_quantity')).count()
     store_out_of_stock = store_stock.filter(quantity=0).count()
     store_value = store_stock.aggregate(
-        total=Sum(F('quantity') * F('product__cost_price'))
+        total=Sum(F('quantity') * Coalesce(F('product__cost_price'), 0))
     )['total'] or 0
 
     # התראות
@@ -81,14 +81,14 @@ def dashboard(request):
     # סטטיסטיקות לפי קטגוריה
     category_stats = Product.objects.values('category__name').annotate(
         count=Count('id'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-count')[:5]
 
     # סטטיסטיקות לפי מיקום
     location_stats = Product.objects.values('location__name', 'location__location_type').annotate(
         count=Count('id'),
         total_quantity=Sum('quantity'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-total_value')[:10]
 
     # לקוחות אחרונים
@@ -577,7 +577,7 @@ def reports(request):
     low_stock_products = Product.objects.filter(quantity__lte=F('min_quantity')).count()
     out_of_stock_products = Product.objects.filter(quantity=0).count()
     total_stock_value = Product.objects.aggregate(
-        total=Sum(F('quantity') * F('cost_price'))
+        total=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     )['total'] or 0
 
     # דוח מלאי נמוך
@@ -585,8 +585,8 @@ def reports(request):
 
     # דוח ערך מלאי
     stock_value = Product.objects.aggregate(
-        total_cost=Sum(F('quantity') * F('cost_price')),
-        total_selling=Sum(F('quantity') * F('selling_price'))
+        total_cost=Sum(F('quantity') * Coalesce(F('cost_price'), 0)),
+        total_selling=Sum(F('quantity') * Coalesce(F('selling_price'), 0))
     )
 
     # דוח תנועות מלאי
@@ -602,13 +602,13 @@ def reports(request):
     category_report = Product.objects.values('category__name').annotate(
         count=Count('id'),
         total_quantity=Sum('quantity'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-total_value')
 
     # דוח ספקים
     supplier_stats = Product.objects.values('supplier__name').annotate(
         count=Count('id'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-count')[:10]
 
     # דוח מוצרים עם הרווח הגבוה ביותר
@@ -884,7 +884,7 @@ def export_full_report_csv(request):
     low_stock_products = Product.objects.filter(quantity__lte=F('min_quantity')).count()
     out_of_stock_products = Product.objects.filter(quantity=0).count()
     total_stock_value = Product.objects.aggregate(
-        total=Sum(F('quantity') * F('cost_price'))
+        total=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     )['total'] or 0
 
     writer.writerow(['סה"כ מוצרים', total_products])
@@ -899,7 +899,7 @@ def export_full_report_csv(request):
     for item in Product.objects.values('category__name').annotate(
         count=Count('id'),
         total_quantity=Sum('quantity'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-total_value'):
         writer.writerow([
             item['category__name'] or 'ללא קטגוריה',
@@ -915,7 +915,7 @@ def export_full_report_csv(request):
     for item in Product.objects.values('supplier__name').annotate(
         count=Count('id'),
         total_quantity=Sum('quantity'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-count'):
         writer.writerow([
             item['supplier__name'] or 'ללא ספק',
@@ -981,14 +981,14 @@ def export_reports_json(request):
     low_stock_products = Product.objects.filter(quantity__lte=F('min_quantity')).count()
     out_of_stock_products = Product.objects.filter(quantity=0).count()
     total_stock_value = Product.objects.aggregate(
-        total=Sum(F('quantity') * F('cost_price'))
+        total=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     )['total'] or 0
 
     # דוח לפי קטגוריות
     category_report = []
     for item in Product.objects.values('category__name').annotate(
         count=Count('id'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-total_value'):
         category_report.append({
             'category_name': item['category__name'],
@@ -1000,7 +1000,7 @@ def export_reports_json(request):
     supplier_report = []
     for item in Product.objects.values('supplier__name').annotate(
         count=Count('id'),
-        total_value=Sum(F('quantity') * F('cost_price'))
+        total_value=Sum(F('quantity') * Coalesce(F('cost_price'), 0))
     ).order_by('-count'):
         supplier_report.append({
             'supplier_name': item['supplier__name'],

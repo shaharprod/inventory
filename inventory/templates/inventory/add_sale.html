@@ -407,70 +407,6 @@
                 updateCustomerDiscount();
             }
             {% endif %}
-
-            // ========== הוספת פריט חדש למכירה ==========
-            const addItemBtn = document.getElementById('add-item');
-            const saleItemsContainer = document.getElementById('sale-items');
-            const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
-
-            if (addItemBtn && totalFormsInput) {
-                addItemBtn.addEventListener('click', function() {
-                    const formCount = parseInt(totalFormsInput.value);
-
-                    // יצירת שורה חדשה
-                    const newRow = document.createElement('div');
-                    newRow.className = 'row mb-3 sale-item';
-
-                    // בניית האופציות מתוך productsData
-                    let optionsHTML = '<option value="">בחר מוצר</option>';
-                    for (const [productId, productData] of Object.entries(productsData)) {
-                        optionsHTML += `<option value="${productId}">${productData.name} - ₪${productData.price.toFixed(2)}</option>`;
-                    }
-
-                    newRow.innerHTML = `
-                        <div class="col-md-4">
-                            <label class="form-label">מוצר:</label>
-                            <select name="items-${formCount}-product" class="form-control" id="id_items-${formCount}-product" required>
-                                ${optionsHTML}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">כמות:</label>
-                            <input type="number" name="items-${formCount}-quantity" class="form-control" id="id_items-${formCount}-quantity" min="1" value="1" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">מחיר יחידה:</label>
-                            <input type="number" name="items-${formCount}-unit_price" class="form-control" id="id_items-${formCount}-unit_price" step="0.01" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">הנחה %:</label>
-                            <input type="number" name="items-${formCount}-discount_percent" class="form-control" id="id_items-${formCount}-discount_percent" step="0.01" value="0" min="0" max="100">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">סכום:</label>
-                            <input type="text" class="form-control" readonly id="total-${formCount}" value="₪0.00">
-                        </div>
-                        <input type="hidden" name="items-${formCount}-id" id="id_items-${formCount}-id">
-                    `;
-
-                    // הוספה לקונטיינר
-                    saleItemsContainer.appendChild(newRow);
-
-                    // עדכון מספר הטפסים
-                    totalFormsInput.value = formCount + 1;
-
-                    // הוספת event listeners לשורה החדשה
-                    const newProductSelect = newRow.querySelector('select[name$="-product"]');
-                    newProductSelect.addEventListener('change', function() {
-                        fillProductPrice(this);
-                    });
-
-                    const newInputs = newRow.querySelectorAll('input');
-                    newInputs.forEach(input => {
-                        input.addEventListener('input', calculateTotals);
-                    });
-                });
-            }
         });
 
         // ========== סורק ברקוד ==========
@@ -667,6 +603,69 @@
 
             // הצג הודעה
             alert(`${foundProduct.name} נוסף לחשבונית!`);
+        });
+
+        // ========== הוספת שורות חדשות לטופס ==========
+        const addItemBtn = document.getElementById('add-item');
+        const saleItemsContainer = document.getElementById('sale-items');
+        const totalFormsInput = document.querySelector('input[name="form-TOTAL_FORMS"]');
+        let formCount = parseInt(totalFormsInput.value);
+
+        addItemBtn.addEventListener('click', function() {
+            // יצירת שורה חדשה
+            const newForm = document.createElement('div');
+            newForm.className = 'row mb-3 sale-item';
+            newForm.innerHTML = `
+                <div class="col-md-4">
+                    <label class="form-label">מוצר:</label>
+                    <select name="form-${formCount}-product" class="form-control" id="id_form-${formCount}-product" required>
+                        <option value="">בחר מוצר</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}">{{ product.name }} (מלאי: {{ product.quantity }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">כמות:</label>
+                    <input type="number" name="form-${formCount}-quantity" class="form-control" id="id_form-${formCount}-quantity" value="1" min="1" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">מחיר יחידה:</label>
+                    <input type="number" name="form-${formCount}-unit_price" class="form-control" id="id_form-${formCount}-unit_price" step="0.01" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">הנחה %:</label>
+                    <input type="number" name="form-${formCount}-discount_percent" class="form-control" id="id_form-${formCount}-discount_percent" value="0" step="0.01" min="0" max="100">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">סכום:</label>
+                    <input type="text" class="form-control" readonly id="total-${formCount}">
+                </div>
+                <input type="hidden" name="form-${formCount}-id" id="id_form-${formCount}-id">
+            `;
+
+            saleItemsContainer.appendChild(newForm);
+
+            // הוסף event listeners לשדות החדשים
+            const newRow = saleItemsContainer.lastElementChild;
+            const productSelect = newRow.querySelector('select[name$="-product"]');
+            const inputs = newRow.querySelectorAll('input');
+
+            // מילוי מחיר אוטומטי בבחירת מוצר
+            productSelect.addEventListener('change', function() {
+                fillProductPrice(this);
+            });
+
+            // חישוב סכומים בשינוי ערכים
+            inputs.forEach(input => {
+                input.addEventListener('input', calculateTotals);
+            });
+
+            formCount++;
+            totalFormsInput.value = formCount;
+
+            // חישוב מחדש
+            calculateTotals();
         });
     </script>
 {% endblock %}

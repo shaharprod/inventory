@@ -12,7 +12,6 @@ urlpatterns = [
     path('products/<int:pk>/edit/', views.edit_product, name='edit_product'),
     path('products/<int:pk>/delete/', views.delete_product, name='delete_product'),
     path('products/<int:pk>/movement/', views.stock_movement, name='stock_movement'),
-    path('products/<int:pk>/distribute/', views.distribute_stock, name='distribute_stock'),
 
     # קטגוריות
     path('categories/', views.category_list, name='category_list'),
@@ -40,7 +39,6 @@ urlpatterns = [
     path('export/products-csv/', views.export_products_csv, name='export_products_csv'),
     path('export/low-stock-csv/', views.export_low_stock_csv, name='export_low_stock_csv'),
     path('export/movements-csv/', views.export_movements_csv, name='export_movements_csv'),
-    path('export/full-report-csv/', views.export_full_report_csv, name='export_full_report_csv'),
     path('export/reports-json/', views.export_reports_json, name='export_reports_json'),
 
     # CRM

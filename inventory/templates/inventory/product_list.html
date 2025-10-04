@@ -229,41 +229,13 @@
                                         </div>
 
                                         <div class="row mb-2">
-                                            <div class="col-12">
-                                                <small class="text-muted">מלאי:</small><br>
-                                                {% if location_filter == 'warehouse' %}
-                                                    <!-- תצוגת מחסן בלבד -->
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="small"><i class="fas fa-warehouse me-1"></i>מחסן:</span>
-                                                        <strong class="h5 text-info">{{ product.warehouse_stock|default:0 }}</strong>
-                                                    </div>
-                                                {% elif location_filter == 'store' %}
-                                                    <!-- תצוגת חנות בלבד -->
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="small"><i class="fas fa-store me-1"></i>חנות:</span>
-                                                        <strong class="h5 text-primary">{{ product.store_stock|default:0 }}</strong>
-                                                    </div>
-                                                {% else %}
-                                                    <!-- תצוגה כללית - כל המלאי -->
-                                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                                        <span class="small"><i class="fas fa-warehouse me-1"></i>מחסן:</span>
-                                                        <strong class="text-info">{{ product.warehouse_stock|default:0 }}</strong>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                                        <span class="small"><i class="fas fa-store me-1"></i>חנות:</span>
-                                                        <strong class="text-primary">{{ product.store_stock|default:0 }}</strong>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="small"><i class="fas fa-box me-1"></i>סה"כ:</span>
-                                                        <strong class="{% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% else %}text-success{% endif %}">
-                                                            {{ product.quantity }} {{ product.get_unit_display }}
-                                                        </strong>
-                                                    </div>
-                                                {% endif %}
+                                            <div class="col-6">
+                                                <small class="text-muted">כמות:</small><br>
+                                                <span class="h5 {% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% endif %}">
+                                                    {{ product.quantity }} {{ product.get_unit_display }}
+                                                </span>
                                             </div>
-                                        </div>
-                                        <div class="row mb-2">
-                                            <div class="col-12">
+                                            <div class="col-6">
                                                 <small class="text-muted">מחיר:</small><br>
                                                 <span class="h6 text-success">₪{{ product.selling_price }}</span>
                                             </div>
@@ -355,21 +327,9 @@
 
                                     <div class="row mt-2">
                                         <div class="col-md-2">
-                                            <small class="text-muted d-block">מלאי מחסן</small>
-                                            <strong class="text-info">
-                                                <i class="fas fa-warehouse me-1"></i>{{ product.warehouse_stock|default:0 }}
-                                            </strong>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <small class="text-muted d-block">מלאי חנות</small>
-                                            <strong class="text-primary">
-                                                <i class="fas fa-store me-1"></i>{{ product.store_stock|default:0 }}
-                                            </strong>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <small class="text-muted d-block">כמות כללית</small>
-                                            <strong class="{% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% else %}text-success{% endif %}">
-                                                <i class="fas fa-box me-1"></i>{{ product.quantity }} יחידות
+                                            <small class="text-muted d-block">כמות</small>
+                                            <strong class="{% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% endif %}">
+                                                {{ product.quantity }} יחידות
                                             </strong>
                                         </div>
                                         <div class="col-md-2">

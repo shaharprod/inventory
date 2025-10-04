@@ -232,39 +232,6 @@ class ProductLocationStock(models.Model):
         """בדיקה אם אזל המלאי"""
         return self.quantity == 0
 
-    def save(self, *args, **kwargs):
-        """שמירה + סנכרון אוטומטי של המלאי הכללי"""
-        super().save(*args, **kwargs)
-        # עדכון המלאי הכללי של המוצר (סכום כל המיקומים)
-        self.sync_product_total_quantity()
-
-    def delete(self, *args, **kwargs):
-        """מחיקה + סנכרון אוטומטי של המלאי הכללי"""
-        product = self.product
-        super().delete(*args, **kwargs)
-        # עדכון המלאי הכללי לאחר מחיקה
-        self.sync_product_total_quantity_static(product)
-
-    def sync_product_total_quantity(self):
-        """סנכרון המלאי הכללי של המוצר מסכום כל המיקומים"""
-        from django.db.models import Sum
-        total = ProductLocationStock.objects.filter(
-            product=self.product
-        ).aggregate(total=Sum('quantity'))['total'] or 0
-
-        # עדכון ללא קריאה חוזרת ל-save (למניעת לולאה)
-        Product.objects.filter(pk=self.product.pk).update(quantity=total)
-
-    @staticmethod
-    def sync_product_total_quantity_static(product):
-        """סנכרון סטטי למקרה של מחיקה"""
-        from django.db.models import Sum
-        total = ProductLocationStock.objects.filter(
-            product=product
-        ).aggregate(total=Sum('quantity'))['total'] or 0
-
-        Product.objects.filter(pk=product.pk).update(quantity=total)
-
 class Alert(models.Model):
     ALERT_TYPES = [
         ('low_stock', 'מלאי נמוך'),

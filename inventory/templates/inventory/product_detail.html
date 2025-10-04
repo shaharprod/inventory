@@ -14,15 +14,12 @@
                                 <p class="mb-0 opacity-75">{{ product.description|default:"ללא תיאור" }}</p>
                             </div>
                             <div class="col-md-4 text-end">
-                                <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                <div class="d-flex gap-2 justify-content-end">
                                     <a href="{% url 'edit_product' product.pk %}" class="btn btn-warning">
                                         <i class="fas fa-edit me-1"></i>ערוך
                                     </a>
                                     <a href="{% url 'delete_product' product.pk %}" class="btn btn-danger">
                                         <i class="fas fa-trash me-1"></i>מחק
-                                    </a>
-                                    <a href="{% url 'distribute_stock' product.pk %}" class="btn btn-success">
-                                        <i class="fas fa-balance-scale me-1"></i>חלק מלאי
                                     </a>
                                     <a href="{% url 'stock_movement' product.pk %}" class="btn btn-info">
                                         <i class="fas fa-exchange-alt me-1"></i>תנועת מלאי

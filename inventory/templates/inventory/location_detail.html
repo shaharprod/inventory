@@ -1,7 +1,7 @@
 {% extends 'inventory/base.html' %}
 {% load static %}
 
-{% block title %}פרטי {{ location.get_location_type_display }} - {{ location.name }}{% endblock %}
+{% block title %}פרטי מיקום - {{ location.name }}{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -31,7 +31,7 @@
             {% endfor %}
         {% endif %}
 
-        <!-- פרטי מחסן/חנות -->
+        <!-- פרטי מיקום -->
         <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="card">
@@ -41,16 +41,16 @@
                     <div class="card-body">
                         <table class="table table-borderless">
                             <tr>
-                                <th style="width: 40%;">שם:</th>
+                                <th style="width: 40%;">שם מיקום:</th>
                                 <td><strong>{{ location.name }}</strong></td>
                             </tr>
                             <tr>
-                                <th>סוג:</th>
+                                <th>סוג מיקום:</th>
                                 <td>
                                     {% if location.location_type == 'store' %}
-                                        <span class="badge bg-primary"><i class="fas fa-store me-1"></i>חנות</span>
+                                        <span class="badge bg-primary">חנות</span>
                                     {% elif location.location_type == 'warehouse' %}
-                                        <span class="badge bg-info"><i class="fas fa-warehouse me-1"></i>מחסן</span>
+                                        <span class="badge bg-info">מחסן</span>
                                     {% endif %}
                                 </td>
                             </tr>

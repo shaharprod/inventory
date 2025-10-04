@@ -35,8 +35,8 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = [
-            'name', 'description', 'category', 'supplier',
-            'min_quantity', 'max_quantity', 'unit',
+            'name', 'description', 'category', 'supplier', 'location',
+            'quantity', 'min_quantity', 'max_quantity', 'unit',
             'cost_price', 'selling_price', 'barcode', 'status',
             'weight', 'dimensions', 'notes', 'barcode_image', 'product_image'
         ]
@@ -51,11 +51,6 @@ class ProductForm(forms.ModelForm):
         # הוספת CSS classes
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
-
-        # הפיכת שדות מסוימים לאופציונליים
-        self.fields['category'].required = False
-        self.fields['supplier'].required = False
-        self.fields['barcode'].required = False
 
 class StockMovementForm(forms.ModelForm):
     class Meta:

@@ -2,8 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, Sum, Count, F, Case, When
-from django.db import models
+from django.db.models import Q, Sum, Count, F
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.db import transaction
@@ -131,36 +130,7 @@ def dashboard(request):
 def product_list(request):
     """רשימת מוצרים עם חיפוש וסינון"""
     search_form = ProductSearchForm(request.GET)
-    products = Product.objects.select_related('category', 'supplier', 'location').prefetch_related('location_stocks__location')
-
-    # בדיקה אם מסננים לפי מיקום ספציפי
-    location_filter = request.GET.get('location', None)
-
-    # חישוב מלאי לפי מיקום
-    products = products.annotate(
-        warehouse_stock=Sum(
-            Case(
-                When(location_stocks__location__location_type='warehouse', then=F('location_stocks__quantity')),
-                default=0,
-                output_field=models.IntegerField()
-            )
-        ),
-        store_stock=Sum(
-            Case(
-                When(location_stocks__location__location_type='store', then=F('location_stocks__quantity')),
-                default=0,
-                output_field=models.IntegerField()
-            )
-        )
-    )
-
-    # סינון לפי מיקום אם נדרש
-    if location_filter == 'warehouse':
-        # הצג רק מוצרים שיש להם מלאי במחסן
-        products = products.filter(location_stocks__location__location_type='warehouse', location_stocks__quantity__gt=0).distinct()
-    elif location_filter == 'store':
-        # הצג רק מוצרים שיש להם מלאי בחנות
-        products = products.filter(location_stocks__location__location_type='store', location_stocks__quantity__gt=0).distinct()
+    products = Product.objects.select_related('category', 'supplier', 'location')
 
     if search_form.is_valid():
         search = search_form.cleaned_data.get('search')
@@ -213,7 +183,6 @@ def product_list(request):
         'products': products,
         'search_form': search_form,
         'sort_by': sort_by,
-        'location_filter': location_filter,  # העברת סוג התצוגה לטמפלייט
     }
     return render(request, 'inventory/product_list.html', context)
 
@@ -223,47 +192,30 @@ def add_product(request):
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                with transaction.atomic():
-                    product = form.save(commit=False)
-                    # הגדרת ערכי ברירת מחדל לשדות חובה
-                    if not product.sku:
-                        product.sku = f"SKU-{Product.objects.count() + 1:06d}"
-                    if not product.status:
-                        product.status = 'active'
-                    if not product.unit:
-                        product.unit = 'pcs'
-                    if not product.cost_price:
-                        product.cost_price = 0
-                    if not product.selling_price:
-                        product.selling_price = 0
-                    if not product.min_quantity:
-                        product.min_quantity = 0
-                    if not product.max_quantity:
-                        product.max_quantity = 1000
+                product = form.save(commit=False)
+                # הגדרת ערכי ברירת מחדל לשדות חובה
+                if not product.sku:
+                    product.sku = f"SKU-{Product.objects.count() + 1:06d}"
+                if not product.status:
+                    product.status = 'active'
+                if not product.unit:
+                    product.unit = 'pcs'
+                if not product.cost_price:
+                    product.cost_price = 0
+                if not product.selling_price:
+                    product.selling_price = 0
+                if not product.min_quantity:
+                    product.min_quantity = 0
+                if not product.max_quantity:
+                    product.max_quantity = 1000
 
-                    # חישוב אחוז רווח
-                    if product.cost_price and product.selling_price and product.cost_price > 0:
-                        product.margin_percentage = ((product.selling_price - product.cost_price) / product.cost_price) * 100
-
-                    # הכמות הכוללת תתאפס (תעודכן אוטומטית מ-ProductLocationStock)
-                    product.quantity = 0
-
-                    if request.user.is_authenticated:
-                        product.created_by = request.user
-
-                    product.save()
-
-                    messages.success(request, f'✅ המוצר "{product.name}" נוסף בהצלחה!')
-                    messages.info(request, 'כדי להוסיף מלאי, לך לדף המוצר ולחץ על "חלק מלאי" או "פרטי מוצר".')
-                    return redirect('product_detail', pk=product.pk)
+                product.save()
+                messages.success(request, 'המוצר נוסף בהצלחה!')
+                return redirect('product_detail', pk=product.pk)
             except Exception as e:
-                messages.error(request, f'❌ שגיאה בשמירת המוצר: {str(e)}')
+                messages.error(request, f'שגיאה בשמירת המוצר: {str(e)}')
         else:
-            messages.error(request, '❌ יש שגיאות בטופס. אנא בדוק את הנתונים.')
-            # הצגת שגיאות ספציפיות
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
+            messages.error(request, 'יש שגיאות בטופס. אנא בדוק את הנתונים.')
     else:
         form = ProductForm()
     return render(request, 'inventory/add_product.html', {'form': form})
@@ -289,25 +241,9 @@ def edit_product(request, pk):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
-            try:
-                with transaction.atomic():
-                    product = form.save(commit=False)
-
-                    # חישוב אחוז רווח מחדש
-                    if product.cost_price and product.selling_price and product.cost_price > 0:
-                        product.margin_percentage = ((product.selling_price - product.cost_price) / product.cost_price) * 100
-
-                    product.save()
-
-                    messages.success(request, f'✅ המוצר "{product.name}" עודכן בהצלחה!')
-                    return redirect('product_detail', pk=product.pk)
-            except Exception as e:
-                messages.error(request, f'❌ שגיאה בעדכון המוצר: {str(e)}')
-        else:
-            messages.error(request, '❌ יש שגיאות בטופס. אנא בדוק את הנתונים.')
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
+            form.save()
+            messages.success(request, 'המוצר עודכן בהצלחה!')
+            return redirect('product_detail', pk=product.pk)
     else:
         form = ProductForm(instance=product)
     return render(request, 'inventory/edit_product.html', {'form': form, 'product': product})
@@ -386,86 +322,6 @@ def stock_movement(request, pk):
     else:
         form = StockMovementForm(product=product)
     return render(request, 'inventory/stock_movement.html', {'form': form, 'product': product})
-
-def distribute_stock(request, pk):
-    """חלוקת מלאי בין מחסן וחנות"""
-    product = get_object_or_404(Product, pk=pk)
-
-    # קבלת מחסן וחנות ראשיים
-    warehouse = Location.objects.filter(location_type='warehouse', is_active=True).first()
-    store = Location.objects.filter(location_type='store', is_active=True).first()
-
-    if not warehouse or not store:
-        messages.error(request, 'חסר מחסן או חנות במערכת! אנא הוסף מיקומים תחילה.')
-        return redirect('product_detail', pk=pk)
-
-    # קבלת מלאי נוכחי
-    warehouse_stock, _ = ProductLocationStock.objects.get_or_create(
-        product=product,
-        location=warehouse,
-        defaults={'quantity': 0}
-    )
-    store_stock, _ = ProductLocationStock.objects.get_or_create(
-        product=product,
-        location=store,
-        defaults={'quantity': 0}
-    )
-
-    if request.method == 'POST':
-        try:
-            warehouse_qty = int(request.POST.get('warehouse_quantity', 0))
-            store_qty = int(request.POST.get('store_quantity', 0))
-
-            if warehouse_qty < 0 or store_qty < 0:
-                messages.error(request, 'כמויות חייבות להיות חיוביות!')
-                return redirect('distribute_stock', pk=pk)
-
-            total = warehouse_qty + store_qty
-
-            with transaction.atomic():
-                # עדכון מלאי לפי מיקום
-                warehouse_stock.quantity = warehouse_qty
-                warehouse_stock.save()  # יסנכרן אוטומטית את product.quantity
-
-                store_stock.quantity = store_qty
-                store_stock.save()  # יסנכרן אוטומטית את product.quantity
-
-                # המלאי הכללי מתעדכן אוטומטית דרך ProductLocationStock.save()
-                # product.quantity = מחסן + חנות (אוטומטי)
-
-                # רענון המוצר מהDB לקבלת הערך המעודכן
-                product.refresh_from_db()
-
-                messages.success(request, f'המלאי חולק בהצלחה! מחסן: {warehouse_qty}, חנות: {store_qty}, סה"כ: {product.quantity}')
-                return redirect('product_detail', pk=pk)
-
-        except ValueError:
-            messages.error(request, 'ערכים לא תקינים!')
-            return redirect('distribute_stock', pk=pk)
-
-    context = {
-        'product': product,
-        'warehouse': warehouse,
-        'store': store,
-        'warehouse_stock': warehouse_stock,
-        'store_stock': store_stock,
-        'total_quantity': product.quantity,
-    }
-    return render(request, 'inventory/distribute_stock.html', context)
-
-def sync_product_quantity_from_locations(product):
-    """
-    סנכרון המלאי הכללי של מוצר מסכום כל המיקומים
-    הכמות הכללית = מלאי מחסן + מלאי חנות + כל מיקום אחר
-    """
-    from django.db.models import Sum
-    total = ProductLocationStock.objects.filter(
-        product=product
-    ).aggregate(total=Sum('quantity'))['total'] or 0
-
-    product.quantity = total
-    product.save()
-    return total
 
 def create_stock_alerts(product):
     """יצירת התראות מלאי"""
@@ -790,13 +646,9 @@ def export_products_csv(request):
             for pls in product.location_stocks.all()
         ]) if product.location_stocks.exists() else 'אין מיקום'
 
-        # הכנת SKU וברקוד כטקסט (למניעת המרה למספר ב-Excel)
-        sku_text = f"'{product.sku}" if product.sku else ''
-        barcode_text = f"'{product.barcode}" if product.barcode else ''
-
         writer.writerow([
             product.name,
-            sku_text,  # SKU עם גרש בהתחלה
+            product.sku or '',
             product.description or '',
             product.category.name if product.category else '',
             product.supplier.name if product.supplier else '',
@@ -808,7 +660,7 @@ def export_products_csv(request):
             product.cost_price or 0,
             product.selling_price or 0,
             product.margin_percentage or 0,
-            barcode_text,  # ברקוד עם גרש בהתחלה
+            product.barcode or '',
             product.get_status_display(),
             product.weight or '',
             product.dimensions or '',
@@ -832,12 +684,9 @@ def export_low_stock_csv(request):
 
     low_stock_products = Product.objects.filter(quantity__lte=F('min_quantity')).select_related('category', 'supplier')
     for product in low_stock_products:
-        # הכנת SKU כטקסט
-        sku_text = f"'{product.sku}" if product.sku else ''
-
         writer.writerow([
             product.name,
-            sku_text,  # SKU עם גרש בהתחלה
+            product.sku or '',
             product.quantity,
             product.min_quantity,
             'אזל מהמלאי' if product.quantity == 0 else 'מלאי נמוך',
@@ -863,12 +712,9 @@ def export_movements_csv(request):
 
     movements = StockMovement.objects.select_related('product').order_by('-created_at')
     for movement in movements:
-        # הכנת SKU כטקסט
-        sku_text = f"'{movement.product.sku}" if movement.product.sku else ''
-
         writer.writerow([
             movement.product.name,
-            sku_text,  # SKU עם גרש בהתחלה
+            movement.product.sku or '',
             movement.get_movement_type_display(),
             movement.quantity,
             movement.previous_quantity,
@@ -876,114 +722,6 @@ def export_movements_csv(request):
             movement.reason or '',
             movement.reference or '',
             movement.created_at.strftime('%d/%m/%Y %H:%M')
-        ])
-
-    return response
-
-def export_full_report_csv(request):
-    """ייצוא דוח מלא ל-CSV"""
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment; filename="full_report.csv"'
-    response.write('\ufeff')  # BOM for UTF-8
-
-    writer = csv.writer(response)
-
-    # כותרת הדוח
-    writer.writerow(['דוח מלאי מלא', timezone.now().strftime('%d/%m/%Y %H:%M')])
-    writer.writerow([])  # שורה ריקה
-
-    # סטטיסטיקות כלליות
-    writer.writerow(['=== סטטיסטיקות כלליות ==='])
-    total_products = Product.objects.count()
-    low_stock_products = Product.objects.filter(quantity__lte=F('min_quantity')).count()
-    out_of_stock_products = Product.objects.filter(quantity=0).count()
-    total_stock_value = Product.objects.aggregate(
-        total=Sum(F('quantity') * F('cost_price'))
-    )['total'] or 0
-
-    writer.writerow(['סה"כ מוצרים', total_products])
-    writer.writerow(['מוצרים במלאי נמוך', low_stock_products])
-    writer.writerow(['מוצרים שאזלו', out_of_stock_products])
-    writer.writerow(['ערך מלאי כולל', f'₪{total_stock_value:,.2f}'])
-    writer.writerow([])  # שורה ריקה
-
-    # דוח לפי קטגוריות
-    writer.writerow(['=== דוח לפי קטגוריות ==='])
-    writer.writerow(['קטגוריה', 'כמות מוצרים', 'כמות יחידות', 'ערך מלאי'])
-    for item in Product.objects.values('category__name').annotate(
-        count=Count('id'),
-        total_quantity=Sum('quantity'),
-        total_value=Sum(F('quantity') * F('cost_price'))
-    ).order_by('-total_value'):
-        writer.writerow([
-            item['category__name'] or 'ללא קטגוריה',
-            item['count'],
-            item['total_quantity'] or 0,
-            f"₪{(item['total_value'] or 0):,.2f}"
-        ])
-    writer.writerow([])  # שורה ריקה
-
-    # דוח ספקים
-    writer.writerow(['=== דוח ספקים ==='])
-    writer.writerow(['ספק', 'כמות מוצרים', 'כמות יחידות', 'ערך מלאי'])
-    for item in Product.objects.values('supplier__name').annotate(
-        count=Count('id'),
-        total_quantity=Sum('quantity'),
-        total_value=Sum(F('quantity') * F('cost_price'))
-    ).order_by('-count'):
-        writer.writerow([
-            item['supplier__name'] or 'ללא ספק',
-            item['count'],
-            item['total_quantity'] or 0,
-            f"₪{(item['total_value'] or 0):,.2f}"
-        ])
-    writer.writerow([])  # שורה ריקה
-
-    # דוח מוצרים רווחיים
-    writer.writerow(['=== מוצרים רווחיים ==='])
-    writer.writerow(['מוצר', 'SKU', 'כמות', 'מחיר עלות', 'מחיר מכירה', 'אחוז רווח'])
-    high_margin = Product.objects.filter(margin_percentage__gt=0).order_by('-margin_percentage')[:20]
-    for product in high_margin:
-        sku_text = f"'{product.sku}" if product.sku else ''
-        writer.writerow([
-            product.name,
-            sku_text,
-            product.quantity,
-            f'₪{product.cost_price or 0}',
-            f'₪{product.selling_price or 0}',
-            f'{product.margin_percentage:.1f}%'
-        ])
-    writer.writerow([])  # שורה ריקה
-
-    # דוח מלאי נמוך
-    writer.writerow(['=== מוצרים במלאי נמוך ==='])
-    writer.writerow(['מוצר', 'SKU', 'כמות נוכחית', 'כמות מינימלית', 'סטטוס'])
-    low_stock = Product.objects.filter(quantity__lte=F('min_quantity')).order_by('quantity')
-    for product in low_stock:
-        sku_text = f"'{product.sku}" if product.sku else ''
-        writer.writerow([
-            product.name,
-            sku_text,
-            product.quantity,
-            product.min_quantity,
-            'אזל מהמלאי' if product.quantity == 0 else 'מלאי נמוך'
-        ])
-    writer.writerow([])  # שורה ריקה
-
-    # דוח תנועות מלאי
-    writer.writerow(['=== תנועות מלאי (7 ימים אחרונים) ==='])
-    writer.writerow(['תאריך', 'מוצר', 'סוג תנועה', 'כמות', 'כמות קודמת', 'כמות חדשה'])
-    recent_movements = StockMovement.objects.filter(
-        created_at__gte=timezone.now() - timedelta(days=7)
-    ).select_related('product').order_by('-created_at')[:50]
-    for movement in recent_movements:
-        writer.writerow([
-            movement.created_at.strftime('%d/%m/%Y %H:%M'),
-            movement.product.name,
-            movement.get_movement_type_display(),
-            movement.quantity,
-            movement.previous_quantity,
-            movement.new_quantity
         ])
 
     return response
@@ -1115,93 +853,51 @@ def add_sale(request):
         formset = SaleItemFormSet(request.POST)
 
         if form.is_valid() and formset.is_valid():
-            # בדיקת מלאי לפני שמירה
-            location = form.cleaned_data.get('location')
-            insufficient_stock = []
+            with transaction.atomic():
+                sale = form.save(commit=False)
+                if request.user.is_authenticated:
+                    sale.created_by = request.user
+                # מספר החשבונית ייווצר אוטומטית ב-save
+                sale.save()
 
-            for item_form in formset:
-                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE', False):
-                    product = item_form.cleaned_data.get('product')
-                    quantity = item_form.cleaned_data.get('quantity', 0)
+                # שמירת פריטי החשבונית
+                formset.instance = sale
+                sale_items = formset.save()
 
-                    if product and quantity > 0 and location:
-                        # בדיקת מלאי במיקום
-                        location_stock = ProductLocationStock.objects.filter(
+                # עדכון סכום כולל
+                # total_price כבר כולל מע"מ, צריך להפריד אותו
+                total_with_vat = sum(item.total_price for item in sale.items.all())
+                # חישוב subtotal (לפני מע"מ) מתוך total (כולל מע"מ)
+                sale.subtotal = total_with_vat / (1 + sale.tax_rate / 100)
+                sale.save()
+
+                # עדכון מלאי - במיקום הספציפי ובסה"כ כללי
+                from .models import ProductLocationStock
+                from django.utils import timezone
+
+                for item in sale_items:
+                    product = item.product
+
+                    # אם יש מיקום למכירה, עדכן מלאי במיקום
+                    if sale.location:
+                        # מצא או צור רשומת מלאי למיקום זה
+                        location_stock, created = ProductLocationStock.objects.get_or_create(
                             product=product,
-                            location=location
-                        ).first()
-
-                        available_qty = location_stock.quantity if location_stock else 0
-
-                        if available_qty < quantity:
-                            location_name = location.get_location_type_display()
-                            insufficient_stock.append({
-                                'product': product.name,
-                                'requested': quantity,
-                                'available': available_qty,
-                                'location': location_name
-                            })
-
-            # אם יש מוצרים שאין להם מלאי מספיק
-            if insufficient_stock:
-                for item in insufficient_stock:
-                    if item['available'] == 0:
-                        messages.error(
-                            request,
-                            f'❌ {item["product"]}: אין במלאי של {item["location"]}! המלאי אזל.'
+                            location=sale.location,
+                            defaults={'quantity': 0}
                         )
-                    else:
-                        messages.error(
-                            request,
-                            f'❌ {item["product"]}: אין מלאי מספיק ב{item["location"]}! '
-                            f'מבוקש: {item["requested"]}, זמין: {item["available"]}'
-                        )
-                messages.warning(request, '⚠️ לא ניתן להשלים את המכירה. אנא תקן את הכמויות או העבר מלאי מהמחסן.')
 
-            else:
-                # אם יש מלאי מספיק, המשך לשמירה
-                with transaction.atomic():
-                    sale = form.save(commit=False)
-                    if request.user.is_authenticated:
-                        sale.created_by = request.user
-                    # מספר החשבונית ייווצר אוטומטית ב-save
-                    sale.save()
+                        # עדכן מלאי במיקום
+                        location_stock.quantity -= item.quantity
+                        location_stock.last_sold = timezone.now()
+                        location_stock.save()
 
-                    # שמירת פריטי החשבונית
-                    formset.instance = sale
-                    sale_items = formset.save()
+                    # עדכן גם את המלאי הכללי במוצר
+                    product.quantity -= item.quantity
+                    product.save()
 
-                    # עדכון סכום כולל
-                    # total_price כבר כולל מע"מ, צריך להפריד אותו
-                    total_with_vat = sum(item.total_price for item in sale.items.all())
-                    # חישוב subtotal (לפני מע"מ) מתוך total (כולל מע"מ)
-                    sale.subtotal = total_with_vat / (1 + sale.tax_rate / 100)
-                    sale.save()
-
-                    # עדכון מלאי - במיקום הספציפי
-                    # המלאי הכללי יתעדכן אוטומטית ב-ProductLocationStock.save()
-                    from .models import ProductLocationStock
-                    from django.utils import timezone
-
-                    for item in sale_items:
-                        product = item.product
-
-                        # אם יש מיקום למכירה, עדכן מלאי במיקום
-                        if sale.location:
-                            # מצא או צור רשומת מלאי למיקום זה
-                            location_stock, created = ProductLocationStock.objects.get_or_create(
-                                product=product,
-                                location=sale.location,
-                                defaults={'quantity': 0}
-                            )
-
-                            # עדכן מלאי במיקום (הסנכרון אוטומטי)
-                            location_stock.quantity -= item.quantity
-                            location_stock.last_sold = timezone.now()
-                            location_stock.save()  # זה יסנכרן אוטומטית את product.quantity
-
-                    messages.success(request, f'✅ המכירה נוצרה בהצלחה! מספר חשבונית: {sale.invoice_number}')
-                    return redirect('sale_detail', pk=sale.pk)
+                messages.success(request, f'המכירה נוצרה בהצלחה! מספר חשבונית: {sale.invoice_number}')
+                return redirect('sale_detail', pk=sale.pk)
         else:
             messages.error(request, 'אנא תקן את השגיאות בטופס.')
     else:
@@ -1260,99 +956,50 @@ def edit_sale(request, pk):
         formset = SaleItemFormSet(request.POST, instance=sale)
 
         if form.is_valid() and formset.is_valid():
-            # בדיקת מלאי לפני שמירה
-            location = form.cleaned_data.get('location')
-            insufficient_stock = []
+            with transaction.atomic():
+                # החזר מלאי ישן לפני עדכון
+                for item in sale.items.all():
+                    product = item.product
+                    product.quantity += item.quantity
+                    if sale.location:
+                        location_stock = ProductLocationStock.objects.filter(
+                            product=product,
+                            location=sale.location
+                        ).first()
+                        if location_stock:
+                            location_stock.quantity += item.quantity
+                            location_stock.save()
+                    product.save()
 
-            # החזר מלאי זמנית למבנה נתונים
-            temp_stock = {}
-            for item in sale.items.all():
-                product = item.product
-                if location:
-                    location_stock = ProductLocationStock.objects.filter(
-                        product=product,
-                        location=location
-                    ).first()
-                    if location_stock:
-                        temp_stock[product.id] = location_stock.quantity + item.quantity
+                # עדכן מכירה
+                sale = form.save()
+                formset.instance = sale
+                sale_items = formset.save()
 
-            # בדיקת מלאי חדש
-            for item_form in formset:
-                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE', False):
-                    product = item_form.cleaned_data.get('product')
-                    quantity = item_form.cleaned_data.get('quantity', 0)
+                # עדכן סכום
+                # total_price כבר כולל מע"מ, צריך להפריד אותו
+                total_with_vat = sum(item.total_price for item in sale.items.all())
+                sale.subtotal = total_with_vat / (1 + sale.tax_rate / 100)
+                sale.save()
 
-                    if product and quantity > 0 and location:
-                        # בדיקת מלאי במיקום (כולל המלאי שהוחזר זמנית)
-                        available_qty = temp_stock.get(product.id, 0)
-
-                        if available_qty < quantity:
-                            location_name = location.get_location_type_display()
-                            insufficient_stock.append({
-                                'product': product.name,
-                                'requested': quantity,
-                                'available': available_qty,
-                                'location': location_name
-                            })
-
-            # אם יש מוצרים שאין להם מלאי מספיק
-            if insufficient_stock:
-                for item in insufficient_stock:
-                    if item['available'] == 0:
-                        messages.error(
-                            request,
-                            f'❌ {item["product"]}: אין במלאי של {item["location"]}! המלאי אזל.'
+                # הורד מלאי חדש
+                from django.utils import timezone
+                for item in sale_items:
+                    product = item.product
+                    if sale.location:
+                        location_stock, created = ProductLocationStock.objects.get_or_create(
+                            product=product,
+                            location=sale.location,
+                            defaults={'quantity': 0}
                         )
-                    else:
-                        messages.error(
-                            request,
-                            f'❌ {item["product"]}: אין מלאי מספיק ב{item["location"]}! '
-                            f'מבוקש: {item["requested"]}, זמין: {item["available"]}'
-                        )
-                messages.warning(request, '⚠️ לא ניתן לעדכן את המכירה. אנא תקן את הכמויות או העבר מלאי מהמחסן.')
+                        location_stock.quantity -= item.quantity
+                        location_stock.last_sold = timezone.now()
+                        location_stock.save()
+                    product.quantity -= item.quantity
+                    product.save()
 
-            else:
-                # אם יש מלאי מספיק, המשך לשמירה
-                with transaction.atomic():
-                    # החזר מלאי ישן לפני עדכון
-                    for item in sale.items.all():
-                        product = item.product
-                        if sale.location:
-                            location_stock = ProductLocationStock.objects.filter(
-                                product=product,
-                                location=sale.location
-                            ).first()
-                            if location_stock:
-                                location_stock.quantity += item.quantity
-                                location_stock.save()  # זה יסנכרן אוטומטית את product.quantity
-
-                    # עדכן מכירה
-                    sale = form.save()
-                    formset.instance = sale
-                    sale_items = formset.save()
-
-                    # עדכן סכום
-                    # total_price כבר כולל מע"מ, צריך להפריד אותו
-                    total_with_vat = sum(item.total_price for item in sale.items.all())
-                    sale.subtotal = total_with_vat / (1 + sale.tax_rate / 100)
-                    sale.save()
-
-                    # הורד מלאי חדש
-                    from django.utils import timezone
-                    for item in sale_items:
-                        product = item.product
-                        if sale.location:
-                            location_stock, created = ProductLocationStock.objects.get_or_create(
-                                product=product,
-                                location=sale.location,
-                                defaults={'quantity': 0}
-                            )
-                            location_stock.quantity -= item.quantity
-                            location_stock.last_sold = timezone.now()
-                            location_stock.save()  # זה יסנכרן אוטומטית את product.quantity
-
-                    messages.success(request, '✅ המכירה עודכנה בהצלחה!')
-                    return redirect('sale_detail', pk=sale.pk)
+                messages.success(request, 'המכירה עודכנה בהצלחה!')
+                return redirect('sale_detail', pk=sale.pk)
     else:
         form = SaleForm(instance=sale)
         formset = SaleItemFormSet(instance=sale)
@@ -1371,9 +1018,10 @@ def delete_sale(request, pk):
 
     if request.method == 'POST':
         with transaction.atomic():
-            # החזר מלאי (הסנכרון אוטומטי)
+            # החזר מלאי
             for item in sale.items.all():
                 product = item.product
+                product.quantity += item.quantity
                 if sale.location:
                     location_stock = ProductLocationStock.objects.filter(
                         product=product,
@@ -1381,11 +1029,12 @@ def delete_sale(request, pk):
                     ).first()
                     if location_stock:
                         location_stock.quantity += item.quantity
-                        location_stock.save()  # זה יסנכרן אוטומטית את product.quantity
+                        location_stock.save()
+                product.save()
 
             invoice_num = sale.invoice_number
             sale.delete()
-            messages.success(request, f'✅ חשבונית {invoice_num} נמחקה והמלאי הוחזר בהצלחה')
+            messages.success(request, f'חשבונית {invoice_num} נמחקה והמלאי הוחזר')
             return redirect('sale_list')
 
     return render(request, 'inventory/delete_sale.html', {'sale': sale})

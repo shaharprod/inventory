@@ -132,30 +132,12 @@ def dashboard(request):
 def product_list(request):
     """רשימת מוצרים עם חיפוש וסינון"""
     search_form = ProductSearchForm(request.GET)
-    products = Product.objects.select_related('category', 'supplier', 'location').prefetch_related('location_stocks__location')
+    products = Product.objects.select_related('category', 'supplier').prefetch_related('location_stocks__location')
 
     # בדיקה אם מסננים לפי מיקום ספציפי
     location_filter = request.GET.get('location', None)
 
-    # חישוב מלאי לפי מיקום
-    products = products.annotate(
-        warehouse_stock=Sum(
-            Case(
-                When(location_stocks__location__location_type='warehouse', then=F('location_stocks__quantity')),
-                default=0,
-                output_field=models.IntegerField()
-            )
-        ),
-        store_stock=Sum(
-            Case(
-                When(location_stocks__location__location_type='store', then=F('location_stocks__quantity')),
-                default=0,
-                output_field=models.IntegerField()
-            )
-        )
-    )
-
-    # סינון לפי מיקום אם נדרש
+    # סינון לפי מיקום אם נדרש (ללא annotate מסובך)
     if location_filter == 'warehouse':
         # הצג רק מוצרים שיש להם מלאי במחסן
         products = products.filter(location_stocks__location__location_type='warehouse', location_stocks__quantity__gt=0).distinct()

@@ -164,15 +164,33 @@ class Product(models.Model):
 
     @property
     def stock_value(self):
-        return self.quantity * self.cost_price
+        if self.cost_price:
+            return self.quantity * self.cost_price
+        return 0
 
     @property
     def potential_value(self):
-        return self.quantity * self.selling_price
+        if self.selling_price:
+            return self.quantity * self.selling_price
+        return 0
+    
+    @property
+    def warehouse_stock(self):
+        """מלאי במחסנים"""
+        return self.location_stocks.filter(location__location_type='warehouse').aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+    
+    @property
+    def store_stock(self):
+        """מלאי בחנויות"""
+        return self.location_stocks.filter(location__location_type='store').aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
 
     def save(self, *args, **kwargs):
         # חישוב אחוז רווח אוטומטי
-        if self.cost_price > 0 and self.selling_price > 0:
+        if self.cost_price and self.selling_price and self.cost_price > 0:
             self.margin_percentage = ((self.selling_price - self.cost_price) / self.cost_price) * 100
         super().save(*args, **kwargs)
 

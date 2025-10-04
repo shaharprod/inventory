@@ -1,0 +1,231 @@
+{%extends 'inventory/base.html' %}
+
+{% block title %}עדכון מרובה - מערכת ניהול מלאי{% endblock %}
+
+{% block content %}
+<div class="row">
+            <div class="col-12">
+                <h2><i class="fas fa-edit me-2"></i>עדכון מרובה</h2>
+                <p class="text-muted">בחר מוצרים ועדכן אותם בבת אחת</p>
+            </div>
+        </div>
+
+        <!-- הודעות -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <!-- רשימת מוצרים -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">בחר מוצרים לעדכון</h5>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAll()">
+                                <i class="fas fa-check-square me-1"></i>בחר הכל
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">
+                                <i class="fas fa-square me-1"></i>בטל הכל
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="bulkUpdateForm">
+                            {% csrf_token %}
+                            <div class="row" id="productsList">
+                                {% for product in products %}
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card product-card h-100" data-product-id="{{ product.id }}">
+                                            <div class="card-body">
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input product-checkbox" type="checkbox" 
+                                                           name="product_ids" value="{{ product.id }}" 
+                                                           id="product_{{ product.id }}">
+                                                    <label class="form-check-label" for="product_{{ product.id }}">
+                                                        <strong>{{ product.name }}</strong>
+                                                    </label>
+                                                </div>
+                                                
+                                                <div class="row mb-2">
+                                                    <div class="col-6">
+                                                        <small class="text-muted">SKU:</small><br>
+                                                        <code>{{ product.sku }}</code>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted">כמות:</small><br>
+                                                        <span class="{% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% endif %}">
+                                                            {{ product.quantity }} {{ product.get_unit_display }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row mb-2">
+                                                    <div class="col-6">
+                                                        <small class="text-muted">מחיר:</small><br>
+                                                        <span class="text-success">₪{{ product.selling_price }}</span>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted">סטטוס:</small><br>
+                                                        <span class="badge bg-{% if product.status == 'active' %}success{% elif product.status == 'inactive' %}warning{% else %}danger{% endif %}">
+                                                            {{ product.get_status_display }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {% if product.category %}
+                                                    <div class="mb-2">
+                                                        <small class="text-muted">קטגוריה:</small>
+                                                        <span class="badge bg-secondary">{{ product.category.name }}</span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="col-12">
+                                        <div class="alert alert-info text-center">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            לא נמצאו מוצרים
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- פעולות עדכון -->
+            <div class="col-md-4">
+                <div class="card bulk-actions">
+                    <div class="card-header">
+                        <h5 class="mb-0">פעולות עדכון</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="bulkActionsForm">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="{{ form.action.id_for_label }}" class="form-label">סוג פעולה:</label>
+                                {{ form.action }}
+                            </div>
+                            
+                            <div class="mb-3" id="valueField">
+                                <label for="{{ form.value.id_for_label }}" class="form-label">ערך:</label>
+                                {{ form.value }}
+                            </div>
+                            
+                            <div class="mb-3" id="newStatusField" style="display: none;">
+                                <label for="{{ form.new_status.id_for_label }}" class="form-label">סטטוס חדש:</label>
+                                {{ form.new_status }}
+                            </div>
+                            
+                            <div class="mb-3" id="newCategoryField" style="display: none;">
+                                <label for="{{ form.new_category.id_for_label }}" class="form-label">קטגוריה חדשה:</label>
+                                {{ form.new_category }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.reason.id_for_label }}" class="form-label">סיבה:</label>
+                                {{ form.reason }}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary" id="updateButton" disabled>
+                                    <i class="fas fa-save me-1"></i>עדכן מוצרים נבחרים
+                                </button>
+                                <a href="{% url 'product_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>חזור לרשימה
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // בחירת מוצרים
+        function selectAll() {
+            document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelectedCount();
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.product-checkbox:checked').length;
+            const updateButton = document.getElementById('updateButton');
+            
+            if (selected > 0) {
+                updateButton.disabled = false;
+                updateButton.innerHTML = `<i class="fas fa-save me-1"></i>עדכן ${selected} מוצרים`;
+            } else {
+                updateButton.disabled = true;
+                updateButton.innerHTML = '<i class="fas fa-save me-1"></i>עדכן מוצרים נבחרים';
+            }
+        }
+
+        // עדכון שדות לפי סוג פעולה
+        document.getElementById('id_action').addEventListener('change', function() {
+            const action = this.value;
+            const valueField = document.getElementById('valueField');
+            const newStatusField = document.getElementById('newStatusField');
+            const newCategoryField = document.getElementById('newCategoryField');
+            
+            // הסתר כל השדות
+            valueField.style.display = 'none';
+            newStatusField.style.display = 'none';
+            newCategoryField.style.display = 'none';
+            
+            // הצג שדות רלוונטיים
+            if (['add', 'subtract', 'set', 'update_price'].includes(action)) {
+                valueField.style.display = 'block';
+            } else if (action === 'change_status') {
+                newStatusField.style.display = 'block';
+            } else if (action === 'change_category') {
+                newCategoryField.style.display = 'block';
+            }
+        });
+
+        // הוספת event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedCount);
+            });
+        });
+
+        // שליחת הטופס
+        document.getElementById('bulkActionsForm').addEventListener('submit', function(e) {
+            const selectedProducts = document.querySelectorAll('.product-checkbox:checked');
+            if (selectedProducts.length === 0) {
+                e.preventDefault();
+                alert('אנא בחר לפחות מוצר אחד');
+                return;
+            }
+            
+            // הוספת המוצרים הנבחרים לטופס
+            selectedProducts.forEach(checkbox => {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'product_ids';
+                hiddenInput.value = checkbox.value;
+                this.appendChild(hiddenInput);
+            });
+        });
+    </script>
+{% endblock %}

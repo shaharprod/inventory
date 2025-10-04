@@ -1,0 +1,283 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+
+{% block title %}דשבורד ניהול מלאי{% endblock %}
+
+{% block content %}
+        <!-- סטטיסטיקות ראשיות -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ total_products }}</h4>
+                                <p class="mb-0">סה"כ מוצרים</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-boxes fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card alert-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ low_stock_products }}</h4>
+                                <p class="mb-0">מלאי נמוך</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card warning-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ out_of_stock_products }}</h4>
+                                <p class="mb-0">אזל מהמלאי</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-times-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card success-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>₪{{ total_stock_value|floatformat:0 }}</h4>
+                                <p class="mb-0">ערך מלאי</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-dollar-sign fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- התראות -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-bell me-2"></i>התראות אחרונות</h5>
+                        <a href="{% url 'alerts' %}" class="btn btn-sm btn-outline-primary">כל ההתראות</a>
+                    </div>
+                    <div class="card-body">
+                        {% if alerts %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>מוצר</th>
+                                            <th>סוג</th>
+                                            <th>עדיפות</th>
+                                            <th>תאריך</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for alert in alerts %}
+                                        <tr>
+                                            <td>{{ alert.product.name }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if alert.alert_type == 'out_of_stock' %}danger{% elif alert.alert_type == 'low_stock' %}warning{% else %}info{% endif %}">
+                                                    {{ alert.get_alert_type_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if alert.priority == 'critical' %}danger{% elif alert.priority == 'high' %}warning{% else %}secondary{% endif %}">
+                                                    {{ alert.get_priority_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ alert.created_at|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">אין התראות חדשות</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- מוצרים עם מלאי נמוך -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>מלאי נמוך</h5>
+                        <a href="{% url 'product_list' %}?low_stock=on" class="btn btn-sm btn-outline-warning">כל המוצרים</a>
+                    </div>
+                    <div class="card-body">
+                        {% if low_stock %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>מוצר</th>
+                                            <th>כמות</th>
+                                            <th>מינימום</th>
+                                            <th>סטטוס</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for product in low_stock %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
+                                                    {{ product.name }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if product.quantity == 0 %}danger{% else %}warning{% endif %}">
+                                                    {{ product.quantity }}
+                                                </span>
+                                            </td>
+                                            <td>{{ product.min_quantity }}</td>
+                                            <td>
+                                                {% if product.quantity == 0 %}
+                                                    <span class="badge bg-danger">אזל</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">נמוך</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">אין מוצרים עם מלאי נמוך</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- תנועות מלאי אחרונות -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>תנועות מלאי אחרונות</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_movements %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>מוצר</th>
+                                            <th>סוג</th>
+                                            <th>כמות</th>
+                                            <th>תאריך</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for movement in recent_movements %}
+                                        <tr>
+                                            <td>{{ movement.product.name }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if movement.movement_type == 'in' %}success{% elif movement.movement_type == 'out' %}danger{% else %}info{% endif %}">
+                                                    {{ movement.get_movement_type_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ movement.quantity }}</td>
+                                            <td>{{ movement.created_at|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">אין תנועות מלאי</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- סטטיסטיקות לפי קטגוריה -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>מוצרים לפי קטגוריה</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if category_stats %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>קטגוריה</th>
+                                            <th>כמות</th>
+                                            <th>ערך</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for stat in category_stats %}
+                                        <tr>
+                                            <td>{{ stat.category__name|default:"ללא קטגוריה" }}</td>
+                                            <td>{{ stat.count }}</td>
+                                            <td>₪{{ stat.total_value|floatformat:0 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">אין נתונים</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- כפתורי פעולה מהירה -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>פעולות מהירות</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <a href="{% url 'add_product' %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-plus me-2"></i>הוסף מוצר
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a href="{% url 'add_category' %}" class="btn btn-success w-100">
+                                    <i class="fas fa-tags me-2"></i>הוסף קטגוריה
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a href="{% url 'add_supplier' %}" class="btn btn-info w-100">
+                                    <i class="fas fa-truck me-2"></i>הוסף ספק
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a href="{% url 'reports' %}" class="btn btn-warning w-100">
+                                    <i class="fas fa-chart-bar me-2"></i>דוחות
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}

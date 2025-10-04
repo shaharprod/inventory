@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חשבונית {{ sale.invoice_number }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { font-size: 12px; }
+            .invoice-container { margin: 0; padding: 0; }
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .invoice-header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .company-info {
+            text-align: right;
+        }
+        
+        .customer-info {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .invoice-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .items-table th,
+        .items-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+        }
+        
+        .items-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .totals-section {
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .totals-table {
+            width: 300px;
+            margin-left: auto;
+        }
+        
+        .totals-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .totals-table .total-row {
+            font-weight: bold;
+            font-size: 1.1em;
+            background-color: #f8f9fa;
+        }
+        
+        .invoice-footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <!-- כפתורי הדפסה -->
+                <div class="no-print mb-3">
+                    <button onclick="window.print()" class="btn btn-primary me-2">
+                        <i class="fas fa-print me-1"></i>הדפס
+                    </button>
+                    <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>חזור למכירה
+                    </a>
+                </div>
+
+                <div class="invoice-container">
+                    <!-- כותרת חשבונית -->
+                    <div class="invoice-header">
+                        <div class="row">
+                            <div class="col-md-6">
+                                {% if template and template.logo %}
+                                    <img src="{{ template.logo.url }}" alt="לוגו" style="max-height: 80px;">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 company-info">
+                                <h2>חשבונית</h2>
+                                <h4>{{ template.company_name|default:"שם החברה" }}</h4>
+                                <p>{{ template.company_address|default:"כתובת החברה" }}</p>
+                                <p>טל: {{ template.company_phone|default:"טלפון" }} | אימייל: {{ template.company_email|default:"אימייל" }}</p>
+                                <p>ח.פ: {{ template.company_tax_id|default:"ח.פ" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- פרטי לקוח -->
+                    <div class="customer-info">
+                        <h5>לקוח:</h5>
+                        <p><strong>{{ sale.customer.name|default:"לקוח כללי" }}</strong></p>
+                        {% if sale.customer %}
+                            <p>{{ sale.customer.full_address }}</p>
+                            <p>{{ sale.customer.contact_info }}</p>
+                            {% if sale.customer.tax_id %}
+                                <p>ח.פ/ת.ז: {{ sale.customer.tax_id }}</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <!-- פרטי חשבונית -->
+                    <div class="invoice-details">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>מספר חשבונית:</strong> {{ sale.invoice_number }}</p>
+                                <p><strong>תאריך:</strong> {{ sale.sale_date|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>סטטוס:</strong> {{ sale.get_status_display }}</p>
+                                <p><strong>סטטוס תשלום:</strong> {{ sale.get_payment_status_display }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- פריטי החשבונית -->
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>תיאור</th>
+                                <th>כמות</th>
+                                <th>מחיר יחידה</th>
+                                <th>הנחה</th>
+                                <th>סכום</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sale.items.all %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₪{{ item.unit_price|floatformat:2 }}</td>
+                                <td>{{ item.discount_percent }}%</td>
+                                <td>₪{{ item.total_price|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- סיכום -->
+                    <div class="totals-section">
+                        <table class="totals-table">
+                            <tr>
+                                <td>סכום לפני מע"מ:</td>
+                                <td>₪{{ sale.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>מע"מ ({{ sale.tax_rate }}%):</td>
+                                <td>₪{{ sale.tax_amount|floatformat:2 }}</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>סכום כולל:</td>
+                                <td>₪{{ sale.total_amount|floatformat:2 }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- הערות -->
+                    {% if sale.notes %}
+                    <div class="mt-4">
+                        <h6>הערות:</h6>
+                        <p>{{ sale.notes }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- כותרת תחתונה -->
+                    {% if template and template.footer_text %}
+                    <div class="invoice-footer">
+                        <p>{{ template.footer_text }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // הדפסה אוטומטית
+        window.onload = function() {
+            // אפשרות להדפסה אוטומטית
+            // window.print();
+        }
+    </script>
+</body>
+</html>

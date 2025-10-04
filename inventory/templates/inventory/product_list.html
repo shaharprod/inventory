@@ -1,0 +1,214 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+
+{% block title %}רשימת מוצרים{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-card { transition: transform 0.2s; }
+    .product-card:hover { transform: translateY(-2px); }
+    .status-badge { font-size: 0.8em; }
+    .search-form { 
+        background: var(--bg-secondary); 
+        padding: 20px; 
+        border-radius: 8px; 
+        margin-bottom: 20px; 
+        border: 1px solid var(--border-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-boxes me-2"></i>רשימת מוצרים</h2>
+                    <div>
+                        <a href="{% url 'add_product' %}" class="btn btn-primary me-2">
+                            <i class="fas fa-plus me-1"></i>הוסף מוצר
+                        </a>
+                        <a href="{% url 'bulk_update' %}" class="btn btn-success">
+                            <i class="fas fa-edit me-1"></i>עדכון מרובה
+                        </a>
+                    </div>
+                </div>
+
+                <!-- טופס חיפוש וסינון -->
+                <div class="search-form">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            {{ search_form.search }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ search_form.category }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ search_form.supplier }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ search_form.status }}
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check">
+                                {{ search_form.low_stock }}
+                                <label class="form-check-label" for="{{ search_form.low_stock.id_for_label }}">
+                                    מלאי נמוך
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {{ search_form.out_of_stock }}
+                                <label class="form-check-label" for="{{ search_form.out_of_stock.id_for_label }}">
+                                    אזל מהמלאי
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- מיון -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted">מיון לפי:</span>
+                        <a href="?{{ request.GET.urlencode }}&sort=name" class="btn btn-sm btn-outline-secondary">שם</a>
+                        <a href="?{{ request.GET.urlencode }}&sort=quantity" class="btn btn-sm btn-outline-secondary">כמות</a>
+                        <a href="?{{ request.GET.urlencode }}&sort=value" class="btn btn-sm btn-outline-secondary">ערך</a>
+                        <a href="?{{ request.GET.urlencode }}&sort=updated" class="btn btn-sm btn-outline-secondary">עדכון</a>
+                    </div>
+                    <div class="text-muted">
+                        {{ products.paginator.count }} מוצרים
+                    </div>
+                </div>
+
+                {% if products %}
+                    <div class="row">
+                        {% for product in products %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card product-card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ product.name }}</h6>
+                                        <div>
+                                            {% if product.is_out_of_stock %}
+                                                <span class="badge bg-danger status-badge">אזל</span>
+                                            {% elif product.is_low_stock %}
+                                                <span class="badge bg-warning status-badge">נמוך</span>
+                                            {% elif product.is_overstocked %}
+                                                <span class="badge bg-info status-badge">עודף</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">SKU:</small><br>
+                                                <strong>{{ product.sku }}</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">ברקוד:</small><br>
+                                                <strong>{{ product.barcode|default:"ללא" }}</strong>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">כמות:</small><br>
+                                                <span class="h5 {% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% endif %}">
+                                                    {{ product.quantity }} {{ product.get_unit_display }}
+                                                </span>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">מחיר:</small><br>
+                                                <span class="h6 text-success">₪{{ product.selling_price }}</span>
+                                            </div>
+                                        </div>
+
+                                        {% if product.category %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">קטגוריה:</small>
+                                                <span class="badge bg-secondary">{{ product.category.name }}</span>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if product.supplier %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">ספק:</small>
+                                                <span>{{ product.supplier.name }}</span>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if product.description %}
+                                            <p class="text-muted small">{{ product.description|truncatechars:100 }}</p>
+                                        {% endif %}
+
+                                        {% if product.product_image %}
+                                            <div class="text-center mb-2">
+                                                <img src="{{ product.product_image.url }}" alt="תמונת מוצר" 
+                                                     class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100" role="group">
+                                            <a href="{% url 'product_detail' product.pk %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'edit_product' product.pk %}" class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'stock_movement' product.pk %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-exchange-alt"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- עמודים -->
+                    {% if products.has_other_pages %}
+                        <nav aria-label="עמודים">
+                            <ul class="pagination justify-content-center">
+                                {% if products.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ products.previous_page_number }}">הקודם</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in products.paginator.page_range %}
+                                    {% if products.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if products.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ products.next_page_number }}">הבא</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">אין מוצרים</h4>
+                        <p class="text-muted">התחל על ידי הוספת מוצר ראשון</p>
+                        <a href="{% url 'add_product' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>הוסף מוצר
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+{% endblock %}

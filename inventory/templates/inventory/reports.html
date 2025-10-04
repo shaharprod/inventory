@@ -1,0 +1,302 @@
+{%extends 'inventory/base.html' %}
+
+{% block title %}דוחות ואנליטיקה - מערכת ניהול מלאי{% endblock %}
+
+{% block content %}
+<div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-chart-bar me-2"></i>דוחות ואנליטיקה</h2>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-download me-1"></i>ייצא דוחות
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'export_products_csv' %}">
+                                <i class="fas fa-file-csv me-2"></i>ייצא מוצרים (CSV)
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'export_low_stock_csv' %}">
+                                <i class="fas fa-exclamation-triangle me-2"></i>ייצא מלאי נמוך (CSV)
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'export_movements_csv' %}">
+                                <i class="fas fa-exchange-alt me-2"></i>ייצא תנועות (CSV)
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'export_reports_json' %}">
+                                <i class="fas fa-file-code me-2"></i>ייצא דוח מלא (JSON)
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- כרטיסי סטטיסטיקות מהירות -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-white bg-primary h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">סה"כ מוצרים</h5>
+                                        <p class="card-text display-4">{{ total_products }}</p>
+                                    </div>
+                                    <i class="fas fa-boxes fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-white bg-warning h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">מלאי נמוך</h5>
+                                        <p class="card-text display-4">{{ low_stock_products }}</p>
+                                    </div>
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-white bg-danger h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">אזל מהמלאי</h5>
+                                        <p class="card-text display-4">{{ out_of_stock_products }}</p>
+                                    </div>
+                                    <i class="fas fa-times-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-white bg-success h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">ערך מלאי</h5>
+                                        <p class="card-text display-6">₪{{ total_stock_value|floatformat:0 }}</p>
+                                    </div>
+                                    <i class="fas fa-dollar-sign fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- דוחות מפורטים -->
+                <div class="row">
+                    <!-- דוח מלאי נמוך -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-exclamation-triangle me-2"></i>מוצרים במלאי נמוך</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if low_stock %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>מוצר</th>
+                                                    <th>כמות נוכחית</th>
+                                                    <th>כמות מינימלית</th>
+                                                    <th>סטטוס</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for product in low_stock|slice:":10" %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ product.name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ product.sku }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="{% if product.quantity == 0 %}text-danger{% else %}text-warning{% endif %}">
+                                                            {{ product.quantity }}
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ product.min_quantity }}</td>
+                                                    <td>
+                                                        {% if product.quantity == 0 %}
+                                                            <span class="badge bg-danger">אזל</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning">נמוך</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center">אין מוצרים במלאי נמוך</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- דוח קטגוריות -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-tags me-2"></i>פילוח לפי קטגוריות</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if category_report %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>קטגוריה</th>
+                                                    <th>כמות מוצרים</th>
+                                                    <th>ערך כולל</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for stat in category_report|slice:":10" %}
+                                                <tr>
+                                                    <td>{{ stat.category__name|default:"ללא קטגוריה" }}</td>
+                                                    <td>{{ stat.count }}</td>
+                                                    <td>₪{{ stat.total_value|floatformat:0 }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center">אין נתונים זמינים</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- דוחות נוספים -->
+                <div class="row">
+                    <!-- דוח ספקים -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-truck me-2"></i>דוח ספקים</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if supplier_stats %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>ספק</th>
+                                                    <th>כמות מוצרים</th>
+                                                    <th>ערך כולל</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for stat in supplier_stats %}
+                                                <tr>
+                                                    <td>{{ stat.supplier__name|default:"ללא ספק" }}</td>
+                                                    <td>{{ stat.count }}</td>
+                                                    <td>₪{{ stat.total_value|floatformat:0 }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center">אין נתונים זמינים</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- דוח מוצרים רווחיים -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-chart-line me-2"></i>מוצרים רווחיים ביותר</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if high_margin_products %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>מוצר</th>
+                                                    <th>אחוז רווח</th>
+                                                    <th>מחיר מכירה</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for product in high_margin_products|slice:":5" %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ product.name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ product.sku }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-success">{{ product.margin_percentage|floatformat:1 }}%</span>
+                                                    </td>
+                                                    <td>₪{{ product.selling_price }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center">אין נתונים זמינים</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- סטטיסטיקות תנועות -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-exchange-alt me-2"></i>סטטיסטיקות תנועות מלאי</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-md-3 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h3 class="text-primary">{{ movements_today }}</h3>
+                                            <small class="text-muted">תנועות היום</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h3 class="text-info">{{ movements_week }}</h3>
+                                            <small class="text-muted">תנועות השבוע</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h3 class="text-warning">{{ active_alerts }}</h3>
+                                            <small class="text-muted">התראות פעילות</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h3 class="text-danger">{{ critical_alerts }}</h3>
+                                            <small class="text-muted">התראות קריטיות</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

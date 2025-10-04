@@ -1,0 +1,82 @@
+{%extends 'inventory/base.html' %}
+
+{% block title %}תנועת מלאי - {{ product.name }} - מערכת ניהול מלאי{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-exchange-alt me-2"></i>תנועת מלאי - {{ product.name }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>מידע נוכחי:</h6>
+                                        <p><strong>כמות נוכחית:</strong> {{ product.quantity }} {{ product.get_unit_display }}</p>
+                                        <p><strong>SKU:</strong> {{ product.sku }}</p>
+                                        <p><strong>סטטוס:</strong> 
+                                            <span class="badge bg-{% if product.is_out_of_stock %}danger{% elif product.is_low_stock %}warning{% else %}success{% endif %}">
+                                                {% if product.is_out_of_stock %}אזל מהמלאי{% elif product.is_low_stock %}מלאי נמוך{% else %}מלאי תקין{% endif %}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>טווח מלאי:</h6>
+                                        <p><strong>מינימום:</strong> {{ product.min_quantity }}</p>
+                                        <p><strong>מקסימום:</strong> {{ product.max_quantity }}</p>
+                                        <p><strong>יחידה:</strong> {{ product.get_unit_display }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.movement_type.id_for_label }}" class="form-label">סוג תנועה:</label>
+                                        {{ form.movement_type }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ form.quantity.id_for_label }}" class="form-label">כמות:</label>
+                                        {{ form.quantity }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.reason.id_for_label }}" class="form-label">סיבה:</label>
+                                        {{ form.reason }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ form.reference.id_for_label }}" class="form-label">התייחסות (מספר הזמנה/חשבונית):</label>
+                                        {{ form.reference }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>ביצוע תנועה
+                                </button>
+                                <a href="{% url 'product_detail' product.pk %}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-1"></i>ביטול
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

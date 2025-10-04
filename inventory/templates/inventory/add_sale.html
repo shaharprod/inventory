@@ -1,0 +1,194 @@
+{%extends 'inventory/base.html' %}
+
+{% block title %}מכירה חדשה - מערכת ניהול מלאי{% endblock %}
+
+{% block content %}
+<div class="row">
+            <div class="col-12">
+                <h2><i class="fas fa-shopping-cart me-2"></i>מכירה חדשה</h2>
+                
+                <!-- הודעות -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" id="saleForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- פרטי מכירה -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>פרטי מכירה</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="{{ form.customer.id_for_label }}" class="form-label">לקוח:</label>
+                                        {{ form.customer }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.status.id_for_label }}" class="form-label">סטטוס:</label>
+                                        {{ form.status }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.payment_status.id_for_label }}" class="form-label">סטטוס תשלום:</label>
+                                        {{ form.payment_status }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.sale_date.id_for_label }}" class="form-label">תאריך מכירה:</label>
+                                        {{ form.sale_date }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.notes.id_for_label }}" class="form-label">הערות:</label>
+                                        {{ form.notes }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- פריטי מכירה -->
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>פריטי מכירה</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="sale-items">
+                                        {{ formset.management_form }}
+                                        {% for form in formset %}
+                                            <div class="row mb-3 sale-item">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">מוצר:</label>
+                                                    {{ form.product }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">כמות:</label>
+                                                    {{ form.quantity }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">מחיר יחידה:</label>
+                                                    {{ form.unit_price }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">הנחה %:</label>
+                                                    {{ form.discount_percent }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">סכום:</label>
+                                                    <input type="text" class="form-control" readonly id="total-{{ forloop.counter0 }}">
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-outline-primary" id="add-item">
+                                        <i class="fas fa-plus me-1"></i>הוסף פריט
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- סיכום -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>סיכום מכירה</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label">סכום לפני מע"מ:</label>
+                                            {{ form.subtotal }}
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">אחוז מע"מ:</label>
+                                            {{ form.tax_rate }}
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>סכום מע"מ:</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <span id="tax-amount">₪0.00</span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>סכום כולל:</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <span id="total-amount">₪0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>שמור מכירה
+                            </button>
+                            <a href="{% url 'sale_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right me-1"></i>חזור לרשימה
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // חישוב אוטומטי של סכומים
+        function calculateTotals() {
+            let subtotal = 0;
+            document.querySelectorAll('.sale-item').forEach((item, index) => {
+                const quantity = parseFloat(item.querySelector('input[name$="-quantity"]').value) || 0;
+                const unitPrice = parseFloat(item.querySelector('input[name$="-unit_price"]').value) || 0;
+                const discount = parseFloat(item.querySelector('input[name$="-discount_percent"]').value) || 0;
+                
+                const itemTotal = (quantity * unitPrice) * (1 - discount / 100);
+                item.querySelector(`#total-${index}`).value = '₪' + itemTotal.toFixed(2);
+                subtotal += itemTotal;
+            });
+            
+            document.querySelector('input[name="subtotal"]').value = subtotal.toFixed(2);
+            
+            const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
+            const taxAmount = subtotal * (taxRate / 100);
+            const totalAmount = subtotal + taxAmount;
+            
+            document.getElementById('tax-amount').textContent = '₪' + taxAmount.toFixed(2);
+            document.getElementById('total-amount').textContent = '₪' + totalAmount.toFixed(2);
+        }
+        
+        // הוספת event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.sale-item input').forEach(input => {
+                input.addEventListener('input', calculateTotals);
+            });
+            
+            document.querySelector('input[name="tax_rate"]').addEventListener('input', calculateTotals);
+            
+            // חישוב ראשוני
+            calculateTotals();
+        });
+    </script>
+{% endblock %}

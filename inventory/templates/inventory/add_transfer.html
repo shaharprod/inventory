@@ -1,0 +1,195 @@
+{%extends 'inventory/base.html' %}
+
+{% block title %}העברה חדשה - מערכת ניהול מלאי{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+        <div class="row">
+            <div class="col-md-10 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-exchange-alt me-2"></i>העברה חדשה</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- הודעות -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="post" id="transferForm">
+                            {% csrf_token %}
+                            
+                            <!-- פרטי העברה -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5>פרטי העברה</h5>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.transfer_type.id_for_label }}" class="form-label">סוג העברה *</label>
+                                        {{ form.transfer_type }}
+                                        {% if form.transfer_type.errors %}
+                                            <div class="text-danger">{{ form.transfer_type.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.from_location.id_for_label }}" class="form-label">ממיקום *</label>
+                                        {{ form.from_location }}
+                                        {% if form.from_location.errors %}
+                                            <div class="text-danger">{{ form.from_location.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.to_location.id_for_label }}" class="form-label">למיקום *</label>
+                                        {{ form.to_location }}
+                                        {% if form.to_location.errors %}
+                                            <div class="text-danger">{{ form.to_location.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.status.id_for_label }}" class="form-label">סטטוס</label>
+                                        {{ form.status }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.transfer_date.id_for_label }}" class="form-label">תאריך העברה</label>
+                                        {{ form.transfer_date }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">הערות</label>
+                                {{ form.notes }}
+                            </div>
+                            
+                            <!-- פריטי העברה -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5>פריטי העברה</h5>
+                                </div>
+                            </div>
+                            
+                            <div id="transfer-items">
+                                {{ formset.management_form }}
+                                {% for form in formset %}
+                                    <div class="transfer-item-form row mb-3 p-3 border rounded">
+                                        <div class="col-md-4">
+                                            <label class="form-label">מוצר</label>
+                                            {{ form.product }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">כמות</label>
+                                            {{ form.quantity }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">מחיר</label>
+                                            {{ form.unit_price }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">הערות</label>
+                                            {{ form.notes }}
+                                        </div>
+                                        <div class="col-md-1 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger btn-sm remove-item">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        {{ form.DELETE }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-primary" id="add-item">
+                                    <i class="fas fa-plus me-1"></i>הוסף פריט
+                                </button>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>שמור העברה
+                                </button>
+                                <a href="{% url 'transfer_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>חזור לרשימה
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addItemBtn = document.getElementById('add-item');
+            const transferItemsContainer = document.getElementById('transfer-items');
+            const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
+            let formCount = parseInt(totalFormsInput.value);
+
+            addItemBtn.addEventListener('click', function() {
+                const newForm = document.createElement('div');
+                newForm.className = 'transfer-item-form row mb-3 p-3 border rounded';
+                newForm.innerHTML = `
+                    <div class="col-md-4">
+                        <label class="form-label">מוצר</label>
+                        <select name="form-${formCount}-product" class="form-control" id="id_form-${formCount}-product">
+                            <option value="">בחר מוצר</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">כמות</label>
+                        <input type="number" name="form-${formCount}-quantity" class="form-control" id="id_form-${formCount}-quantity" min="1">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">מחיר</label>
+                        <input type="number" name="form-${formCount}-unit_price" class="form-control" id="id_form-${formCount}-unit_price" step="0.01">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">הערות</label>
+                        <input type="text" name="form-${formCount}-notes" class="form-control" id="id_form-${formCount}-notes">
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-item">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="form-${formCount}-DELETE" id="id_form-${formCount}-DELETE">
+                `;
+                
+                transferItemsContainer.appendChild(newForm);
+                formCount++;
+                totalFormsInput.value = formCount;
+            });
+
+            // הסרת פריט
+            transferItemsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-item')) {
+                    const formToRemove = e.target.closest('.transfer-item-form');
+                    const deleteInput = formToRemove.querySelector('input[name$="-DELETE"]');
+                    if (deleteInput) {
+                        deleteInput.value = 'on';
+                        formToRemove.style.display = 'none';
+                    } else {
+                        formToRemove.remove();
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

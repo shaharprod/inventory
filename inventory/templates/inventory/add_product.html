@@ -1,0 +1,627 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+
+{% block title %}הוסף מוצר חדש{% endblock %}
+
+{% block extra_css %}
+<style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        .row {
+            margin-bottom: 20px;
+        }
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: var(--bg-tertiary);
+            background-clip: padding-box;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .camera-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .camera-button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .camera-button:hover {
+            background-color: #1976D2;
+        }
+        .camera-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #cameraPreview {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .captured-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 10px;
+            border-radius: 4px;
+            border: 2px solid #4CAF50;
+        }
+        .barcode-scanner {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #4CAF50;
+            border-radius: 8px;
+            text-align: center;
+        }
+        #barcodeResult {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .barcode-generator {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #FF9800;
+            border-radius: 8px;
+            text-align: center;
+        }
+        #generatedBarcode img {
+            max-width: 200px;
+            max-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>הוסף מוצר חדש</h1>
+        
+        <!-- הודעות -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">שם המוצר:</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}">תיאור:</label>
+                        {{ form.description }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.category.id_for_label }}">קטגוריה:</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.supplier.id_for_label }}">ספק:</label>
+                        {{ form.supplier }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.location.id_for_label }}">מיקום:</label>
+                        {{ form.location }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.quantity.id_for_label }}">כמות:</label>
+                        {{ form.quantity }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.min_quantity.id_for_label }}">כמות מינימלית:</label>
+                        {{ form.min_quantity }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.max_quantity.id_for_label }}">כמות מקסימלית:</label>
+                        {{ form.max_quantity }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.unit.id_for_label }}">יחידה:</label>
+                        {{ form.unit }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.cost_price.id_for_label }}">מחיר עלות:</label>
+                        {{ form.cost_price }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.selling_price.id_for_label }}">מחיר מכירה:</label>
+                        {{ form.selling_price }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.barcode.id_for_label }}">ברקוד:</label>
+                        {{ form.barcode }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.status.id_for_label }}">סטטוס:</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.weight.id_for_label }}">משקל (ק"ג):</label>
+                        {{ form.weight }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.dimensions.id_for_label }}">מידות (LxWxH):</label>
+                        {{ form.dimensions }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.notes.id_for_label }}">הערות:</label>
+                {{ form.notes }}
+            </div>
+            <!-- מצלמה לצילום תמונת מוצר -->
+            <div class="camera-section">
+                <h3>📷 צלם תמונת מוצר</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                    💡 טיפ: ודא שהדפדפן יכול לגשת למצלמה. בטאבלט/סמארטפון השתמש במצלמה האחורית.
+                </p>
+                <button type="button" class="camera-button" id="startCamera">הפעל מצלמה</button>
+                <button type="button" class="camera-button" id="capturePhoto" disabled>צלם תמונה</button>
+                <button type="button" class="camera-button" id="stopCamera" disabled>עצור מצלמה</button>
+                <video id="cameraPreview" style="display: none;"></video>
+                <canvas id="photoCanvas" style="display: none;"></canvas>
+                <div id="capturedPhotos"></div>
+            </div>
+
+            <!-- סורק ברקוד -->
+            <div class="barcode-scanner">
+                <h3>📱 סרוק ברקוד</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                    💡 טיפ: כוון את המצלמה לברקוד. הסורק יעצור אוטומטית אחרי זיהוי.
+                </p>
+                <button type="button" class="camera-button" id="startBarcodeScanner">הפעל סורק ברקוד</button>
+                <button type="button" class="camera-button" id="stopBarcodeScanner" disabled>עצור סורק</button>
+                <video id="barcodePreview" style="display: none;"></video>
+                <div id="barcodeResult" style="display: none;"></div>
+            </div>
+
+            <!-- יצירת ברקוד אוטומטי -->
+            <div class="barcode-generator">
+                <h3>🏷️ צור ברקוד אוטומטי</h3>
+                <input type="text" id="barcodeText" placeholder="הכנס קוד לברקוד (13 ספרות)" maxlength="13" style="padding: 8px; margin: 5px; width: 200px;">
+                <button type="button" class="camera-button" id="generateBarcode">צור ברקוד</button>
+                <div id="generatedBarcode" style="margin: 10px 0;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.barcode_image.id_for_label }}">תמונת ברקוד:</label>
+                {{ form.barcode_image }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.product_image.id_for_label }}">תמונת מוצר:</label>
+                {{ form.product_image }}
+            </div>
+            <button type="submit">שמור מוצר</button>
+        </form>
+        <a href="{% url 'product_list' %}" class="back-link">← חזור לרשימת מוצרים</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script>
+        let cameraStream = null;
+        let barcodeStream = null;
+        let capturedImages = [];
+
+        // מצלמה לצילום תמונות
+        document.getElementById('startCamera').addEventListener('click', async function() {
+            try {
+                // בדיקה אם הדפדפן תומך במצלמה
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('הדפדפן שלך לא תומך במצלמה');
+                    return;
+                }
+
+                // בקשת הרשאות למצלמה
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 1280, max: 1920 },
+                        height: { ideal: 720, max: 1080 }
+                    },
+                    audio: false
+                };
+
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                const video = document.getElementById('cameraPreview');
+                video.srcObject = cameraStream;
+                video.style.display = 'block';
+                
+                // המתנה שהמצלמה תיטען
+                video.onloadedmetadata = function() {
+                    video.play();
+                    console.log('מצלמה הופעלה בהצלחה');
+                };
+                
+                document.getElementById('startCamera').disabled = true;
+                document.getElementById('capturePhoto').disabled = false;
+                document.getElementById('stopCamera').disabled = false;
+                
+            } catch (err) {
+                console.error('שגיאה במצלמה:', err);
+                let errorMessage = 'לא ניתן לגשת למצלמה: ';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'הגישה למצלמה נדחתה. אנא אשר את ההרשאה למצלמה.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'לא נמצאה מצלמה במכשיר.';
+                } else if (err.name === 'NotSupportedError') {
+                    errorMessage += 'הדפדפן לא תומך במצלמה.';
+                } else {
+                    errorMessage += err.message;
+                }
+                
+                alert(errorMessage);
+            }
+        });
+
+        document.getElementById('capturePhoto').addEventListener('click', function() {
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.getElementById('photoCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            capturedImages.push(imageData);
+            
+            // הצגת התמונה שצולמה
+            const photosDiv = document.getElementById('capturedPhotos');
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.className = 'captured-image';
+            img.onclick = function() {
+                // הורדת התמונה כקובץ
+                const link = document.createElement('a');
+                link.download = 'product_photo_' + Date.now() + '.jpg';
+                link.href = imageData;
+                link.click();
+            };
+            photosDiv.appendChild(img);
+            
+            // עדכון שדה העלאת התמונה
+            updateProductImageField(imageData);
+        });
+
+        document.getElementById('stopCamera').addEventListener('click', function() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            document.getElementById('cameraPreview').style.display = 'none';
+            document.getElementById('startCamera').disabled = false;
+            document.getElementById('capturePhoto').disabled = true;
+            document.getElementById('stopCamera').disabled = true;
+        });
+
+        // סורק ברקוד
+        document.getElementById('startBarcodeScanner').addEventListener('click', async function() {
+            try {
+                // בדיקה אם הדפדפן תומך במצלמה
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('הדפדפן שלך לא תומך במצלמה');
+                    return;
+                }
+
+                const constraints = {
+                    video: { 
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 640, max: 1280 },
+                        height: { ideal: 480, max: 720 }
+                    },
+                    audio: false
+                };
+
+                barcodeStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                const video = document.getElementById('barcodePreview');
+                video.srcObject = barcodeStream;
+                video.style.display = 'block';
+                
+                // המתנה שהמצלמה תיטען
+                video.onloadedmetadata = function() {
+                    video.play();
+                    console.log('סורק ברקוד הופעל');
+                };
+                
+                document.getElementById('startBarcodeScanner').disabled = true;
+                document.getElementById('stopBarcodeScanner').disabled = false;
+                
+                // הפעלת Quagga לסריקת ברקוד
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: video,
+                        constraints: {
+                            width: 640,
+                            height: 480,
+                            facingMode: "environment"
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader",
+                            "code_39_reader",
+                            "code_39_vin_reader",
+                            "codabar_reader",
+                            "upc_reader",
+                            "upc_e_reader",
+                            "i2of5_reader"
+                        ]
+                    }
+                }, function(err) {
+                    if (err) {
+                        console.error('שגיאה בהפעלת Quagga:', err);
+                        alert('שגיאה בהפעלת סורק הברקוד: ' + err.message);
+                        return;
+                    }
+                    Quagga.start();
+                    console.log('Quagga הופעל בהצלחה');
+                });
+                
+                Quagga.onDetected(function(data) {
+                    const code = data.codeResult.code;
+                    document.getElementById('barcodeResult').style.display = 'block';
+                    document.getElementById('barcodeResult').textContent = 'ברקוד זוהה: ' + code;
+                    
+                    // עדכון שם המוצר עם קוד הברקוד
+                    const nameField = document.querySelector('input[name="name"]');
+                    if (nameField && !nameField.value) {
+                        nameField.value = 'מוצר ' + code;
+                    }
+                    
+                    // עצירת הסורק אחרי זיהוי
+                    setTimeout(() => {
+                        Quagga.stop();
+                        if (barcodeStream) {
+                            barcodeStream.getTracks().forEach(track => track.stop());
+                            barcodeStream = null;
+                        }
+                        document.getElementById('barcodePreview').style.display = 'none';
+                        document.getElementById('startBarcodeScanner').disabled = false;
+                        document.getElementById('stopBarcodeScanner').disabled = true;
+                    }, 2000);
+                });
+                
+            } catch (err) {
+                console.error('שגיאה בסורק ברקוד:', err);
+                let errorMessage = 'לא ניתן לגשת למצלמה לסריקת ברקוד: ';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'הגישה למצלמה נדחתה. אנא אשר את ההרשאה למצלמה.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'לא נמצאה מצלמה במכשיר.';
+                } else {
+                    errorMessage += err.message;
+                }
+                
+                alert(errorMessage);
+            }
+        });
+
+        document.getElementById('stopBarcodeScanner').addEventListener('click', function() {
+            Quagga.stop();
+            if (barcodeStream) {
+                barcodeStream.getTracks().forEach(track => track.stop());
+                barcodeStream = null;
+            }
+            
+            document.getElementById('barcodePreview').style.display = 'none';
+            document.getElementById('barcodeResult').style.display = 'none';
+            document.getElementById('startBarcodeScanner').disabled = false;
+            document.getElementById('stopBarcodeScanner').disabled = true;
+        });
+
+        // יצירת ברקוד אוטומטי
+        document.getElementById('generateBarcode').addEventListener('click', function() {
+            const barcodeText = document.getElementById('barcodeText').value;
+            if (barcodeText && barcodeText.length >= 8) {
+                // הוספת אפסים אם הקוד קצר מ-13 ספרות
+                const paddedText = barcodeText.padStart(13, '0');
+                
+                fetch('/inventory/generate-barcode/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: 'barcode_text=' + encodeURIComponent(paddedText)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const barcodeDiv = document.getElementById('generatedBarcode');
+                        barcodeDiv.innerHTML = `
+                            <img src="${data.barcode_data}" alt="Generated Barcode">
+                            <p>ברקוד נוצר: ${data.barcode_text}</p>
+                        `;
+                        
+                        // עדכון שדה העלאת תמונת הברקוד
+                        updateBarcodeImageField(data.barcode_data);
+                    } else {
+                        alert('שגיאה ביצירת הברקוד: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('שגיאה: ' + error.message);
+                });
+            } else {
+                alert('אנא הכנס קוד תקין (לפחות 8 ספרות)');
+            }
+        });
+
+        // פונקציה לעדכון שדה העלאת התמונה
+        function updateProductImageField(imageData) {
+            // המרת base64 לקובץ
+            const byteCharacters = atob(imageData.split(',')[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], {type: 'image/jpeg'});
+            
+            // יצירת File object
+            const file = new File([blob], 'captured_photo.jpg', {type: 'image/jpeg'});
+            
+            // עדכון שדה העלאת התמונה
+            const fileInput = document.querySelector('input[name="product_image"]');
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+        }
+
+        // פונקציה לעדכון שדה העלאת תמונת הברקוד
+        function updateBarcodeImageField(imageData) {
+            // המרת base64 לקובץ
+            const byteCharacters = atob(imageData.split(',')[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], {type: 'image/png'});
+            
+            // יצירת File object
+            const file = new File([blob], 'generated_barcode.png', {type: 'image/png'});
+            
+            // עדכון שדה העלאת תמונת הברקוד
+            const fileInput = document.querySelector('input[name="barcode_image"]');
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+        }
+
+        // חישוב אוטומטי של אחוז רווח
+        function calculateMargin() {
+            const costPrice = parseFloat(document.querySelector('input[name="cost_price"]').value) || 0;
+            const sellingPrice = parseFloat(document.querySelector('input[name="selling_price"]').value) || 0;
+            
+            if (costPrice > 0 && sellingPrice > 0) {
+                const margin = ((sellingPrice - costPrice) / costPrice) * 100;
+                console.log(`אחוז רווח: ${margin.toFixed(2)}%`);
+            }
+        }
+
+        // הוספת event listeners לשדות המחיר
+        document.addEventListener('DOMContentLoaded', function() {
+            const costPriceField = document.querySelector('input[name="cost_price"]');
+            const sellingPriceField = document.querySelector('input[name="selling_price"]');
+            
+            if (costPriceField) {
+                costPriceField.addEventListener('input', calculateMargin);
+            }
+            if (sellingPriceField) {
+                sellingPriceField.addEventListener('input', calculateMargin);
+            }
+        });
+
+        // ניקוי משאבים כשעזיבת הדף
+        window.addEventListener('beforeunload', function() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+            if (barcodeStream) {
+                barcodeStream.getTracks().forEach(track => track.stop());
+            }
+            if (typeof Quagga !== 'undefined') {
+                Quagga.stop();
+            }
+        });
+    </script>
+{% endblock %}

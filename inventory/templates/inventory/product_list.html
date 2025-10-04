@@ -82,25 +82,25 @@
         gap: 1.5rem !important;
         width: 100%;
     }
-    
+
     #gridView .product-card-wrapper {
         flex: 1 1 calc(25% - 1.5rem) !important;
         min-width: 280px;
         max-width: none;
     }
-    
+
     @media (max-width: 1400px) {
         #gridView .product-card-wrapper {
             flex: 1 1 calc(33.333% - 1.5rem) !important;
         }
     }
-    
+
     @media (max-width: 992px) {
         #gridView .product-card-wrapper {
             flex: 1 1 calc(50% - 1.5rem) !important;
         }
     }
-    
+
     @media (max-width: 768px) {
         #gridView .product-card-wrapper {
             flex: 1 1 100% !important;
@@ -343,7 +343,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             <small class="text-muted d-block">ערך מלאי</small>
-                                            <strong>₪{{ product.stock_value|default:0 }}</strong>
+                                            <strong>₪{{ product.get_stock_value|floatformat:0 }}</strong>
                                         </div>
                                         {% if product.supplier %}
                                             <div class="col-md-3">

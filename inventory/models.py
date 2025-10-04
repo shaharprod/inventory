@@ -162,31 +162,23 @@ class Product(models.Model):
     def is_overstocked(self):
         return self.quantity >= self.max_quantity
 
-    @property
-    def stock_value(self):
-        if self.cost_price:
-            return self.quantity * self.cost_price
+    def get_stock_value(self):
+        """ערך מלאי - חישוב בטוח"""
+        try:
+            if self.cost_price and self.quantity:
+                return float(self.quantity) * float(self.cost_price)
+        except:
+            pass
         return 0
 
-    @property
-    def potential_value(self):
-        if self.selling_price:
-            return self.quantity * self.selling_price
+    def get_potential_value(self):
+        """ערך פוטנציאלי - חישוב בטוח"""
+        try:
+            if self.selling_price and self.quantity:
+                return float(self.quantity) * float(self.selling_price)
+        except:
+            pass
         return 0
-    
-    @property
-    def warehouse_stock(self):
-        """מלאי במחסנים"""
-        return self.location_stocks.filter(location__location_type='warehouse').aggregate(
-            total=Sum('quantity')
-        )['total'] or 0
-    
-    @property
-    def store_stock(self):
-        """מלאי בחנויות"""
-        return self.location_stocks.filter(location__location_type='store').aggregate(
-            total=Sum('quantity')
-        )['total'] or 0
 
     def save(self, *args, **kwargs):
         # חישוב אחוז רווח אוטומטי

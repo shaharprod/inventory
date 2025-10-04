@@ -830,7 +830,7 @@ def export_low_stock_csv(request):
             product.category.name if product.category else '',
             product.supplier.name if product.supplier else '',
             product.cost_price or 0,
-            product.stock_value or 0
+            product.get_stock_value()
         ])
 
     return response

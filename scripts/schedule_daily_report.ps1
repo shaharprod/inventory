@@ -38,21 +38,21 @@ try {
     Write-Host "📅 המשימה תרוץ כל יום בשעה $TriggerTime" -ForegroundColor Cyan
     Write-Host "`n🔍 לצפייה במשימה:" -ForegroundColor Yellow
     Write-Host "   Task Scheduler -> Task Scheduler Library -> $TaskName`n" -ForegroundColor Gray
-    
+
     # הצגת פרטי המשימה
     Write-Host "`n📋 פרטי המשימה:" -ForegroundColor Cyan
     Write-Host "   שם: $TaskName"
     Write-Host "   זמן: $TriggerTime"
     Write-Host "   סקריפט: $ScriptPath"
     Write-Host "   תיאור: $Description`n"
-    
+
     # שאלה אם להריץ עכשיו לבדיקה
     $RunNow = Read-Host "האם להריץ את הדוח עכשיו לבדיקה? (y/n)"
     if ($RunNow -eq 'y') {
         Write-Host "`n🚀 מריץ דוח...`n" -ForegroundColor Cyan
         & $ScriptPath
     }
-    
+
 } catch {
     Write-Host "`n❌ שגיאה ביצירת המשימה: $_" -ForegroundColor Red
     Write-Host "💡 ודא שהרצת את הסקריפט כמנהל (Run as Administrator)" -ForegroundColor Yellow

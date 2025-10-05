@@ -1,36 +1,27 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
 # Python
-__pycache__/
+__pycache__
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
+*.egg-info
+dist
+build
 venv/
+env/
 ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Django
 *.log
+db.sqlite3
 db.sqlite3-journal
+media/
 staticfiles/
-
-# Virtual Environment
-venv/
-ENV/
 
 # IDE
 .vscode/
@@ -43,24 +34,37 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Git
-.git/
-.gitignore
-
-# Documentation (לא צריך בקונטיינר)
-docs/
+# Documentation
 *.md
+docs/
 
-# Scripts (לא צריך בקונטיינר)
-*.ps1
-*.sh
-
-# Backups (לא צריך בתוך הקונטיינר, רק ב-volume)
+# Backups
 backups/
+*.zip
+*.sql
+*.dump
 
-# Python scripts שלא צריכים
-distribute_*.py
-fix_*.py
-create_sample_data.py
-convert_templates.py
+# Scripts
+scripts/
+*.bat
+*.ps1
+RUN.bat
+start.bat
+start.ps1
+docker-start.ps1
+docker-stop.ps1
 
+# Config files
+.env
+.env.local
+*.local
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Temporary files
+tmp/
+temp/
+*.tmp

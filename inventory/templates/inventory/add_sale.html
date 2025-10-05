@@ -61,6 +61,13 @@
                                     </div>
 
                                     <div class="mb-3">
+                                        <label for="{{ form.payment_method.id_for_label }}" class="form-label">
+                                            <i class="fas fa-credit-card me-1"></i>אפשרות תשלום:
+                                        </label>
+                                        {{ form.payment_method }}
+                                    </div>
+
+                                    <div class="mb-3">
                                         <label for="{{ form.sale_date.id_for_label }}" class="form-label">תאריך מכירה:</label>
                                         {{ form.sale_date }}
                                     </div>
@@ -94,8 +101,8 @@
                                     <div id="sale-items">
                                         {{ formset.management_form }}
                                         {% for form in formset %}
-                                            <div class="row mb-3 sale-item">
-                                                <div class="col-md-4">
+                                            <div class="row mb-3 sale-item align-items-end">
+                                                <div class="col-md-3">
                                                     <label class="form-label">מוצר:</label>
                                                     {{ form.product }}
                                                 </div>
@@ -114,6 +121,11 @@
                                                 <div class="col-md-2">
                                                     <label class="form-label">סכום:</label>
                                                     <input type="text" class="form-control" readonly id="total-{{ forloop.counter0 }}">
+                                                </div>
+                                                <div class="col-md-1 text-center">
+                                                    <button type="button" class="btn btn-danger btn-sm delete-row" title="מחק שורה">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         {% endfor %}
@@ -240,13 +252,23 @@
 
                 <!-- אזור הסריקה -->
                 <div class="text-center">
-                    <div id="scanner-container" style="position: relative; max-width: 100%; margin: 0 auto;">
-                        <video id="scanner-video" style="width: 100%; max-width: 640px; border: 3px solid #007bff; border-radius: 10px;"></video>
-                        <div id="scanner-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 100px; border: 2px dashed #28a745; pointer-events: none;">
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px;">
-                                <i class="fas fa-barcode fa-2x"></i>
-                                <p class="mb-0 mt-2">מקם את הברקוד באזור זה</p>
-                            </div>
+                    <div id="scanner-container" style="position: relative; max-width: 640px; height: 480px; margin: 0 auto; overflow: hidden;">
+                        <video id="scanner-video" style="width: 100%; height: 100%; object-fit: cover; border: 3px solid #007bff; border-radius: 10px;"></video>
+                        <canvas id="scanner-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+                        <!-- קו מנחה גדול יותר וממורכז -->
+                        <div id="scanner-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 150px; border: 4px solid #28a745; border-radius: 12px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);">
+                            <!-- קווי עזר בפינות -->
+                            <div style="position: absolute; top: -4px; left: -4px; width: 30px; height: 30px; border-top: 6px solid #00ff00; border-left: 6px solid #00ff00;"></div>
+                            <div style="position: absolute; top: -4px; right: -4px; width: 30px; height: 30px; border-top: 6px solid #00ff00; border-right: 6px solid #00ff00;"></div>
+                            <div style="position: absolute; bottom: -4px; left: -4px; width: 30px; height: 30px; border-bottom: 6px solid #00ff00; border-left: 6px solid #00ff00;"></div>
+                            <div style="position: absolute; bottom: -4px; right: -4px; width: 30px; height: 30px; border-bottom: 6px solid #00ff00; border-right: 6px solid #00ff00;"></div>
+                        </div>
+                    </div>
+                    <!-- הכיתוב מתחת למצלמה -->
+                    <div class="mt-3">
+                        <div class="alert alert-info d-inline-block">
+                            <i class="fas fa-barcode me-2"></i>
+                            <strong>מקם את הברקוד במרכז האזור הירוק</strong>
                         </div>
                     </div>
                 </div>
@@ -299,25 +321,51 @@
         const customersData = {{ customers_json|safe }};
         let selectedCustomerDiscount = 0;
 
+        // מצא את שדה TOTAL_FORMS - נסה שני אפשרויות (items או form)
+        let totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
+        if (!totalFormsInput) {
+            totalFormsInput = document.querySelector('input[name="form-TOTAL_FORMS"]');
+        }
+
         // מילוי אוטומטי של מחיר מוצר
         function fillProductPrice(productSelect) {
             const productId = productSelect.value;
-            if (productId && productsData[productId]) {
-                const product = productsData[productId];
-                const row = productSelect.closest('.sale-item');
-                const priceInput = row.querySelector('input[name$="-unit_price"]');
-                const discountInput = row.querySelector('input[name$="-discount_percent"]');
+            const row = productSelect.closest('.sale-item');
+            const priceInput = row.querySelector('input[name$="-unit_price"]');
+            const discountInput = row.querySelector('input[name$="-discount_percent"]');
+            const quantityInput = row.querySelector('input[name$="-quantity"]');
 
-                // מילוי מחיר אוטומטי
-                if (priceInput && !priceInput.value) {
-                    priceInput.value = product.price.toFixed(2);
+            // אם לא נבחר מוצר (בחר מוצר) - אפס את כל השדות
+            if (!productId) {
+                if (priceInput) priceInput.value = '';
+                if (quantityInput) quantityInput.value = '1';
+                if (discountInput) discountInput.value = '0';
+                calculateTotals();
+                return;
+            }
+
+            // אם נבחר מוצר - מלא את הנתונים
+            if (productsData[productId]) {
+                const product = productsData[productId];
+
+                // מילוי מחיר אוטומטי - תמיד עדכן את המחיר
+                if (priceInput) {
+                    priceInput.value = product.selling_price.toFixed(2);
+                }
+
+                // וודא שיש כמות (ברירת מחדל 1)
+                if (quantityInput && !quantityInput.value) {
+                    quantityInput.value = 1;
                 }
 
                 // מילוי הנחת לקוח אוטומטית
                 if (discountInput && selectedCustomerDiscount > 0) {
                     discountInput.value = selectedCustomerDiscount.toFixed(2);
+                } else if (discountInput) {
+                    discountInput.value = '0';
                 }
 
+                // חישוב סכום מיידי
                 calculateTotals();
             }
         }
@@ -348,14 +396,29 @@
             const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 18;
             let totalWithVat = 0;
 
-            document.querySelectorAll('.sale-item').forEach((item, index) => {
-                const quantity = parseFloat(item.querySelector('input[name$="-quantity"]').value) || 0;
-                const unitPriceWithVat = parseFloat(item.querySelector('input[name$="-unit_price"]').value) || 0;
-                const discount = parseFloat(item.querySelector('input[name$="-discount_percent"]').value) || 0;
+            document.querySelectorAll('.sale-item').forEach((item) => {
+                const quantityInput = item.querySelector('input[name$="-quantity"]');
+                const priceInput = item.querySelector('input[name$="-unit_price"]');
+                const discountInput = item.querySelector('input[name$="-discount_percent"]');
+
+                const quantity = parseFloat(quantityInput?.value) || 0;
+                const unitPriceWithVat = parseFloat(priceInput?.value) || 0;
+                const discount = parseFloat(discountInput?.value) || 0;
 
                 // חישוב סכום כולל (המחיר כבר כולל מע"מ)
                 const itemTotalWithVat = (quantity * unitPriceWithVat) * (1 - discount / 100);
-                const totalField = item.querySelector(`#total-${index}`);
+
+                // מצא את שדה הסכום באותה שורה - חיפוש גמיש יותר
+                let totalField = item.querySelector('input[type="text"][readonly]');
+                if (!totalField) {
+                    // אם לא מצאנו, נסה לחפש לפי ID
+                    const fieldName = quantityInput?.name || '';
+                    const formIndex = fieldName.match(/(\d+)/)?.[1];
+                    if (formIndex) {
+                        totalField = item.querySelector(`#total-${formIndex}`);
+                    }
+                }
+
                 if (totalField) {
                     totalField.value = '₪' + itemTotalWithVat.toFixed(2);
                 }
@@ -371,6 +434,32 @@
             document.querySelector('input[name="subtotal"]').value = subtotalBeforeVat.toFixed(2);
             document.getElementById('tax-amount').textContent = '₪' + taxAmount.toFixed(2);
             document.getElementById('total-amount').textContent = '₪' + totalWithVat.toFixed(2);
+        }
+
+        // פונקציית מחיקת שורה
+        function deleteRow(row) {
+            // בדוק שיש לפחות שורה אחת
+            const allRows = document.querySelectorAll('.sale-item');
+            if (allRows.length <= 1) {
+                alert('חייבת להישאר לפחות שורה אחת');
+                return;
+            }
+
+            // הצג אישור
+            if (confirm('האם אתה בטוח שברצונך למחוק שורה זו?')) {
+                row.remove();
+
+                // עדכן את מספר השורות
+                if (totalFormsInput) {
+                    const currentCount = parseInt(totalFormsInput.value);
+                    totalFormsInput.value = Math.max(0, currentCount - 1);
+                }
+
+                // חשב מחדש את הסכומים
+                calculateTotals();
+
+                console.log('שורה נמחקה');
+            }
         }
 
         // הוספת event listeners
@@ -396,6 +485,14 @@
             });
 
             document.querySelector('input[name="tax_rate"]').addEventListener('input', calculateTotals);
+
+            // Event listeners לכפתורי מחיקה קיימים
+            document.querySelectorAll('.delete-row').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('.sale-item');
+                    deleteRow(row);
+                });
+            });
 
             // חישוב ראשוני
             calculateTotals();
@@ -437,17 +534,26 @@
             document.getElementById('scanner-error').style.display = 'none';
             document.getElementById('addScannedProduct').style.display = 'none';
 
+            const container = document.querySelector('#scanner-container');
+
             Quagga.init({
                 inputStream: {
                     name: "Live",
                     type: "LiveStream",
-                    target: document.querySelector('#scanner-video'),
+                    target: container,
                     constraints: {
                         width: 640,
                         height: 480,
                         facingMode: "environment"
                     },
+                    area: { // אזור סריקה גדול וממורכז - תואם לאזור הירוק
+                        top: "30%",    // 30% מלמעלה
+                        right: "10%",  // 10% מימין
+                        left: "10%",   // 10% משמאל
+                        bottom: "30%"  // 30% מלמטה - נותן אזור גדול של 40% בגובה
+                    }
                 },
+                frequency: 10, // תדירות סריקה - 10 פעמים בשנייה
                 decoder: {
                     readers: [
                         "code_128_reader",
@@ -455,10 +561,19 @@
                         "ean_8_reader",
                         "code_39_reader",
                         "upc_reader",
-                        "upc_e_reader"
-                    ]
+                        "upc_e_reader",
+                        "i2of5_reader",
+                        "code_93_reader"
+                    ],
+                    multiple: false // סרוק רק ברקוד אחד בכל פעם
                 },
-                locate: true
+                locator: {
+                    patchSize: "large", // שינוי ל-large לאזור גדול יותר
+                    halfSample: true
+                },
+                locate: true,
+                numOfWorkers: 4, // 4 workers לביצועים טובים יותר
+                debug: false
             }, function(err) {
                 if (err) {
                     console.error('שגיאה באתחול Quagga:', err);
@@ -475,6 +590,12 @@
                 const code = result.codeResult.code;
                 const now = Date.now();
 
+                // בדוק איכות הסריקה - רק קודים באיכות גבוהה
+                if (result.codeResult.error && result.codeResult.error > 0.1) {
+                    console.log('איכות סריקה נמוכה, ממשיך לנסות...');
+                    return;
+                }
+
                 // מניעת סריקה כפולה (דבאונס של 2 שניות)
                 if (code === lastScannedCode && (now - lastScanTime) < 2000) {
                     return;
@@ -484,6 +605,16 @@
                 lastScanTime = now;
 
                 console.log('ברקוד נסרק:', code);
+
+                // אפקט ויזואלי - הבהוב ירוק
+                const overlay = document.getElementById('scanner-overlay');
+                overlay.style.borderColor = '#00ff00';
+                overlay.style.boxShadow = '0 0 0 9999px rgba(0, 255, 0, 0.3)';
+                setTimeout(() => {
+                    overlay.style.borderColor = '#28a745';
+                    overlay.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.5)';
+                }, 300);
+
                 searchProductByBarcode(code);
             });
         }
@@ -532,7 +663,7 @@
                 <table class="table table-sm table-bordered mt-2">
                     <tr><th>שם:</th><td><strong>${product.name}</strong></td></tr>
                     <tr><th>ברקוד:</th><td>${product.barcode}</td></tr>
-                    <tr><th>מחיר:</th><td>₪${product.price.toFixed(2)}</td></tr>
+                    <tr><th>מחיר מכירה:</th><td>₪${product.selling_price.toFixed(2)}</td></tr>
                     <tr><th>מלאי:</th><td>${product.quantity} ${product.unit}</td></tr>
                     ${product.category ? `<tr><th>קטגוריה:</th><td>${product.category}</td></tr>` : ''}
                 </table>
@@ -588,7 +719,7 @@
 
             productSelect.value = foundProduct.id;
             quantityInput.value = 1;
-            priceInput.value = foundProduct.price.toFixed(2);
+            priceInput.value = foundProduct.selling_price.toFixed(2);
 
             if (selectedCustomerDiscount > 0) {
                 discountInput.value = selectedCustomerDiscount.toFixed(2);
@@ -608,64 +739,83 @@
         // ========== הוספת שורות חדשות לטופס ==========
         const addItemBtn = document.getElementById('add-item');
         const saleItemsContainer = document.getElementById('sale-items');
-        const totalFormsInput = document.querySelector('input[name="form-TOTAL_FORMS"]');
-        let formCount = parseInt(totalFormsInput.value);
 
-        addItemBtn.addEventListener('click', function() {
-            // יצירת שורה חדשה
-            const newForm = document.createElement('div');
-            newForm.className = 'row mb-3 sale-item';
-            newForm.innerHTML = `
-                <div class="col-md-4">
-                    <label class="form-label">מוצר:</label>
-                    <select name="form-${formCount}-product" class="form-control" id="id_form-${formCount}-product" required>
-                        <option value="">בחר מוצר</option>
-                        {% for product in products %}
-                        <option value="{{ product.id }}">{{ product.name }} (מלאי: {{ product.quantity }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">כמות:</label>
-                    <input type="number" name="form-${formCount}-quantity" class="form-control" id="id_form-${formCount}-quantity" value="1" min="1" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">מחיר יחידה:</label>
-                    <input type="number" name="form-${formCount}-unit_price" class="form-control" id="id_form-${formCount}-unit_price" step="0.01" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">הנחה %:</label>
-                    <input type="number" name="form-${formCount}-discount_percent" class="form-control" id="id_form-${formCount}-discount_percent" value="0" step="0.01" min="0" max="100">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">סכום:</label>
-                    <input type="text" class="form-control" readonly id="total-${formCount}">
-                </div>
-                <input type="hidden" name="form-${formCount}-id" id="id_form-${formCount}-id">
-            `;
+        // קבע את ה-prefix הנכון
+        const formPrefix = totalFormsInput ? totalFormsInput.name.split('-')[0] : 'items';
+        let formCount = parseInt(totalFormsInput?.value || 0);
 
-            saleItemsContainer.appendChild(newForm);
+        if (addItemBtn) {
+            addItemBtn.addEventListener('click', function() {
+                // יצירת שורה חדשה
+                const newForm = document.createElement('div');
+                newForm.className = 'row mb-3 sale-item align-items-end';
+                newForm.innerHTML = `
+                    <div class="col-md-3">
+                        <label class="form-label">מוצר:</label>
+                        <select name="${formPrefix}-${formCount}-product" class="form-control" id="id_${formPrefix}-${formCount}-product" required>
+                            <option value="">בחר מוצר</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">כמות:</label>
+                        <input type="number" name="${formPrefix}-${formCount}-quantity" class="form-control" id="id_${formPrefix}-${formCount}-quantity" value="1" min="1" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">מחיר יחידה:</label>
+                        <input type="number" name="${formPrefix}-${formCount}-unit_price" class="form-control" id="id_${formPrefix}-${formCount}-unit_price" step="0.01" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">הנחה %:</label>
+                        <input type="number" name="${formPrefix}-${formCount}-discount_percent" class="form-control" id="id_${formPrefix}-${formCount}-discount_percent" value="0" step="0.01" min="0" max="100">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">סכום:</label>
+                        <input type="text" class="form-control" readonly id="total-${formCount}">
+                    </div>
+                    <div class="col-md-1 text-center">
+                        <button type="button" class="btn btn-danger btn-sm delete-row" title="מחק שורה">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="${formPrefix}-${formCount}-id" id="id_${formPrefix}-${formCount}-id">
+                `;
 
-            // הוסף event listeners לשדות החדשים
-            const newRow = saleItemsContainer.lastElementChild;
-            const productSelect = newRow.querySelector('select[name$="-product"]');
-            const inputs = newRow.querySelectorAll('input');
+                saleItemsContainer.appendChild(newForm);
 
-            // מילוי מחיר אוטומטי בבחירת מוצר
-            productSelect.addEventListener('change', function() {
-                fillProductPrice(this);
+                // הוסף event listeners לשדות החדשים
+                const newRow = saleItemsContainer.lastElementChild;
+                const productSelect = newRow.querySelector('select[name$="-product"]');
+                const inputs = newRow.querySelectorAll('input');
+                const deleteBtn = newRow.querySelector('.delete-row');
+
+                // מילוי מחיר אוטומטי בבחירת מוצר
+                productSelect.addEventListener('change', function() {
+                    fillProductPrice(this);
+                });
+
+                // חישוב סכומים בשינוי ערכים
+                inputs.forEach(input => {
+                    input.addEventListener('input', calculateTotals);
+                });
+
+                // מחיקת שורה
+                deleteBtn.addEventListener('click', function() {
+                    deleteRow(newRow);
+                });
+
+                formCount++;
+                if (totalFormsInput) {
+                    totalFormsInput.value = formCount;
+                }
+
+                // חישוב מחדש
+                calculateTotals();
+
+                console.log('שורה חדשה נוספה:', formCount - 1);
             });
-
-            // חישוב סכומים בשינוי ערכים
-            inputs.forEach(input => {
-                input.addEventListener('input', calculateTotals);
-            });
-
-            formCount++;
-            totalFormsInput.value = formCount;
-
-            // חישוב מחדש
-            calculateTotals();
-        });
+        }
     </script>
 {% endblock %}

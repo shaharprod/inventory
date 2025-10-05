@@ -82,25 +82,25 @@
         gap: 1.5rem !important;
         width: 100%;
     }
-    
+
     #gridView .product-card-wrapper {
         flex: 1 1 calc(25% - 1.5rem) !important;
         min-width: 280px;
         max-width: none;
     }
-    
+
     @media (max-width: 1400px) {
         #gridView .product-card-wrapper {
             flex: 1 1 calc(33.333% - 1.5rem) !important;
         }
     }
-    
+
     @media (max-width: 992px) {
         #gridView .product-card-wrapper {
             flex: 1 1 calc(50% - 1.5rem) !important;
         }
     }
-    
+
     @media (max-width: 768px) {
         #gridView .product-card-wrapper {
             flex: 1 1 100% !important;
@@ -236,8 +236,15 @@
                                                 </span>
                                             </div>
                                             <div class="col-6">
-                                                <small class="text-muted">מחיר:</small><br>
-                                                <span class="h6 text-success">₪{{ product.selling_price }}</span>
+                                                <small class="text-muted">מחיר מכירה:</small><br>
+                                                <span class="h6 text-success">₪{{ product.selling_price|floatformat:2 }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mb-2">
+                                            <div class="col-12">
+                                                <small class="text-muted">ערך מלאי:</small><br>
+                                                <span class="h6 text-warning">₪{{ product.stock_value|floatformat:0 }}</span>
                                             </div>
                                         </div>
 
@@ -333,12 +340,12 @@
                                             </strong>
                                         </div>
                                         <div class="col-md-2">
-                                            <small class="text-muted d-block">מחיר</small>
-                                            <strong class="text-success">₪{{ product.price }}</strong>
+                                            <small class="text-muted d-block">מחיר מכירה</small>
+                                            <strong class="text-success">₪{{ product.selling_price|floatformat:2 }}</strong>
                                         </div>
                                         <div class="col-md-2">
                                             <small class="text-muted d-block">ערך מלאי</small>
-                                            <strong>₪{{ product.total_value }}</strong>
+                                            <strong class="text-warning">₪{{ product.stock_value|floatformat:0 }}</strong>
                                         </div>
                                         {% if product.supplier %}
                                             <div class="col-md-3">

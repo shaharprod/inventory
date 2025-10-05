@@ -236,3 +236,25 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# =====================================
+# הגדרות Email (SMTP)
+# =====================================
+
+# שרת Email - דוגמה ל-Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # עבור Gmail
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # שנה לכתובת המייל שלך
+EMAIL_HOST_PASSWORD = 'your-app-password'  # App Password מ-Google
+DEFAULT_FROM_EMAIL = 'your-email@gmail.com'  # כתובת שולח ברירת מחדל
+
+# כתובת מייל לקבלת דוחות יומיים
+DAILY_REPORT_EMAIL = 'your-email@gmail.com'  # שנה לכתובת שלך
+
+# הערה: עבור Gmail, צריך ליצור App Password:
+# 1. לך ל- https://myaccount.google.com/security
+# 2. הפעל 2-Step Verification
+# 3. צור App Password תחת "App passwords"
+# 4. השתמש ב-App Password (לא הסיסמה הרגילה שלך)

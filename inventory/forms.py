@@ -2,7 +2,8 @@ from django import forms
 from .models import (
     Product, Category, Supplier, Location, StockMovement, Alert,
     Customer, Sale, SaleItem, InventoryTransfer, TransferItem,
-    CustomerSaleHistory, CustomerNote, CustomerAlert, InvoiceTemplate
+    CustomerSaleHistory, CustomerNote, CustomerAlert, InvoiceTemplate,
+    SystemSettings
 )
 from django.contrib.auth.models import User
 
@@ -176,12 +177,13 @@ class CustomerForm(forms.ModelForm):
 class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
-        fields = ['customer', 'location', 'status', 'payment_status', 'subtotal', 'tax_rate', 'notes', 'sale_date']
+        fields = ['customer', 'location', 'status', 'payment_status', 'payment_method', 'subtotal', 'tax_rate', 'notes', 'sale_date']
         widgets = {
             'customer': forms.Select(attrs={'class': 'form-control'}),
             'location': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'payment_status': forms.Select(attrs={'class': 'form-control'}),
+            'payment_method': forms.Select(attrs={'class': 'form-control'}),
             'subtotal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'tax_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -204,10 +206,16 @@ class SaleItemForm(forms.ModelForm):
         fields = ['product', 'quantity', 'unit_price', 'discount_percent']
         widgets = {
             'product': forms.Select(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'value': '1'}),
             'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'discount_percent': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100'}),
+            'discount_percent': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'value': '0'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # שינוי התווית של "בחר מוצר" ללא קווים
+        self.fields['product'].empty_label = "בחר מוצר"
+        self.fields['product'].required = False
 
 # Forms להעברות מלאי
 class InventoryTransferForm(forms.ModelForm):
@@ -237,10 +245,10 @@ class TransferItemForm(forms.ModelForm):
 SaleItemFormSet = forms.inlineformset_factory(
     Sale, SaleItem,
     form=SaleItemForm,
-    extra=1,
+    extra=1,           # רק שורה אחת ריקה
     can_delete=True,
-    min_num=1,
-    validate_min=True
+    min_num=0,         # שונה מ-1 ל-0 - מינימום 0 שורות
+    validate_min=False # ללא אימות מינימום
 )
 
 # Formset לפריטי העברה
@@ -352,4 +360,30 @@ class LocationForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_main_warehouse': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_main_store': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class SystemSettingsForm(forms.ModelForm):
+    """טופס להגדרות מערכת"""
+    class Meta:
+        model = SystemSettings
+        fields = [
+            'email_enabled', 'email_host', 'email_port', 'email_use_tls', 'email_use_ssl',
+            'email_host_user', 'email_host_password', 'default_from_email',
+            'daily_report_enabled', 'daily_report_email', 'daily_report_time',
+            'alert_email_enabled', 'alert_email_recipients'
+        ]
+        widgets = {
+            'email_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'email_host': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'smtp.gmail.com'}),
+            'email_port': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '587'}),
+            'email_use_tls': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'email_use_ssl': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'email_host_user': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'your-email@gmail.com'}),
+            'email_host_password': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'App Password'}),
+            'default_from_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'your-email@gmail.com'}),
+            'daily_report_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'daily_report_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'reports@example.com'}),
+            'daily_report_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'alert_email_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'alert_email_recipients': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'email1@example.com, email2@example.com'}),
         }

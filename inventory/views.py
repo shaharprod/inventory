@@ -10,14 +10,14 @@ from .models import (
     Product, Category, Supplier, Location, StockMovement, Alert,
     Customer, Sale, SaleItem, InventoryTransfer, TransferItem,
     CustomerSaleHistory, CustomerNote, CustomerAlert, InvoiceTemplate,
-    LocationAlert, ProductLocationStock
+    LocationAlert, ProductLocationStock, SystemSettings
 )
 from .forms import (
     ProductForm, CategoryForm, SupplierForm, LocationForm,
     StockMovementForm, AlertForm, ProductSearchForm, BulkUpdateForm,
     CustomerForm, SaleForm, SaleItemForm, InventoryTransferForm, TransferItemForm,
     SaleItemFormSet, TransferItemFormSet, CustomerNoteForm, CustomerAlertForm,
-    InvoiceTemplateForm, CustomerSearchForm
+    InvoiceTemplateForm, CustomerSearchForm, SystemSettingsForm
 )
 import barcode
 from barcode.writer import ImageWriter
@@ -28,6 +28,7 @@ import json
 from datetime import timedelta
 import json
 from datetime import datetime, timedelta
+import io
 
 def dashboard(request):
     """דשבורד ראשי עם סטטיסטיקות"""
@@ -779,6 +780,505 @@ def export_reports_json(request):
     response['Content-Disposition'] = 'attachment; filename="inventory_report.json"'
     return response
 
+def export_categories_csv(request):
+    """ייצוא קטגוריות ל-CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="categories.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'שם קטגוריה', 'תיאור', 'כמות מוצרים', 'ערך מלאי', 'תאריך יצירה'
+    ])
+
+    categories = Category.objects.annotate(
+        product_count=Count('product'),
+        total_value=Sum(F('product__quantity') * F('product__cost_price'))
+    )
+
+    for category in categories:
+        writer.writerow([
+            category.name,
+            category.description or '',
+            category.product_count,
+            category.total_value or 0,
+            category.created_at.strftime('%d/%m/%Y %H:%M') if category.created_at else ''
+        ])
+
+    return response
+
+def export_suppliers_csv(request):
+    """ייצוא ספקים ל-CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="suppliers.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'שם ספק', 'איש קשר', 'אימייל', 'טלפון', 'כתובת',
+        'כמות מוצרים', 'ערך מלאי', 'פעיל', 'תאריך יצירה'
+    ])
+
+    suppliers = Supplier.objects.annotate(
+        product_count=Count('product'),
+        total_value=Sum(F('product__quantity') * F('product__cost_price'))
+    )
+
+    for supplier in suppliers:
+        writer.writerow([
+            supplier.name,
+            supplier.contact_person or '',
+            supplier.email or '',
+            supplier.phone or '',
+            supplier.address or '',
+            supplier.product_count,
+            supplier.total_value or 0,
+            'כן' if supplier.is_active else 'לא',
+            supplier.created_at.strftime('%d/%m/%Y %H:%M') if supplier.created_at else ''
+        ])
+
+    return response
+
+def export_customers_csv(request):
+    """ייצוא לקוחות ל-CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="customers.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'שם לקוח', 'קוד לקוח', 'אימייל', 'טלפון', 'כתובת', 'עיר', 'מיקוד',
+        'ח.פ/ת.ז', 'כמות הזמנות', 'סה"כ קניות', 'הנחה %', 'פעיל', 'תאריך יצירה'
+    ])
+
+    customers = Customer.objects.all()
+
+    for customer in customers:
+        writer.writerow([
+            customer.name,
+            customer.customer_code or '',
+            customer.email or '',
+            customer.phone or '',
+            customer.address or '',
+            customer.city or '',
+            customer.postal_code or '',
+            customer.tax_id or '',
+            customer.total_orders or 0,
+            customer.total_purchases or 0,
+            customer.discount_percent or 0,
+            'כן' if customer.is_active else 'לא',
+            customer.created_at.strftime('%d/%m/%Y %H:%M') if customer.created_at else ''
+        ])
+
+    return response
+
+def export_sales_csv(request):
+    """ייצוא מכירות ל-CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="sales.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'מספר חשבונית', 'לקוח', 'מיקום', 'סטטוס', 'סטטוס תשלום', 'אמצעי תשלום',
+        'סכום ביניים', 'מע"מ', 'סה"כ', 'הערות', 'תאריך מכירה'
+    ])
+
+    sales = Sale.objects.select_related('customer', 'location').all()
+
+    for sale in sales:
+        writer.writerow([
+            sale.invoice_number,
+            sale.customer.name if sale.customer else '',
+            sale.location.name if sale.location else '',
+            sale.get_status_display(),
+            sale.get_payment_status_display(),
+            sale.get_payment_method_display() if sale.payment_method else '',
+            sale.subtotal or 0,
+            sale.tax_amount or 0,
+            sale.total_amount or 0,
+            sale.notes or '',
+            sale.sale_date.strftime('%d/%m/%Y %H:%M') if sale.sale_date else ''
+        ])
+
+    return response
+
+def export_locations_csv(request):
+    """ייצוא מיקומים ל-CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="locations.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'שם מיקום', 'סוג מיקום', 'כתובת', 'עיר', 'טלפון',
+        'אחראי', 'כמות מוצרים', 'פעיל', 'תאריך יצירה'
+    ])
+
+    locations = Location.objects.annotate(
+        product_count=Count('product_stocks')
+    )
+
+    for location in locations:
+        writer.writerow([
+            location.name,
+            location.get_location_type_display(),
+            location.address or '',
+            location.city or '',
+            location.phone or '',
+            location.manager_name or '',
+            location.product_count,
+            'כן' if location.is_active else 'לא',
+            location.created_at.strftime('%d/%m/%Y %H:%M') if location.created_at else ''
+        ])
+
+    return response
+
+def export_alerts_csv(request):
+    """ייצוא התראות ל-CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="alerts.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'מוצר', 'סוג התראה', 'רמת חומרה', 'הודעה', 'נפתר', 'תאריך יצירה', 'תאריך פתרון'
+    ])
+
+    alerts = Alert.objects.select_related('product').all()
+
+    for alert in alerts:
+        writer.writerow([
+            alert.product.name if alert.product else '',
+            alert.get_alert_type_display(),
+            alert.get_priority_display(),
+            alert.message or '',
+            'כן' if alert.is_resolved else 'לא',
+            alert.created_at.strftime('%d/%m/%Y %H:%M') if alert.created_at else '',
+            alert.resolved_at.strftime('%d/%m/%Y %H:%M') if alert.resolved_at else ''
+        ])
+
+    return response
+
+def export_all_data_csv(request):
+    """ייצוא כל הנתונים לקובץ ZIP עם כל הטבלאות"""
+    import zipfile
+    from io import BytesIO
+
+    # יצירת buffer לזיכרון
+    zip_buffer = BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # 1. מוצרים
+        products_buffer = BytesIO()
+        products_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(products_buffer, encoding='utf-8', newline=''))
+        writer.writerow([
+            'שם מוצר', 'SKU', 'תיאור', 'קטגוריה', 'ספק', 'מיקום',
+            'כמות', 'כמות מינימלית', 'כמות מקסימלית', 'יחידה',
+            'מחיר עלות', 'מחיר מכירה', 'אחוז רווח', 'ברקוד',
+            'סטטוס', 'משקל', 'מידות', 'הערות', 'תאריך יצירה'
+        ])
+        products = Product.objects.select_related('category', 'supplier').prefetch_related('location_stocks__location').all()
+        for product in products:
+            locations_str = ', '.join([
+                f"{pls.location.name}: {pls.quantity}"
+                for pls in product.location_stocks.all()
+            ]) if product.location_stocks.exists() else 'אין מיקום'
+            writer.writerow([
+                product.name, product.sku or '', product.description or '',
+                product.category.name if product.category else '',
+                product.supplier.name if product.supplier else '',
+                locations_str, product.quantity, product.min_quantity, product.max_quantity,
+                product.get_unit_display(), product.cost_price or 0,
+                product.selling_price or 0, product.margin_percentage or 0,
+                product.barcode or '', product.get_status_display(),
+                product.weight or '', product.dimensions or '',
+                product.notes or '', product.created_at.strftime('%d/%m/%Y %H:%M') if product.created_at else ''
+            ])
+        zip_file.writestr('1_products.csv', products_buffer.getvalue())
+
+        # 2. קטגוריות
+        categories_buffer = BytesIO()
+        categories_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(categories_buffer, encoding='utf-8', newline=''))
+        writer.writerow(['שם קטגוריה', 'תיאור', 'כמות מוצרים', 'ערך מלאי', 'תאריך יצירה'])
+        categories = Category.objects.annotate(
+            product_count=Count('product'),
+            total_value=Sum(F('product__quantity') * F('product__cost_price'))
+        )
+        for category in categories:
+            writer.writerow([
+                category.name, category.description or '', category.product_count,
+                category.total_value or 0,
+                category.created_at.strftime('%d/%m/%Y %H:%M') if category.created_at else ''
+            ])
+        zip_file.writestr('2_categories.csv', categories_buffer.getvalue())
+
+        # 3. ספקים
+        suppliers_buffer = BytesIO()
+        suppliers_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(suppliers_buffer, encoding='utf-8', newline=''))
+        writer.writerow([
+            'שם ספק', 'איש קשר', 'אימייל', 'טלפון', 'כתובת',
+            'כמות מוצרים', 'ערך מלאי', 'פעיל', 'תאריך יצירה'
+        ])
+        suppliers = Supplier.objects.annotate(
+            product_count=Count('product'),
+            total_value=Sum(F('product__quantity') * F('product__cost_price'))
+        )
+        for supplier in suppliers:
+            writer.writerow([
+                supplier.name, supplier.contact_person or '', supplier.email or '',
+                supplier.phone or '', supplier.address or '', supplier.product_count,
+                supplier.total_value or 0, 'כן' if supplier.is_active else 'לא',
+                supplier.created_at.strftime('%d/%m/%Y %H:%M') if supplier.created_at else ''
+            ])
+        zip_file.writestr('3_suppliers.csv', suppliers_buffer.getvalue())
+
+        # 4. לקוחות
+        customers_buffer = BytesIO()
+        customers_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(customers_buffer, encoding='utf-8', newline=''))
+        writer.writerow([
+            'שם לקוח', 'קוד לקוח', 'אימייל', 'טלפון', 'כתובת', 'עיר', 'מיקוד',
+            'ח.פ/ת.ז', 'כמות הזמנות', 'סה"כ קניות', 'הנחה %', 'פעיל', 'תאריך יצירה'
+        ])
+        customers = Customer.objects.all()
+        for customer in customers:
+            writer.writerow([
+                customer.name, customer.customer_code or '', customer.email or '', customer.phone or '',
+                customer.address or '', customer.city or '', customer.postal_code or '',
+                customer.tax_id or '', customer.total_orders or 0,
+                customer.total_purchases or 0, customer.discount_percent or 0,
+                'כן' if customer.is_active else 'לא',
+                customer.created_at.strftime('%d/%m/%Y %H:%M') if customer.created_at else ''
+            ])
+        zip_file.writestr('4_customers.csv', customers_buffer.getvalue())
+
+        # 5. מכירות
+        sales_buffer = BytesIO()
+        sales_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(sales_buffer, encoding='utf-8', newline=''))
+        writer.writerow([
+            'מספר חשבונית', 'לקוח', 'מיקום', 'סטטוס', 'סטטוס תשלום', 'אמצעי תשלום',
+            'סכום ביניים', 'מע"מ', 'סה"כ', 'הערות', 'תאריך מכירה'
+        ])
+        sales = Sale.objects.select_related('customer', 'location').all()
+        for sale in sales:
+            writer.writerow([
+                sale.invoice_number, sale.customer.name if sale.customer else '',
+                sale.location.name if sale.location else '', sale.get_status_display(),
+                sale.get_payment_status_display(),
+                sale.get_payment_method_display() if sale.payment_method else '',
+                sale.subtotal or 0, sale.tax_amount or 0, sale.total_amount or 0,
+                sale.notes or '', sale.sale_date.strftime('%d/%m/%Y %H:%M') if sale.sale_date else ''
+            ])
+        zip_file.writestr('5_sales.csv', sales_buffer.getvalue())
+
+        # 6. מיקומים
+        locations_buffer = BytesIO()
+        locations_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(locations_buffer, encoding='utf-8', newline=''))
+        writer.writerow([
+            'שם מיקום', 'סוג מיקום', 'כתובת', 'עיר', 'טלפון',
+            'אחראי', 'כמות מוצרים', 'פעיל', 'תאריך יצירה'
+        ])
+        locations = Location.objects.annotate(product_count=Count('product_stocks'))
+        for location in locations:
+            writer.writerow([
+                location.name, location.get_location_type_display(),
+                location.address or '', location.city or '', location.phone or '',
+                location.manager_name or '', location.product_count,
+                'כן' if location.is_active else 'לא',
+                location.created_at.strftime('%d/%m/%Y %H:%M') if location.created_at else ''
+            ])
+        zip_file.writestr('6_locations.csv', locations_buffer.getvalue())
+
+        # 7. תנועות מלאי
+        movements_buffer = BytesIO()
+        movements_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(movements_buffer, encoding='utf-8', newline=''))
+        writer.writerow([
+            'מוצר', 'SKU', 'סוג תנועה', 'כמות', 'כמות קודמת', 'כמות חדשה',
+            'סיבה', 'התייחסות', 'תאריך'
+        ])
+        movements = StockMovement.objects.select_related('product').all()
+        for movement in movements:
+            writer.writerow([
+                movement.product.name, movement.product.sku or '',
+                movement.get_movement_type_display(), movement.quantity,
+                movement.previous_quantity, movement.new_quantity,
+                movement.reason or '', movement.reference or '',
+                movement.created_at.strftime('%d/%m/%Y %H:%M')
+            ])
+        zip_file.writestr('7_stock_movements.csv', movements_buffer.getvalue())
+
+        # 8. התראות
+        alerts_buffer = BytesIO()
+        alerts_buffer.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(io.TextIOWrapper(alerts_buffer, encoding='utf-8', newline=''))
+        writer.writerow([
+            'מוצר', 'סוג התראה', 'רמת חומרה', 'הודעה', 'נפתר', 'תאריך יצירה', 'תאריך פתרון'
+        ])
+        alerts = Alert.objects.select_related('product').all()
+        for alert in alerts:
+            writer.writerow([
+                alert.product.name if alert.product else '',
+                alert.get_alert_type_display(), alert.get_priority_display(),
+                alert.message or '', 'כן' if alert.is_resolved else 'לא',
+                alert.created_at.strftime('%d/%m/%Y %H:%M') if alert.created_at else '',
+                alert.resolved_at.strftime('%d/%m/%Y %H:%M') if alert.resolved_at else ''
+            ])
+        zip_file.writestr('8_alerts.csv', alerts_buffer.getvalue())
+
+    # החזרת קובץ ZIP
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="all_data_{timezone.now().strftime("%Y%m%d_%H%M%S")}.zip"'
+    return response
+
+def export_all_data_excel(request):
+    """ייצוא כל הנתונים לקובץ Excel עם גליונות נפרדים"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    # יצירת Workbook
+    wb = Workbook()
+    wb.remove(wb.active)  # הסרת הגליון הריק הראשוני
+
+    # סגנון כותרות
+    header_font = Font(bold=True, color="FFFFFF", size=12)
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+
+    # 1. גליון מוצרים
+    ws_products = wb.create_sheet("מוצרים")
+    ws_products.append(['שם', 'SKU', 'ברקוד', 'קטגוריה', 'כמות', 'מחיר מכירה', 'מחיר עלות', 'ערך מלאי', 'ספק'])
+    products = Product.objects.select_related('category', 'supplier').all()
+    for product in products:
+        ws_products.append([
+            product.name, product.sku or '', product.barcode or '',
+            product.category.name if product.category else '',
+            product.quantity, float(product.selling_price or 0), float(product.cost_price or 0),
+            float(product.stock_value), product.supplier.name if product.supplier else ''
+        ])
+
+    # 2. גליון מכירות
+    ws_sales = wb.create_sheet("מכירות")
+    ws_sales.append(['מספר חשבונית', 'תאריך', 'לקוח', 'סכום כולל', 'סכום מס', 'מיקום', 'אמצעי תשלום', 'סטטוס'])
+    sales = Sale.objects.select_related('customer', 'location').all()
+    for sale in sales:
+        ws_sales.append([
+            sale.invoice_number, sale.created_at.strftime('%d/%m/%Y %H:%M'),
+            sale.customer.name if sale.customer else '',
+            float(sale.total_amount), float(sale.tax_amount or 0),
+            sale.location.name if sale.location else '',
+            sale.get_payment_method_display() if sale.payment_method else '',
+            sale.get_status_display() if sale.status else ''
+        ])
+
+    # 3. גליון לקוחות
+    ws_customers = wb.create_sheet("לקוחות")
+    ws_customers.append(['שם', 'קוד לקוח', 'ח.פ/ע.מ', 'אימייל', 'טלפון', 'כתובת', 'הנחה %', 'מגבלת אשראי', 'סה"כ רכישות', 'פעיל'])
+    customers = Customer.objects.all()
+    for customer in customers:
+        ws_customers.append([
+            customer.name, customer.customer_code or '', customer.tax_id or '',
+            customer.email or '', customer.phone or '', customer.address or '',
+            float(customer.discount_percent or 0), float(customer.credit_limit or 0),
+            float(customer.total_purchases or 0),
+            'כן' if customer.is_active else 'לא'
+        ])
+
+    # 4. גליון קטגוריות
+    ws_categories = wb.create_sheet("קטגוריות")
+    ws_categories.append(['שם', 'תיאור', 'כמות מוצרים'])
+    categories = Category.objects.annotate(product_count=Count('product')).all()
+    for category in categories:
+        ws_categories.append([
+            category.name, category.description or '', category.product_count
+        ])
+
+    # 5. גליון ספקים
+    ws_suppliers = wb.create_sheet("ספקים")
+    ws_suppliers.append(['שם', 'איש קשר', 'אימייל', 'טלפון', 'כתובת', 'כמות מוצרים', 'פעיל'])
+    suppliers = Supplier.objects.annotate(product_count=Count('product')).all()
+    for supplier in suppliers:
+        ws_suppliers.append([
+            supplier.name, supplier.contact_person or '', supplier.email or '',
+            supplier.phone or '', supplier.address or '', supplier.product_count,
+            'כן' if supplier.is_active else 'לא'
+        ])
+
+    # 6. גליון מיקומים
+    ws_locations = wb.create_sheet("מיקומים")
+    ws_locations.append(['שם', 'סוג', 'כתובת', 'מנהל', 'כמות מוצרים', 'פעיל'])
+    locations = Location.objects.annotate(product_count=Count('product_stocks')).all()
+    for location in locations:
+        ws_locations.append([
+            location.name, location.get_location_type_display(), location.address or '',
+            location.manager_name or '', location.product_count,
+            'כן' if location.is_active else 'לא'
+        ])
+
+    # 7. גליון התראות
+    ws_alerts = wb.create_sheet("התראות")
+    ws_alerts.append(['מוצר', 'סוג התראה', 'עדיפות', 'הודעה', 'נפתר', 'תאריך יצירה'])
+    alerts = Alert.objects.select_related('product').all()
+    for alert in alerts:
+        ws_alerts.append([
+            alert.product.name if alert.product else '',
+            alert.get_alert_type_display(), alert.get_priority_display(),
+            alert.message or '', 'כן' if alert.is_resolved else 'לא',
+            alert.created_at.strftime('%d/%m/%Y %H:%M') if alert.created_at else ''
+        ])
+
+    # עיצוב כל הגליונות
+    for ws in wb.worksheets:
+        # עיצוב כותרות
+        for cell in ws[1]:
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+            cell.border = border
+
+        # התאמת רוחב עמודות
+        for column in ws.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+
+        # הקפאת שורת כותרות
+        ws.freeze_panes = 'A2'
+
+    # שמירה ל-BytesIO
+    excel_buffer = BytesIO()
+    wb.save(excel_buffer)
+    excel_buffer.seek(0)
+
+    # החזרת התגובה
+    response = HttpResponse(
+        excel_buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="inventory_data_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    return response
+
 # Views למכירות
 def customer_list(request):
     """רשימת לקוחות"""
@@ -853,6 +1353,76 @@ def add_sale(request):
         formset = SaleItemFormSet(request.POST)
 
         if form.is_valid() and formset.is_valid():
+            # בדיקת מלאי לפני שמירה
+            from .models import ProductLocationStock
+            from django.utils import timezone
+
+            # קבל את המיקום מהטופס
+            location = form.cleaned_data.get('location')
+
+            # בדוק כל פריט שאין חריגה במלאי
+            stock_errors = []
+            for item_form in formset:
+                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE', False):
+                    product = item_form.cleaned_data.get('product')
+                    quantity = item_form.cleaned_data.get('quantity', 0)
+
+                    if product and quantity > 0:
+                        # בדוק מלאי במיקום אם צוין
+                        if location:
+                            location_stock = ProductLocationStock.objects.filter(
+                                product=product,
+                                location=location
+                            ).first()
+
+                            available_quantity = location_stock.quantity if location_stock else 0
+
+                            if quantity > available_quantity:
+                                stock_errors.append(
+                                    f'❌ {product.name}: מבוקש {quantity} יחידות, זמין במלאי: {available_quantity} יחידות ב{location.name}'
+                                )
+                        else:
+                            # בדוק מלאי כללי אם אין מיקום
+                            if quantity > product.quantity:
+                                stock_errors.append(
+                                    f'❌ {product.name}: מבוקש {quantity} יחידות, זמין במלאי: {product.quantity} יחידות'
+                                )
+
+            # אם יש שגיאות מלאי, הצג אותן ולא תשמור
+            if stock_errors:
+                for error in stock_errors:
+                    messages.error(request, error)
+                messages.warning(request, '⚠️ המכירה לא נשמרה - אין מספיק מלאי למוצרים המבוקשים!')
+
+                # החזר את הטופס עם הנתונים שהמשתמש הזין
+                import json
+                products_data = {}
+                for product in Product.objects.all():
+                    products_data[str(product.id)] = {
+                        'name': product.name,
+                        'selling_price': float(product.selling_price or 0),
+                        'quantity': product.quantity
+                    }
+
+                customers_data = {}
+                for customer in Customer.objects.all():
+                    customers_data[str(customer.id)] = {
+                        'name': customer.name,
+                        'discount': float(customer.discount_percent or 0)
+                    }
+
+                context = {
+                    'form': form,
+                    'formset': formset,
+                    'customers': Customer.objects.all().order_by('name'),
+                    'products': Product.objects.filter(quantity__gt=0).order_by('name'),
+                    'locations': Location.objects.filter(is_active=True).order_by('location_type', 'name'),
+                    'products_json': json.dumps(products_data),
+                    'customers_json': json.dumps(customers_data),
+                }
+                return render(request, 'inventory/add_sale.html', context)
+
+            # אם אין שגיאות מלאי, המשך עם השמירה
             with transaction.atomic():
                 sale = form.save(commit=False)
                 if request.user.is_authenticated:
@@ -872,9 +1442,6 @@ def add_sale(request):
                 sale.save()
 
                 # עדכון מלאי - במיקום הספציפי ובסה"כ כללי
-                from .models import ProductLocationStock
-                from django.utils import timezone
-
                 for item in sale_items:
                     product = item.product
 
@@ -896,7 +1463,7 @@ def add_sale(request):
                     product.quantity -= item.quantity
                     product.save()
 
-                messages.success(request, f'המכירה נוצרה בהצלחה! מספר חשבונית: {sale.invoice_number}')
+                messages.success(request, f'✅ המכירה נוצרה בהצלחה! מספר חשבונית: {sale.invoice_number}')
                 return redirect('sale_detail', pk=sale.pk)
         else:
             messages.error(request, 'אנא תקן את השגיאות בטופס.')
@@ -920,7 +1487,7 @@ def add_sale(request):
     for product in Product.objects.filter(quantity__gt=0):
         products_data[str(product.id)] = {
             'name': product.name,
-            'price': float(product.selling_price or product.price or 0),
+            'selling_price': float(product.selling_price or 0),
             'quantity': product.quantity
         }
 
@@ -956,6 +1523,65 @@ def edit_sale(request, pk):
         formset = SaleItemFormSet(request.POST, instance=sale)
 
         if form.is_valid() and formset.is_valid():
+            # בדיקת מלאי לפני עדכון
+            from .models import ProductLocationStock
+            from django.utils import timezone
+
+            location = form.cleaned_data.get('location')
+
+            # החזר מלאי ישן זמנית למטרת הבדיקה
+            old_items = {}
+            for item in sale.items.all():
+                old_items[item.product.id] = item.quantity
+
+            # בדוק מלאי לפריטים החדשים
+            stock_errors = []
+            for item_form in formset:
+                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE', False):
+                    product = item_form.cleaned_data.get('product')
+                    new_quantity = item_form.cleaned_data.get('quantity', 0)
+
+                    if product and new_quantity > 0:
+                        # כמות ישנה (אם הייתה)
+                        old_quantity = old_items.get(product.id, 0)
+                        # הפרש בין חדש לישן
+                        quantity_diff = new_quantity - old_quantity
+
+                        # אם מוסיפים מלאי (quantity_diff > 0), בדוק שיש מספיק
+                        if quantity_diff > 0:
+                            if location:
+                                location_stock = ProductLocationStock.objects.filter(
+                                    product=product,
+                                    location=location
+                                ).first()
+
+                                available_quantity = location_stock.quantity if location_stock else 0
+
+                                if quantity_diff > available_quantity:
+                                    stock_errors.append(
+                                        f'❌ {product.name}: נדרש להוסיף {quantity_diff} יחידות, זמין במלאי: {available_quantity} יחידות ב{location.name}'
+                                    )
+                            else:
+                                if quantity_diff > product.quantity:
+                                    stock_errors.append(
+                                        f'❌ {product.name}: נדרש להוסיף {quantity_diff} יחידות, זמין במלאי: {product.quantity} יחידות'
+                                    )
+
+            # אם יש שגיאות מלאי, הצג אותן
+            if stock_errors:
+                for error in stock_errors:
+                    messages.error(request, error)
+                messages.warning(request, '⚠️ המכירה לא עודכנה - אין מספיק מלאי למוצרים המבוקשים!')
+
+                context = {
+                    'form': form,
+                    'formset': formset,
+                    'sale': sale,
+                    'is_edit': True,
+                }
+                return render(request, 'inventory/add_sale.html', context)
+
+            # אם אין שגיאות, המשך עם העדכון
             with transaction.atomic():
                 # החזר מלאי ישן לפני עדכון
                 for item in sale.items.all():
@@ -983,7 +1609,6 @@ def edit_sale(request, pk):
                 sale.save()
 
                 # הורד מלאי חדש
-                from django.utils import timezone
                 for item in sale_items:
                     product = item.product
                     if sale.location:
@@ -998,7 +1623,7 @@ def edit_sale(request, pk):
                     product.quantity -= item.quantity
                     product.save()
 
-                messages.success(request, 'המכירה עודכנה בהצלחה!')
+                messages.success(request, '✅ המכירה עודכנה בהצלחה!')
                 return redirect('sale_detail', pk=sale.pk)
     else:
         form = SaleForm(instance=sale)
@@ -1495,3 +2120,554 @@ def customer_reports(request):
         'customers_without_purchases': customers_without_purchases,
     }
     return render(request, 'inventory/customer_reports.html', context)
+
+# גיבוי ושחזור נתונים
+import os
+import subprocess
+from django.conf import settings
+from django.views.decorators.http import require_http_methods
+
+@require_http_methods(["POST"])
+def backup_data(request):
+    """יצירת גיבוי של המערכת"""
+    try:
+        # הרצת פקודת Django management command
+        result = subprocess.run(
+            ['python', 'manage.py', 'backup_database'],
+            capture_output=True,
+            text=True,
+            cwd=settings.BASE_DIR
+        )
+
+        if result.returncode == 0:
+            # חיפוש הגיבוי האחרון שנוצר
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            if os.path.exists(backup_dir):
+                backups = sorted(
+                    [f for f in os.listdir(backup_dir) if f.endswith('.zip')],
+                    key=lambda x: os.path.getmtime(os.path.join(backup_dir, x)),
+                    reverse=True
+                )
+                if backups:
+                    return JsonResponse({
+                        'success': True,
+                        'backup_file': backups[0],
+                        'message': 'הגיבוי נוצר בהצלחה!'
+                    })
+
+            return JsonResponse({
+                'success': True,
+                'message': 'הגיבוי נוצר בהצלחה!'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': result.stderr or 'שגיאה לא ידועה ביצירת הגיבוי'
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+def list_backups(request):
+    """רשימת גיבויים זמינים"""
+    try:
+        backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+        if not os.path.exists(backup_dir):
+            return JsonResponse({'backups': []})
+
+        backups = []
+        for filename in os.listdir(backup_dir):
+            if filename.endswith('.zip'):
+                file_path = os.path.join(backup_dir, filename)
+                file_stats = os.stat(file_path)
+                backups.append({
+                    'name': filename,
+                    'size': f"{file_stats.st_size / 1024:.1f} KB",
+                    'date': datetime.fromtimestamp(file_stats.st_mtime).strftime('%d/%m/%Y %H:%M')
+                })
+
+        # מיון לפי תאריך (החדש ביותר ראשון)
+        backups.sort(key=lambda x: x['date'], reverse=True)
+
+        return JsonResponse({'backups': backups})
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_http_methods(["POST"])
+def restore_data(request):
+    """שחזור נתונים מגיבוי"""
+    try:
+        data = json.loads(request.body)
+        backup_file = data.get('backup_file')
+
+        if not backup_file:
+            return JsonResponse({
+                'success': False,
+                'error': 'לא צוין קובץ גיבוי'
+            })
+
+        # בדיקה שהקובץ קיים
+        backup_path = os.path.join(settings.BASE_DIR, 'backups', backup_file)
+        if not os.path.exists(backup_path):
+            return JsonResponse({
+                'success': False,
+                'error': 'קובץ הגיבוי לא נמצא'
+            })
+
+        # הרצת פקודת שחזור
+        result = subprocess.run(
+            ['python', 'manage.py', 'restore_database', backup_file],
+            capture_output=True,
+            text=True,
+            cwd=settings.BASE_DIR
+        )
+
+        if result.returncode == 0:
+            return JsonResponse({
+                'success': True,
+                'message': 'הגיבוי שוחזר בהצלחה!'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': result.stderr or 'שגיאה לא ידועה בשחזור הגיבוי'
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+# הגדרות מערכת
+def system_settings(request):
+    """עריכת הגדרות מערכת"""
+    settings_obj = SystemSettings.load()
+
+    if request.method == 'POST':
+        form = SystemSettingsForm(request.POST, instance=settings_obj)
+        if form.is_valid():
+            settings_instance = form.save(commit=False)
+            if request.user.is_authenticated:
+                settings_instance.updated_by = request.user
+            settings_instance.save()
+            messages.success(request, '✅ ההגדרות נשמרו בהצלחה!')
+            return redirect('system_settings')
+        else:
+            messages.error(request, '❌ שגיאה בשמירת ההגדרות. בדוק את השדות.')
+    else:
+        form = SystemSettingsForm(instance=settings_obj)
+
+    context = {
+        'form': form,
+        'settings': settings_obj,
+    }
+    return render(request, 'inventory/system_settings.html', context)
+
+def test_email_settings(request):
+    """שליחת מייל בדיקה"""
+    if request.method == 'POST':
+        try:
+            settings_obj = SystemSettings.load()
+
+            if not settings_obj.email_enabled:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'שליחת מיילים לא מופעלת במערכת. הפעל ב"הגדרות"'
+                })
+
+            # עדכון הגדרות Django מהמסד נתונים
+            from django.core.mail import EmailMessage
+            from django.conf import settings
+
+            settings.EMAIL_HOST = settings_obj.email_host
+            settings.EMAIL_PORT = settings_obj.email_port
+            settings.EMAIL_USE_TLS = settings_obj.email_use_tls
+            settings.EMAIL_USE_SSL = settings_obj.email_use_ssl
+            settings.EMAIL_HOST_USER = settings_obj.email_host_user
+            settings.EMAIL_HOST_PASSWORD = settings_obj.email_host_password
+            settings.DEFAULT_FROM_EMAIL = settings_obj.default_from_email or settings_obj.email_host_user
+
+            # יצירת מייל בדיקה
+            email = EmailMessage(
+                subject='🧪 בדיקת הגדרות Email - מערכת ניהול מלאי',
+                body=f"""
+                <html dir="rtl">
+                <body style="font-family: Arial; padding: 20px;">
+                    <h2 style="color: #28a745;">✅ מייל בדיקה</h2>
+                    <p>אם אתה מקבל מייל זה, ההגדרות שלך נכונות!</p>
+                    <hr>
+                    <p><strong>פרטי השרת:</strong></p>
+                    <ul>
+                        <li>שרת: {settings_obj.email_host}</li>
+                        <li>פורט: {settings_obj.email_port}</li>
+                        <li>TLS: {'כן' if settings_obj.email_use_tls else 'לא'}</li>
+                        <li>שולח: {settings_obj.email_host_user}</li>
+                    </ul>
+                    <p style="color: #6c757d; font-size: 12px;">נשלח מ: מערכת ניהול מלאי</p>
+                </body>
+                </html>
+                """,
+                from_email=settings_obj.default_from_email or settings_obj.email_host_user,
+                to=[settings_obj.daily_report_email] if settings_obj.daily_report_email else [settings_obj.email_host_user],
+            )
+            email.content_subtype = 'html'
+
+            # שליחת המייל
+            email.send()
+
+            return JsonResponse({
+                'success': True,
+                'message': f'✅ מייל בדיקה נשלח ל-{settings_obj.daily_report_email or settings_obj.email_host_user}!'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'❌ שגיאה בשליחת המייל: {str(e)}'
+            })
+
+    return JsonResponse({'success': False, 'error': 'Method not allowed'})
+
+def send_instant_report(request):
+    """שליחת דוח מיידי ללא תזמון"""
+    if request.method == 'POST':
+        try:
+            settings_obj = SystemSettings.load()
+
+            # בדיקות ראשוניות
+            if not settings_obj.email_enabled:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'שליחת מיילים לא מופעלת. הפעל ב"הגדרות"'
+                })
+
+            if not settings_obj.daily_report_email:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'לא הוגדר מייל לקבלת דוחות. הגדר ב"הגדרות"'
+                })
+
+            # עדכון הגדרות Django מהמסד נתונים
+            from django.conf import settings
+            settings.EMAIL_HOST = settings_obj.email_host
+            settings.EMAIL_PORT = settings_obj.email_port
+            settings.EMAIL_USE_TLS = settings_obj.email_use_tls
+            settings.EMAIL_USE_SSL = settings_obj.email_use_ssl
+            settings.EMAIL_HOST_USER = settings_obj.email_host_user
+            settings.EMAIL_HOST_PASSWORD = settings_obj.email_host_password
+            settings.DEFAULT_FROM_EMAIL = settings_obj.default_from_email or settings_obj.email_host_user
+
+            # איסוף נתונים
+            today = timezone.now().date()
+
+            # סטטיסטיקות כלליות
+            total_products = Product.objects.count()
+            low_stock = Product.objects.filter(quantity__lte=F('min_quantity')).count()
+            out_of_stock = Product.objects.filter(quantity=0).count()
+            total_stock_value = Product.objects.aggregate(
+                total=Sum(F('quantity') * F('cost_price'))
+            )['total'] or 0
+
+            # מכירות היום
+            today_sales = Sale.objects.filter(created_at__date=today)
+            daily_sales_count = today_sales.count()
+            daily_sales_amount = today_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+
+            # התראות
+            active_alerts = Alert.objects.filter(is_resolved=False).count()
+            critical_alerts = Alert.objects.filter(is_resolved=False, priority='critical').count()
+
+            # תנועות מלאי
+            today_movements = StockMovement.objects.filter(created_at__date=today).count()
+
+            # מוצרים במלאי נמוך
+            low_stock_products = Product.objects.filter(
+                quantity__lte=F('min_quantity')
+            ).order_by('quantity')[:10]
+
+            # יצירת תוכן HTML
+            html_content = f"""
+            <!DOCTYPE html>
+            <html dir="rtl" lang="he">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {{ font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }}
+                    .container {{ max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+                    h1 {{ color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }}
+                    h2 {{ color: #34495e; margin-top: 30px; border-right: 4px solid #3498db; padding-right: 10px; }}
+                    .stats {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }}
+                    .stat-card {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }}
+                    .stat-card.warning {{ background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }}
+                    .stat-card.success {{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }}
+                    .stat-value {{ font-size: 28px; font-weight: bold; margin: 10px 0; }}
+                    .stat-label {{ font-size: 13px; opacity: 0.9; }}
+                    table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+                    th {{ background-color: #3498db; color: white; padding: 10px; text-align: right; }}
+                    td {{ padding: 8px; border-bottom: 1px solid #ddd; text-align: right; }}
+                    .alert {{ padding: 12px; margin: 10px 0; border-radius: 5px; }}
+                    .alert-danger {{ background-color: #f8d7da; border-right: 4px solid #dc3545; color: #721c24; }}
+                    .footer {{ margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; text-align: center; color: #7f8c8d; font-size: 12px; }}
+                    .instant {{ background-color: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="instant">
+                        <strong>⚡ דוח מיידי</strong> - נשלח לבקשתך ב-{timezone.now().strftime('%H:%M')}
+                    </div>
+
+                    <h1>📊 דוח יומי - מערכת ניהול מלאי</h1>
+                    <p><strong>תאריך:</strong> {today.strftime('%d/%m/%Y')}</p>
+
+                    <h2>📈 סטטיסטיקות כלליות</h2>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value">{total_products}</div>
+                            <div class="stat-label">סה"כ מוצרים</div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-value">₪{total_stock_value:,.0f}</div>
+                            <div class="stat-label">ערך מלאי</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-value">{low_stock}</div>
+                            <div class="stat-label">מלאי נמוך</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{daily_sales_count}</div>
+                            <div class="stat-label">מכירות היום</div>
+                        </div>
+                    </div>
+
+                    <h2>💰 מכירות היום</h2>
+                    <div class="stats">
+                        <div class="stat-card success">
+                            <div class="stat-value">{daily_sales_count}</div>
+                            <div class="stat-label">כמות מכירות</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">₪{daily_sales_amount:,.2f}</div>
+                            <div class="stat-label">סה"כ מכירות</div>
+                        </div>
+                    </div>
+            """
+
+            # התראות קריטיות
+            if critical_alerts > 0 or out_of_stock > 0:
+                html_content += "<h2>⚠️ התראות חשובות</h2>"
+                if critical_alerts > 0:
+                    html_content += f'<div class="alert alert-danger"><strong>🚨 {critical_alerts} התראות קריטיות!</strong></div>'
+                if out_of_stock > 0:
+                    html_content += f'<div class="alert alert-danger"><strong>📦 {out_of_stock} מוצרים אזלו מהמלאי!</strong></div>'
+
+            # מוצרים במלאי נמוך
+            if low_stock_products:
+                html_content += """
+                    <h2>📉 מוצרים במלאי נמוך (TOP 10)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>מוצר</th>
+                                <th>כמות במלאי</th>
+                                <th>מינימום</th>
+                                <th>סטטוס</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                """
+                for product in low_stock_products:
+                    status = "🔴 אזל" if product.quantity == 0 else "🟡 נמוך"
+                    html_content += f"""
+                            <tr>
+                                <td><strong>{product.name}</strong></td>
+                                <td>{product.quantity}</td>
+                                <td>{product.min_quantity}</td>
+                                <td>{status}</td>
+                            </tr>
+                    """
+                html_content += """
+                        </tbody>
+                    </table>
+                """
+
+            html_content += """
+                    <div class="alert" style="background-color: #d1ecf1; border-right: 4px solid #0c5460; color: #0c5460; margin: 20px 0;">
+                        <strong>📎 קבצים מצורפים:</strong><br>
+                        קובץ ZIP עם כל הדוחות המפורטים (מוצרים, מכירות, לקוחות, קטגוריות, ספקים, מיקומים, התראות + מלאי נמוך)
+                    </div>
+
+                    <div class="footer">
+                        <p>דוח מיידי נוצר לבקשתך ממערכת ניהול המלאי</p>
+                        <p>© 2025 מערכת ניהול מלאי</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+
+            # יצירת קובץ ZIP עם כל הדוחות
+            import zipfile
+            zip_buffer = io.BytesIO()
+
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                # 1. מוצרים
+                products_buffer = io.BytesIO()
+                products_buffer.write('\ufeff'.encode('utf-8'))
+                writer = csv.writer(io.TextIOWrapper(products_buffer, encoding='utf-8', newline=''))
+                writer.writerow(['שם', 'SKU', 'ברקוד', 'קטגוריה', 'כמות', 'מחיר מכירה', 'מחיר עלות', 'ערך מלאי', 'ספק'])
+                products = Product.objects.select_related('category', 'supplier').all()
+                for product in products:
+                    writer.writerow([
+                        product.name, product.sku or '', product.barcode or '',
+                        product.category.name if product.category else '',
+                        product.quantity, product.selling_price or 0, product.cost_price or 0,
+                        product.stock_value, product.supplier.name if product.supplier else ''
+                    ])
+                zip_file.writestr('1_products.csv', products_buffer.getvalue())
+
+                # 2. מכירות
+                sales_buffer = io.BytesIO()
+                sales_buffer.write('\ufeff'.encode('utf-8'))
+                writer = csv.writer(io.TextIOWrapper(sales_buffer, encoding='utf-8', newline=''))
+                writer.writerow(['מספר חשבונית', 'תאריך', 'לקוח', 'סכום כולל', 'סכום מס', 'מיקום', 'אמצעי תשלום', 'סטטוס'])
+                sales = Sale.objects.select_related('customer', 'location').all()
+                for sale in sales:
+                    writer.writerow([
+                        sale.invoice_number, sale.created_at.strftime('%d/%m/%Y %H:%M'),
+                        sale.customer.name if sale.customer else '',
+                        sale.total_amount, sale.tax_amount or 0,
+                        sale.location.name if sale.location else '',
+                        sale.get_payment_method_display() if sale.payment_method else '',
+                        sale.get_status_display() if sale.status else ''
+                    ])
+                zip_file.writestr('2_sales.csv', sales_buffer.getvalue())
+
+                # 3. לקוחות
+                customers_buffer = io.BytesIO()
+                customers_buffer.write('\ufeff'.encode('utf-8'))
+                writer = csv.writer(io.TextIOWrapper(customers_buffer, encoding='utf-8', newline=''))
+                writer.writerow(['שם', 'קוד לקוח', 'ח.פ/ע.מ', 'אימייל', 'טלפון', 'כתובת', 'הנחה %', 'מגבלת אשראי', 'סה"כ רכישות', 'פעיל'])
+                customers = Customer.objects.all()
+                for customer in customers:
+                    writer.writerow([
+                        customer.name, customer.customer_code or '', customer.tax_id or '',
+                        customer.email or '', customer.phone or '', customer.address or '',
+                        customer.discount_percent or 0, customer.credit_limit or 0,
+                        customer.total_purchases or 0,
+                        'כן' if customer.is_active else 'לא'
+                    ])
+                zip_file.writestr('3_customers.csv', customers_buffer.getvalue())
+
+                # 4. קטגוריות
+                categories_buffer = io.BytesIO()
+                categories_buffer.write('\ufeff'.encode('utf-8'))
+                writer = csv.writer(io.TextIOWrapper(categories_buffer, encoding='utf-8', newline=''))
+                writer.writerow(['שם', 'תיאור', 'כמות מוצרים'])
+                categories = Category.objects.annotate(product_count=Count('product')).all()
+                for category in categories:
+                    writer.writerow([
+                        category.name, category.description or '', category.product_count
+                    ])
+                zip_file.writestr('4_categories.csv', categories_buffer.getvalue())
+
+                # 5. ספקים
+                suppliers_buffer = io.BytesIO()
+                suppliers_buffer.write('\ufeff'.encode('utf-8'))
+                writer = csv.writer(io.TextIOWrapper(suppliers_buffer, encoding='utf-8', newline=''))
+                writer.writerow(['שם', 'איש קשר', 'אימייל', 'טלפון', 'כתובת', 'כמות מוצרים', 'פעיל'])
+                suppliers = Supplier.objects.annotate(product_count=Count('product')).all()
+                for supplier in suppliers:
+                    writer.writerow([
+                        supplier.name, supplier.contact_person or '', supplier.email or '',
+                        supplier.phone or '', supplier.address or '', supplier.product_count,
+                        'כן' if supplier.is_active else 'לא'
+                    ])
+                zip_file.writestr('5_suppliers.csv', suppliers_buffer.getvalue())
+
+                # 6. מיקומים
+                locations_buffer = io.BytesIO()
+                locations_buffer.write('\ufeff'.encode('utf-8'))
+                writer = csv.writer(io.TextIOWrapper(locations_buffer, encoding='utf-8', newline=''))
+                writer.writerow(['שם', 'סוג', 'כתובת', 'מנהל', 'כמות מוצרים', 'פעיל'])
+                locations = Location.objects.annotate(product_count=Count('product_stocks')).all()
+                for location in locations:
+                    writer.writerow([
+                        location.name, location.get_location_type_display(), location.address or '',
+                        location.manager_name or '', location.product_count,
+                        'כן' if location.is_active else 'לא'
+                    ])
+                zip_file.writestr('6_locations.csv', locations_buffer.getvalue())
+
+                # 7. התראות
+                alerts_buffer = io.BytesIO()
+                alerts_buffer.write('\ufeff'.encode('utf-8'))
+                writer = csv.writer(io.TextIOWrapper(alerts_buffer, encoding='utf-8', newline=''))
+                writer.writerow(['מוצר', 'סוג התראה', 'עדיפות', 'הודעה', 'נפתר', 'תאריך יצירה'])
+                alerts = Alert.objects.select_related('product').all()
+                for alert in alerts:
+                    writer.writerow([
+                        alert.product.name if alert.product else '',
+                        alert.get_alert_type_display(), alert.get_priority_display(),
+                        alert.message or '', 'כן' if alert.is_resolved else 'לא',
+                        alert.created_at.strftime('%d/%m/%Y %H:%M') if alert.created_at else ''
+                    ])
+                zip_file.writestr('7_alerts.csv', alerts_buffer.getvalue())
+
+                # 8. מלאי נמוך (דוח מיוחד)
+                if low_stock_products:
+                    low_stock_buffer = io.BytesIO()
+                    low_stock_buffer.write('\ufeff'.encode('utf-8'))
+                    writer = csv.writer(io.TextIOWrapper(low_stock_buffer, encoding='utf-8', newline=''))
+                    writer.writerow(['שם מוצר', 'SKU', 'כמות במלאי', 'מינימום', 'קטגוריה', 'סטטוס'])
+                    for product in low_stock_products:
+                        status = '🔴 אזל' if product.quantity == 0 else '🟡 נמוך'
+                        writer.writerow([
+                            product.name, product.sku or '', product.quantity,
+                            product.min_quantity, product.category.name if product.category else '',
+                            status
+                        ])
+                    zip_file.writestr('8_low_stock_urgent.csv', low_stock_buffer.getvalue())
+
+            # הכנת הקובץ לצירוף
+            zip_buffer.seek(0)
+            attachments = [(f'reports_{today.strftime("%Y%m%d")}.zip', zip_buffer.getvalue(), 'application/zip')]
+
+            # שליחת המייל
+            from django.core.mail import EmailMessage
+            email = EmailMessage(
+                subject=f'⚡ דוח מיידי - {today.strftime("%d/%m/%Y")} {timezone.now().strftime("%H:%M")}',
+                body=html_content,
+                from_email=settings_obj.default_from_email or settings_obj.email_host_user,
+                to=[settings_obj.daily_report_email],
+            )
+            email.content_subtype = 'html'
+
+            # הוספת קבצים מצורפים
+            for filename, content, mimetype in attachments:
+                email.attach(filename, content, mimetype)
+
+            email.send()
+
+            return JsonResponse({
+                'success': True,
+                'message': f'✅ הדוח נשלח בהצלחה ל-{settings_obj.daily_report_email}!',
+                'details': {
+                    'products': total_products,
+                    'sales': daily_sales_count,
+                    'alerts': critical_alerts
+                }
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'❌ שגיאה בשליחת הדוח: {str(e)}'
+            })
+
+    return JsonResponse({'success': False, 'error': 'Method not allowed'})

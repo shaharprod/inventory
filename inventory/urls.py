@@ -39,6 +39,14 @@ urlpatterns = [
     path('export/products-csv/', views.export_products_csv, name='export_products_csv'),
     path('export/low-stock-csv/', views.export_low_stock_csv, name='export_low_stock_csv'),
     path('export/movements-csv/', views.export_movements_csv, name='export_movements_csv'),
+    path('export/categories-csv/', views.export_categories_csv, name='export_categories_csv'),
+    path('export/suppliers-csv/', views.export_suppliers_csv, name='export_suppliers_csv'),
+    path('export/customers-csv/', views.export_customers_csv, name='export_customers_csv'),
+    path('export/sales-csv/', views.export_sales_csv, name='export_sales_csv'),
+    path('export/locations-csv/', views.export_locations_csv, name='export_locations_csv'),
+    path('export/alerts-csv/', views.export_alerts_csv, name='export_alerts_csv'),
+    path('export/all-data-csv/', views.export_all_data_csv, name='export_all_data_csv'),
+    path('export/all-data-excel/', views.export_all_data_excel, name='export_all_data_excel'),
     path('export/reports-json/', views.export_reports_json, name='export_reports_json'),
 
     # CRM
@@ -79,4 +87,14 @@ urlpatterns = [
     path('locations/<int:pk>/', views.location_detail, name='location_detail'),
     path('locations/<int:pk>/edit/', views.edit_location, name='edit_location'),
     path('locations/<int:pk>/delete/', views.delete_location, name='delete_location'),
+
+    # גיבוי ושחזור
+    path('backup-data/', views.backup_data, name='backup_data'),
+    path('list-backups/', views.list_backups, name='list_backups'),
+    path('restore-data/', views.restore_data, name='restore_data'),
+
+    # הגדרות מערכת
+    path('settings/', views.system_settings, name='system_settings'),
+    path('settings/test-email/', views.test_email_settings, name='test_email_settings'),
+    path('send-instant-report/', views.send_instant_report, name='send_instant_report'),
 ]

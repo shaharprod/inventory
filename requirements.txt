@@ -10,6 +10,9 @@ Pillow>=10.0.0
 # יצירת PDF לחשבוניות
 reportlab>=4.0.0
 
+# יצירת קבצי Excel
+openpyxl>=3.1.0
+
 # שרת production (אופציונלי)
 # הסר # להתקנה
 # gunicorn>=21.0.0  # Linux/Mac

@@ -9,6 +9,61 @@ import hashlib
 import json
 from datetime import datetime
 
+class SystemSettings(models.Model):
+    """הגדרות מערכת - Singleton Model"""
+    # הגדרות Email
+    email_enabled = models.BooleanField(default=False, verbose_name="הפעל שליחת מיילים")
+    email_host = models.CharField(max_length=200, default='smtp.gmail.com', verbose_name="שרת SMTP")
+    email_port = models.IntegerField(default=587, verbose_name="פורט SMTP")
+    email_use_tls = models.BooleanField(default=True, verbose_name="השתמש ב-TLS")
+    email_use_ssl = models.BooleanField(default=False, verbose_name="השתמש ב-SSL")
+    email_host_user = models.EmailField(blank=True, verbose_name="כתובת מייל שולח")
+    email_host_password = models.CharField(max_length=200, blank=True, verbose_name="סיסמה/App Password")
+    default_from_email = models.EmailField(blank=True, verbose_name="מייל ברירת מחדל")
+
+    # הגדרות דוח יומי
+    daily_report_enabled = models.BooleanField(default=False, verbose_name="הפעל דוח יומי")
+    daily_report_email = models.EmailField(blank=True, verbose_name="מייל לקבלת דוחות")
+    daily_report_time = models.TimeField(default='19:30:00', verbose_name="שעת שליחת דוח")
+
+    # הגדרות התראות
+    alert_email_enabled = models.BooleanField(default=False, verbose_name="הפעל התראות במייל")
+    alert_email_recipients = models.TextField(blank=True, verbose_name="מיילים לקבלת התראות",
+                                             help_text="הפרד בפסיקים")
+
+    # מטא דאטה
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "הגדרות מערכת"
+        verbose_name_plural = "הגדרות מערכת"
+
+    def save(self, *args, **kwargs):
+        # Singleton - רק רשומה אחת
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # לא ניתן למחוק
+        pass
+
+    @classmethod
+    def load(cls):
+        """טעינת הגדרות המערכת (או יצירה אם לא קיימות)"""
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return "הגדרות מערכת"
+
+    def get_alert_recipients_list(self):
+        """החזרת רשימת מיילים לקבלת התראות"""
+        if self.alert_email_recipients:
+            return [email.strip() for email in self.alert_email_recipients.split(',') if email.strip()]
+        return []
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
@@ -368,11 +423,21 @@ class Sale(models.Model):
         ('refunded', 'הוחזר'),
     ]
 
+    PAYMENT_METHOD_CHOICES = [
+        ('credit_clearing', 'סליקה כולל'),
+        ('cash', 'מזומן'),
+        ('credit_card', 'כרטיס אשראי'),
+        ('bit', 'ביט'),
+        ('paypal', 'פייפאל'),
+        ('paybox', 'פייבוקס'),
+    ]
+
     invoice_number = models.CharField(max_length=50, unique=True, verbose_name="מספר חשבונית")
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="לקוח")
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="מיקום מכירה", help_text="החנות בה בוצעה המכירה")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="סטטוס")
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending', verbose_name="סטטוס תשלום")
+    payment_method = models.CharField(max_length=30, choices=PAYMENT_METHOD_CHOICES, blank=True, null=True, verbose_name="אפשרות תשלום")
 
     # מחירים
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="סכום לפני מע\"מ")

@@ -382,4 +382,291 @@
                 </div>
             </div>
         </div>
+
+        <!-- גיבוי ושחזור נתונים -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-database me-2"></i>גיבוי ושחזור נתונים</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-download fa-3x text-primary mb-3"></i>
+                                        <h5>גיבוי נתונים</h5>
+                                        <p class="text-muted">צור גיבוי מלא של כל נתוני המערכת</p>
+                                        <button id="backupBtn" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-save me-2"></i>צור גיבוי עכשיו
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-upload fa-3x text-success mb-3"></i>
+                                        <h5>שחזור נתונים</h5>
+                                        <p class="text-muted">שחזר נתונים מגיבוי קודם</p>
+                                        <button id="restoreBtn" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#restoreModal">
+                                            <i class="fas fa-history me-2"></i>שחזר גיבוי
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-warning">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-paper-plane fa-3x text-warning mb-3"></i>
+                                        <h5>שלח דוח מיידי</h5>
+                                        <p class="text-muted">שלח דוח במייל ללא תזמון</p>
+                                        <button id="instantReportBtn" class="btn btn-warning btn-lg">
+                                            <i class="fas fa-bolt me-2"></i>שלח עכשיו
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- סטטוס גיבויים -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>גיבויים אחרונים:</strong>
+                                    <span id="backupsList">טוען...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Modal לבחירת גיבוי לשחזור -->
+<div class="modal fade" id="restoreModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-history me-2"></i>בחר גיבוי לשחזור</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="backupsListModal">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">טוען...</span>
+                        </div>
+                        <p class="mt-2">טוען רשימת גיבויים...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts לגיבוי ושחזור -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // טעינת רשימת גיבויים בטעינת הדף
+    loadBackupsList();
+
+    // כפתור גיבוי
+    document.getElementById('backupBtn').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>יוצר גיבוי...';
+
+        fetch('/backup-data/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ הגיבוי נוצר בהצלחה!\n\nקובץ: ' + data.backup_file);
+                loadBackupsList();
+            } else {
+                alert('❌ שגיאה ביצירת הגיבוי:\n' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('❌ שגיאה בתקשורת עם השרת:\n' + error);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-2"></i>צור גיבוי עכשיו';
+        });
+    });
+
+    // כפתור דוח מיידי
+    document.getElementById('instantReportBtn').addEventListener('click', function() {
+        const btn = this;
+
+        if (!confirm('📧 האם לשלוח דוח מיידי במייל?\n\nהדוח יכלול:\n✓ סטטיסטיקות כלליות\n✓ מכירות היום\n✓ מוצרים במלאי נמוך\n✓ התראות קריטיות')) {
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>שולח...';
+
+        fetch('/send-instant-report/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let details = '';
+                if (data.details) {
+                    details = `\n\n📊 פרטי הדוח:\n• מוצרים: ${data.details.products}\n• מכירות: ${data.details.sales}\n• התראות: ${data.details.alerts}`;
+                }
+                alert(data.message + details);
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert('❌ שגיאה בשליחת הדוח:\n' + error);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-bolt me-2"></i>שלח עכשיו';
+        });
+    });
+
+    // טעינת רשימת גיבויים במודל
+    document.getElementById('restoreBtn').addEventListener('click', function() {
+        loadBackupsListModal();
+    });
+
+    // פונקציה לטעינת רשימת גיבויים
+    function loadBackupsList() {
+        fetch('/list-backups/')
+        .then(response => response.json())
+        .then(data => {
+            const backupsSpan = document.getElementById('backupsList');
+            if (data.backups && data.backups.length > 0) {
+                const latest = data.backups.slice(0, 3);
+                backupsSpan.innerHTML = latest.map(b => `<span class="badge bg-secondary me-2">${b.name}</span>`).join('');
+            } else {
+                backupsSpan.innerHTML = '<span class="text-muted">אין גיבויים זמינים</span>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('backupsList').innerHTML = '<span class="text-danger">שגיאה בטעינת הגיבויים</span>';
+        });
+    }
+
+    // פונקציה לטעינת רשימת גיבויים במודל
+    function loadBackupsListModal() {
+        const modalBody = document.getElementById('backupsListModal');
+
+        fetch('/list-backups/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.backups && data.backups.length > 0) {
+                let html = '<div class="list-group">';
+                data.backups.forEach(backup => {
+                    html += `
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-file-archive me-2"></i>${backup.name}</h6>
+                                    <small class="text-muted">${backup.size} | ${backup.date}</small>
+                                </div>
+                                <button class="btn btn-success btn-sm restore-backup-btn" data-backup="${backup.name}">
+                                    <i class="fas fa-history me-1"></i>שחזר
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                modalBody.innerHTML = html;
+
+                // הוספת מאזינים לכפתורי שחזור
+                document.querySelectorAll('.restore-backup-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const backupName = this.getAttribute('data-backup');
+                        restoreBackup(backupName);
+                    });
+                });
+            } else {
+                modalBody.innerHTML = '<div class="alert alert-warning">אין גיבויים זמינים</div>';
+            }
+        })
+        .catch(error => {
+            modalBody.innerHTML = '<div class="alert alert-danger">שגיאה בטעינת הגיבויים: ' + error + '</div>';
+        });
+    }
+
+    // פונקציה לשחזור גיבוי
+    function restoreBackup(backupName) {
+        if (!confirm('⚠️ האם אתה בטוח שברצונך לשחזר את הגיבוי?\n\n' + backupName + '\n\nפעולה זו תחליף את כל הנתונים הקיימים!')) {
+            return;
+        }
+
+        const modalBody = document.getElementById('backupsListModal');
+        modalBody.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">משחזר...</span>
+                </div>
+                <p class="mt-2">משחזר גיבוי... אנא המתן</p>
+            </div>
+        `;
+
+        fetch('/restore-data/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ backup_file: backupName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ הגיבוי שוחזר בהצלחה!\n\nהדף יתרענן כעת.');
+                location.reload();
+            } else {
+                alert('❌ שגיאה בשחזור:\n' + data.error);
+                loadBackupsListModal();
+            }
+        })
+        .catch(error => {
+            alert('❌ שגיאה בתקשורת עם השרת:\n' + error);
+            loadBackupsListModal();
+        });
+    }
+
+    // פונקציה לקבלת CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
 {% endblock %}

@@ -63,6 +63,31 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
+        /* Logo styles */
+        .navbar-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .navbar-logo:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
         /* Theme toggle button */
         .theme-toggle {
             position: fixed;
@@ -141,7 +166,13 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="fas fa-warehouse me-2"></i>מערכת ניהול מלאי
+                <!-- Logo: להחלפת הלוגו, שים קובץ בשם logo.png בתיקייה inventory/static/inventory/images/ -->
+                {% load static %}
+                <img src="{% static 'inventory/images/logo.png' %}" 
+                     alt="לוגו" 
+                     class="navbar-logo"
+                     onerror="this.src='https://cdn-icons-png.flaticon.com/512/3659/3659898.png'">
+                <span>מערכת ניהול מלאי</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

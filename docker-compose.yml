@@ -12,11 +12,12 @@ services:
       - "8000:8000"
     volumes:
       # שמירת נתונים מתמשכת
-      - db_data:/app/db.sqlite3
+      - ./db.sqlite3:/app/db.sqlite3
       - media_data:/app/media
       - logs_data:/app/logs
       - backups_data:/app/backups
       - static_data:/app/static
+      - staticfiles_data:/app/staticfiles
       # סנכרון קבצי קוד לפיתוח (הסר בפרודקשן)
       # - .:/app
     environment:
@@ -90,8 +91,6 @@ services:
 
 # הגדרת volumes לשמירת נתונים מתמשכת
 volumes:
-  db_data:
-    driver: local
   media_data:
     driver: local
   logs_data:
@@ -99,6 +98,8 @@ volumes:
   backups_data:
     driver: local
   static_data:
+    driver: local
+  staticfiles_data:
     driver: local
   # postgres_data:  # אם משתמשים ב-PostgreSQL
   #   driver: local

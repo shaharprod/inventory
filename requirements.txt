@@ -13,6 +13,9 @@ reportlab>=4.0.0
 # יצירת קבצי Excel
 openpyxl>=3.1.0
 
+# יצירת ברקודים
+python-barcode>=0.15.0
+
 # שרת production (אופציונלי)
 # הסר # להתקנה
 # gunicorn>=21.0.0  # Linux/Mac

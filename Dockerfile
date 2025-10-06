@@ -38,8 +38,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY --chown=appuser:appuser . .
 
 # יצירת תיקיות נדרשות
-RUN mkdir -p media/products media/barcodes logs backups static && \
-    chown -R appuser:appuser media logs backups static
+RUN mkdir -p media/products media/barcodes logs backups static staticfiles && \
+    chown -R appuser:appuser media logs backups static staticfiles
 
 # מעבר למשתמש לא-root
 USER appuser

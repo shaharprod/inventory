@@ -2664,22 +2664,22 @@ def send_instant_report(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font, PatternFill, Alignment
             from openpyxl.utils import get_column_letter
-            
+
             excel_buffer = io.BytesIO()
             wb = Workbook()
-            
+
             # פונקציה לעיצוב גליון
             def style_sheet(ws, title):
                 ws.title = title
                 # עיצוב כותרת
                 header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
                 header_font = Font(bold=True, color='FFFFFF', size=12)
-                
+
                 for cell in ws[1]:
                     cell.fill = header_fill
                     cell.font = header_font
                     cell.alignment = Alignment(horizontal='center', vertical='center')
-                
+
                 # התאמת רוחב עמודות
                 for column in ws.columns:
                     max_length = 0
@@ -2692,10 +2692,10 @@ def send_instant_report(request):
         pass
                     adjusted_width = min(max_length + 2, 50)
                     ws.column_dimensions[column_letter].width = adjusted_width
-                
+
                 # הקפאת שורת כותרת
                 ws.freeze_panes = ws['A2']
-            
+
             # גליון 1: מוצרים
             ws = wb.active
             ws.append(['שם מוצר', 'SKU', 'כמות', 'מחיר קנייה', 'מחיר מכירה', 'קטגוריה', 'ספק'])
@@ -2707,7 +2707,7 @@ def send_instant_report(request):
                     product.supplier.name if product.supplier else ''
                 ])
             style_sheet(ws, 'מוצרים')
-            
+
             # גליון 2: מכירות היום
             ws = wb.create_sheet('מכירות היום')
             ws.append(['מספר חשבונית', 'לקוח', 'סכום כולל', 'מע"מ', 'סטטוס', 'תאריך'])
@@ -2718,7 +2718,7 @@ def send_instant_report(request):
                     sale.created_at.strftime('%d/%m/%Y %H:%M')
                 ])
             style_sheet(ws, 'מכירות היום')
-            
+
             # גליון 3: לקוחות
             ws = wb.create_sheet('לקוחות')
             ws.append(['שם', 'טלפון', 'אימייל', 'כתובת', 'סה"כ רכישות', 'מס\' הזמנות'])
@@ -2729,7 +2729,7 @@ def send_instant_report(request):
                     customer.total_orders
                 ])
             style_sheet(ws, 'לקוחות')
-            
+
             # גליון 4: קטגוריות
             ws = wb.create_sheet('קטגוריות')
             ws.append(['שם קטגוריה', 'תיאור', 'מס\' מוצרים'])
@@ -2738,7 +2738,7 @@ def send_instant_report(request):
                     category.name, category.description or '', category.product_count
                 ])
             style_sheet(ws, 'קטגוריות')
-            
+
             # גליון 5: ספקים
             ws = wb.create_sheet('ספקים')
             ws.append(['שם ספק', 'טלפון', 'אימייל', 'כתובת', 'מס\' מוצרים'])
@@ -2748,7 +2748,7 @@ def send_instant_report(request):
                     supplier.address or '', supplier.product_count
                 ])
             style_sheet(ws, 'ספקים')
-            
+
             # גליון 6: מיקומים
             ws = wb.create_sheet('מיקומים')
             ws.append(['שם מיקום', 'כתובת', 'מנהל', 'מס\' מוצרים'])
@@ -2758,7 +2758,7 @@ def send_instant_report(request):
                     location.stock_count
                 ])
             style_sheet(ws, 'מיקומים')
-            
+
             # גליון 7: התראות פעילות
             ws = wb.create_sheet('התראות')
             ws.append(['מוצר', 'סוג', 'עדיפות', 'הודעה', 'טופל', 'תאריך'])
@@ -2770,7 +2770,7 @@ def send_instant_report(request):
                     alert.created_at.strftime('%d/%m/%Y %H:%M')
                 ])
             style_sheet(ws, 'התראות')
-            
+
             # גליון 8: מלאי נמוך
             if low_stock_products:
                 ws = wb.create_sheet('מלאי נמוך')
@@ -2783,11 +2783,11 @@ def send_instant_report(request):
                         status
                     ])
                 style_sheet(ws, 'מלאי נמוך')
-            
+
             # שמירת קובץ Excel
             wb.save(excel_buffer)
             excel_buffer.seek(0)
-            
+
             # הוספת קובץ Excel לצירופים
             attachments.append((f'reports_{today.strftime("%Y%m%d")}.xlsx', excel_buffer.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
 

@@ -2154,11 +2154,6 @@ def backup_data(request):
                         'backup_file': backups[0],
                         'message': 'הגיבוי נוצר בהצלחה!'
                     })
-
-        return JsonResponse({
-            'success': True,
-                'message': 'הגיבוי נוצר בהצלחה!'
-            })
         else:
             return JsonResponse({
                 'success': False,

@@ -92,14 +92,42 @@
                                 {{ form.notes }}
                             </div>
                             
+                            <!-- תמונת ברקוד -->
                             <div class="mb-3">
                                 <label for="{{ form.barcode_image.id_for_label }}" class="form-label">תמונת ברקוד:</label>
+                                {% if product.barcode_image %}
+                                <div class="mb-2">
+                                    <img src="{{ product.barcode_image.url }}" alt="ברקוד נוכחי" class="img-thumbnail" style="max-height: 150px;">
+                                    <small class="d-block text-muted mt-1">תמונה נוכחית</small>
+                                </div>
+                                {% endif %}
                                 {{ form.barcode_image }}
+                                <small class="form-text text-muted">
+                                    {% if product.barcode_image %}
+                                    בחר קובץ חדש כדי להחליף את התמונה הקיימת
+                                    {% else %}
+                                    העלה תמונת ברקוד חדשה
+                                    {% endif %}
+                                </small>
                             </div>
                             
+                            <!-- תמונת מוצר -->
                             <div class="mb-3">
                                 <label for="{{ form.product_image.id_for_label }}" class="form-label">תמונת מוצר:</label>
+                                {% if product.product_image %}
+                                <div class="mb-2">
+                                    <img src="{{ product.product_image.url }}" alt="תמונת מוצר נוכחית" class="img-thumbnail" style="max-height: 200px;">
+                                    <small class="d-block text-muted mt-1">תמונה נוכחית</small>
+                                </div>
+                                {% endif %}
                                 {{ form.product_image }}
+                                <small class="form-text text-muted">
+                                    {% if product.product_image %}
+                                    <strong>💡 בחר קובץ חדש כדי להחליף את התמונה הקיימת</strong>
+                                    {% else %}
+                                    העלה תמונת מוצר חדשה
+                                    {% endif %}
+                                </small>
                             </div>
                             
                             <div class="d-flex gap-2">
@@ -118,4 +146,69 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- JavaScript לתצוגה מקדימה של תמונות -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // תצוגה מקדימה לתמונת מוצר
+        const productImageInput = document.getElementById('{{ form.product_image.id_for_label }}');
+        if (productImageInput) {
+            productImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // חיפוש התמונה הקיימת או יצירת אלמנט חדש
+                        let preview = productImageInput.parentElement.querySelector('.preview-image');
+                        if (!preview) {
+                            preview = document.createElement('div');
+                            preview.className = 'preview-image mt-2 p-2 border border-success rounded bg-light';
+                            preview.innerHTML = '<strong class="text-success d-block mb-1">✅ תצוגה מקדימה - תמונה חדשה:</strong><img class="img-thumbnail" style="max-height: 200px;">';
+                            productImageInput.parentElement.insertBefore(preview, productImageInput.nextSibling);
+                        }
+                        preview.querySelector('img').src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // תצוגה מקדימה לתמונת ברקוד
+        const barcodeImageInput = document.getElementById('{{ form.barcode_image.id_for_label }}');
+        if (barcodeImageInput) {
+            barcodeImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // חיפוש התמונה הקיימת או יצירת אלמנט חדש
+                        let preview = barcodeImageInput.parentElement.querySelector('.preview-image');
+                        if (!preview) {
+                            preview = document.createElement('div');
+                            preview.className = 'preview-image mt-2 p-2 border border-success rounded bg-light';
+                            preview.innerHTML = '<strong class="text-success d-block mb-1">✅ תצוגה מקדימה - תמונה חדשה:</strong><img class="img-thumbnail" style="max-height: 150px;">';
+                            barcodeImageInput.parentElement.insertBefore(preview, barcodeImageInput.nextSibling);
+                        }
+                        preview.querySelector('img').src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // הוספת אינדיקטור ויזואלי לכפתור שמירה
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>שומר...';
+                }
+            });
+        }
+    });
+    </script>
 {% endblock %}

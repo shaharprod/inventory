@@ -30,6 +30,14 @@ class SystemSettings(models.Model):
     alert_email_enabled = models.BooleanField(default=False, verbose_name="הפעל התראות במייל")
     alert_email_recipients = models.TextField(blank=True, verbose_name="מיילים לקבלת התראות",
                                              help_text="הפרד בפסיקים")
+    low_stock_threshold = models.IntegerField(default=10, verbose_name="סף מלאי נמוך",
+                                              help_text="כמות מינימלית להתראה")
+    critical_stock_threshold = models.IntegerField(default=5, verbose_name="סף מלאי קריטי",
+                                                   help_text="כמות קריטית להתראה דחופה")
+    enable_low_stock_alerts = models.BooleanField(default=True, verbose_name="הפעל התראות מלאי נמוך")
+    enable_expiry_alerts = models.BooleanField(default=True, verbose_name="הפעל התראות תפוגה")
+    expiry_alert_days = models.IntegerField(default=30, verbose_name="ימים לפני תפוגה",
+                                           help_text="התרע X ימים לפני תאריך תפוגה")
 
     # מטא דאטה
     created_at = models.DateTimeField(auto_now_add=True)

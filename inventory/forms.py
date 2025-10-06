@@ -370,7 +370,9 @@ class SystemSettingsForm(forms.ModelForm):
             'email_enabled', 'email_host', 'email_port', 'email_use_tls', 'email_use_ssl',
             'email_host_user', 'email_host_password', 'default_from_email',
             'daily_report_enabled', 'daily_report_email', 'daily_report_time',
-            'alert_email_enabled', 'alert_email_recipients'
+            'alert_email_enabled', 'alert_email_recipients',
+            'low_stock_threshold', 'critical_stock_threshold',
+            'enable_low_stock_alerts', 'enable_expiry_alerts', 'expiry_alert_days'
         ]
         widgets = {
             'email_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -386,4 +388,9 @@ class SystemSettingsForm(forms.ModelForm):
             'daily_report_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'alert_email_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'alert_email_recipients': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'email1@example.com, email2@example.com'}),
+            'low_stock_threshold': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'placeholder': '10'}),
+            'critical_stock_threshold': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'placeholder': '5'}),
+            'enable_low_stock_alerts': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enable_expiry_alerts': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'expiry_alert_days': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'placeholder': '30'}),
         }

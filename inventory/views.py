@@ -2154,6 +2154,10 @@ def backup_data(request):
                         'backup_file': backups[0],
                         'message': 'הגיבוי נוצר בהצלחה!'
                     })
+            return JsonResponse({
+                'success': True,
+                'message': 'הגיבוי נוצר בהצלחה!'
+            })
         else:
             return JsonResponse({
                 'success': False,
@@ -2232,9 +2236,9 @@ def restore_data(request):
                 'success': False,
                 'error': result.stderr or 'שגיאה לא ידועה בשחזור הגיבוי'
             })
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
             'error': str(e)
         })
 
@@ -2336,7 +2340,7 @@ def test_email_settings(request):
                 else:
                     raise ssl_error
 
-    return JsonResponse({
+            return JsonResponse({
                 'success': True,
                 'message': f'✅ מייל בדיקה נשלח ל-{settings_obj.daily_report_email or settings_obj.email_host_user}!'
             })
@@ -2683,8 +2687,8 @@ def send_instant_report(request):
                         try:
                             if len(str(cell.value)) > max_length:
                                 max_length = len(str(cell.value))
-    except:
-        pass
+                        except:
+                            pass
                     adjusted_width = min(max_length + 2, 50)
                     ws.column_dimensions[column_letter].width = adjusted_width
 

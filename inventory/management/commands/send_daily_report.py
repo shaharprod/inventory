@@ -291,11 +291,11 @@ class Command(BaseCommand):
                     context = ssl.create_default_context()
                     context.check_hostname = False
                     context.verify_mode = ssl.CERT_NONE
-                    
+
                     # טען הגדרות מהמודל
                     from inventory.models import SystemSettings
                     settings_obj = SystemSettings.load()
-                    
+
                     # שלח ידנית עם ההגדרות המותאמות
                     connection = smtplib.SMTP(settings_obj.email_host, settings_obj.email_port)
                     if settings_obj.email_use_tls:

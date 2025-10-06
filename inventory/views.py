@@ -2141,7 +2141,7 @@ def backup_data(request):
 
         if result.returncode == 0:
             # חיפוש הגיבוי האחרון שנוצר
-            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+        backup_dir = os.path.join(settings.BASE_DIR, 'backups')
             if os.path.exists(backup_dir):
                 backups = sorted(
                     [f for f in os.listdir(backup_dir) if f.endswith('.zip')],
@@ -2155,8 +2155,8 @@ def backup_data(request):
                         'message': 'הגיבוי נוצר בהצלחה!'
                     })
 
-            return JsonResponse({
-                'success': True,
+        return JsonResponse({
+            'success': True,
                 'message': 'הגיבוי נוצר בהצלחה!'
             })
         else:
@@ -2237,9 +2237,9 @@ def restore_data(request):
                 'success': False,
                 'error': result.stderr or 'שגיאה לא ידועה בשחזור הגיבוי'
             })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
             'error': str(e)
         })
 
@@ -2330,7 +2330,7 @@ def test_email_settings(request):
                     context = ssl.create_default_context()
                     context.check_hostname = False
                     context.verify_mode = ssl.CERT_NONE
-                    
+
                     # שלח ידנית עם ההגדרות המותאמות
                     connection = smtplib.SMTP(settings_obj.email_host, settings_obj.email_port)
                     if settings_obj.email_use_tls:
@@ -2341,7 +2341,7 @@ def test_email_settings(request):
                 else:
                     raise ssl_error
 
-            return JsonResponse({
+    return JsonResponse({
                 'success': True,
                 'message': f'✅ מייל בדיקה נשלח ל-{settings_obj.daily_report_email or settings_obj.email_host_user}!'
             })
@@ -2520,7 +2520,8 @@ def send_instant_report(request):
             html_content += """
                     <div class="alert" style="background-color: #d1ecf1; border-right: 4px solid #0c5460; color: #0c5460; margin: 20px 0;">
                         <strong>📎 קבצים מצורפים:</strong><br>
-                        קובץ ZIP עם כל הדוחות המפורטים (מוצרים, מכירות, לקוחות, קטגוריות, ספקים, מיקומים, התראות + מלאי נמוך)
+                        • קובץ ZIP עם דוחות CSV מפורטים<br>
+                        • 📊 קובץ Excel (.xlsx) עם 8 גליונות מעוצבים
                     </div>
 
                     <div class="footer">
@@ -2657,7 +2658,138 @@ def send_instant_report(request):
 
             # הכנת הקובץ לצירוף
             zip_buffer.seek(0)
-            attachments = [(f'reports_{today.strftime("%Y%m%d")}.zip', zip_buffer.getvalue(), 'application/zip')]
+            attachments = [(f'reports_csv_{today.strftime("%Y%m%d")}.zip', zip_buffer.getvalue(), 'application/zip')]
+
+            # יצירת קובץ Excel מלא
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment
+            from openpyxl.utils import get_column_letter
+            
+            excel_buffer = io.BytesIO()
+            wb = Workbook()
+            
+            # פונקציה לעיצוב גליון
+            def style_sheet(ws, title):
+                ws.title = title
+                # עיצוב כותרת
+                header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+                header_font = Font(bold=True, color='FFFFFF', size=12)
+                
+                for cell in ws[1]:
+                    cell.fill = header_fill
+                    cell.font = header_font
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                
+                # התאמת רוחב עמודות
+                for column in ws.columns:
+                    max_length = 0
+                    column_letter = get_column_letter(column[0].column)
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+    except:
+        pass
+                    adjusted_width = min(max_length + 2, 50)
+                    ws.column_dimensions[column_letter].width = adjusted_width
+                
+                # הקפאת שורת כותרת
+                ws.freeze_panes = ws['A2']
+            
+            # גליון 1: מוצרים
+            ws = wb.active
+            ws.append(['שם מוצר', 'SKU', 'כמות', 'מחיר קנייה', 'מחיר מכירה', 'קטגוריה', 'ספק'])
+            for product in Product.objects.select_related('category', 'supplier').all():
+                ws.append([
+                    product.name, product.sku or '', product.quantity,
+                    float(product.cost_price), float(product.selling_price),
+                    product.category.name if product.category else '',
+                    product.supplier.name if product.supplier else ''
+                ])
+            style_sheet(ws, 'מוצרים')
+            
+            # גליון 2: מכירות היום
+            ws = wb.create_sheet('מכירות היום')
+            ws.append(['מספר חשבונית', 'לקוח', 'סכום כולל', 'מע"מ', 'סטטוס', 'תאריך'])
+            for sale in today_sales:
+                ws.append([
+                    sale.invoice_number, sale.customer.name if sale.customer else 'ללא לקוח',
+                    float(sale.total_amount), float(sale.tax_amount), sale.status,
+                    sale.created_at.strftime('%d/%m/%Y %H:%M')
+                ])
+            style_sheet(ws, 'מכירות היום')
+            
+            # גליון 3: לקוחות
+            ws = wb.create_sheet('לקוחות')
+            ws.append(['שם', 'טלפון', 'אימייל', 'כתובת', 'סה"כ רכישות', 'מס\' הזמנות'])
+            for customer in Customer.objects.all():
+                ws.append([
+                    customer.name, customer.phone or '', customer.email or '',
+                    customer.address or '', float(customer.total_purchases),
+                    customer.total_orders
+                ])
+            style_sheet(ws, 'לקוחות')
+            
+            # גליון 4: קטגוריות
+            ws = wb.create_sheet('קטגוריות')
+            ws.append(['שם קטגוריה', 'תיאור', 'מס\' מוצרים'])
+            for category in Category.objects.annotate(product_count=Count('product')):
+                ws.append([
+                    category.name, category.description or '', category.product_count
+                ])
+            style_sheet(ws, 'קטגוריות')
+            
+            # גליון 5: ספקים
+            ws = wb.create_sheet('ספקים')
+            ws.append(['שם ספק', 'טלפון', 'אימייל', 'כתובת', 'מס\' מוצרים'])
+            for supplier in Supplier.objects.annotate(product_count=Count('product')):
+                ws.append([
+                    supplier.name, supplier.phone or '', supplier.email or '',
+                    supplier.address or '', supplier.product_count
+                ])
+            style_sheet(ws, 'ספקים')
+            
+            # גליון 6: מיקומים
+            ws = wb.create_sheet('מיקומים')
+            ws.append(['שם מיקום', 'כתובת', 'מנהל', 'מס\' מוצרים'])
+            for location in Location.objects.annotate(stock_count=Count('product_stocks')):
+                ws.append([
+                    location.name, location.address or '', location.manager_name or '',
+                    location.stock_count
+                ])
+            style_sheet(ws, 'מיקומים')
+            
+            # גליון 7: התראות פעילות
+            ws = wb.create_sheet('התראות')
+            ws.append(['מוצר', 'סוג', 'עדיפות', 'הודעה', 'טופל', 'תאריך'])
+            for alert in Alert.objects.filter(is_resolved=False).select_related('product'):
+                ws.append([
+                    alert.product.name if alert.product else '',
+                    alert.get_alert_type_display(), alert.get_priority_display(),
+                    alert.message or '', 'כן' if alert.is_resolved else 'לא',
+                    alert.created_at.strftime('%d/%m/%Y %H:%M')
+                ])
+            style_sheet(ws, 'התראות')
+            
+            # גליון 8: מלאי נמוך
+            if low_stock_products:
+                ws = wb.create_sheet('מלאי נמוך')
+                ws.append(['שם מוצר', 'SKU', 'כמות במלאי', 'מינימום', 'קטגוריה', 'סטטוס'])
+                for product in low_stock_products:
+                    status = 'אזל' if product.quantity == 0 else 'נמוך'
+                    ws.append([
+                        product.name, product.sku or '', product.quantity,
+                        product.min_quantity, product.category.name if product.category else '',
+                        status
+                    ])
+                style_sheet(ws, 'מלאי נמוך')
+            
+            # שמירת קובץ Excel
+            wb.save(excel_buffer)
+            excel_buffer.seek(0)
+            
+            # הוספת קובץ Excel לצירופים
+            attachments.append((f'reports_{today.strftime("%Y%m%d")}.xlsx', excel_buffer.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
 
             # שליחת המייל
             from django.core.mail import EmailMessage
@@ -2685,7 +2817,7 @@ def send_instant_report(request):
                     context = ssl.create_default_context()
                     context.check_hostname = False
                     context.verify_mode = ssl.CERT_NONE
-                    
+
                     # שלח ידנית עם ההגדרות המותאמות
                     connection = smtplib.SMTP(settings_obj.email_host, settings_obj.email_port)
                     if settings_obj.email_use_tls:

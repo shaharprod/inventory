@@ -2141,7 +2141,7 @@ def backup_data(request):
 
         if result.returncode == 0:
             # חיפוש הגיבוי האחרון שנוצר
-        backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
             if os.path.exists(backup_dir):
                 backups = sorted(
                     [f for f in os.listdir(backup_dir) if f.endswith('.zip')],

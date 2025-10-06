@@ -6,7 +6,7 @@
 
 1. **שם הקובץ:** `logo.png`
 2. **מיקום:** `inventory/static/inventory/images/logo.png`
-3. **מידות מומלצות:** 
+3. **מידות מומלצות:**
    - גודל: 200x200 פיקסלים (מינימום)
    - פורמט: PNG עם רקע שקוף (מומלץ)
    - התמונה תוצג במסגרת עגולה בגודל 45x45 פיקסלים
@@ -15,7 +15,7 @@
    ```bash
    # העתק את הלוגו שלך לתיקייה זו
    cp your-logo.png inventory/static/inventory/images/logo.png
-   
+
    # אסוף קבצים סטטיים (אם נדרש)
    python manage.py collectstatic --noinput
    ```

@@ -2318,7 +2318,28 @@ def test_email_settings(request):
             email.content_subtype = 'html'
 
             # שליחת המייל
-            email.send()
+            import ssl
+            # כדי לטפל בבעיות SSL עם תעודות self-signed
+            try:
+                email.send()
+            except Exception as ssl_error:
+                # נסה שוב עם אימות SSL מושבת
+                import smtplib
+                if 'CERTIFICATE_VERIFY_FAILED' in str(ssl_error):
+                    # צור קונטקסט SSL שמתעלם מאימות תעודות
+                    context = ssl.create_default_context()
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                    
+                    # שלח ידנית עם ההגדרות המותאמות
+                    connection = smtplib.SMTP(settings_obj.email_host, settings_obj.email_port)
+                    if settings_obj.email_use_tls:
+                        connection.starttls(context=context)
+                    connection.login(settings_obj.email_host_user, settings_obj.email_host_password)
+                    connection.send_message(email.message())
+                    connection.quit()
+                else:
+                    raise ssl_error
 
             return JsonResponse({
                 'success': True,
@@ -2652,7 +2673,28 @@ def send_instant_report(request):
             for filename, content, mimetype in attachments:
                 email.attach(filename, content, mimetype)
 
-            email.send()
+            # שליחת המייל עם טיפול ב-SSL
+            import ssl
+            import smtplib
+            try:
+                email.send()
+            except Exception as ssl_error:
+                # נסה שוב עם אימות SSL מושבת
+                if 'CERTIFICATE_VERIFY_FAILED' in str(ssl_error):
+                    # צור קונטקסט SSL שמתעלם מאימות תעודות
+                    context = ssl.create_default_context()
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                    
+                    # שלח ידנית עם ההגדרות המותאמות
+                    connection = smtplib.SMTP(settings_obj.email_host, settings_obj.email_port)
+                    if settings_obj.email_use_tls:
+                        connection.starttls(context=context)
+                    connection.login(settings_obj.email_host_user, settings_obj.email_host_password)
+                    connection.send_message(email.message())
+                    connection.quit()
+                else:
+                    raise ssl_error
 
             return JsonResponse({
                 'success': True,

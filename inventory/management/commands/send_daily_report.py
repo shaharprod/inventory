@@ -278,7 +278,33 @@ class Command(BaseCommand):
             for filename, content, mimetype in attachments:
                 email.attach(filename, content, mimetype)
 
-            email.send()
+            # שליחת המייל עם טיפול ב-SSL
+            import ssl
+            import smtplib
+            try:
+                email.send()
+            except Exception as ssl_error:
+                # נסה שוב עם אימות SSL מושבת
+                if 'CERTIFICATE_VERIFY_FAILED' in str(ssl_error):
+                    self.stdout.write(self.style.WARNING('⚠️ בעיית SSL - מנסה שוב ללא אימות תעודות...'))
+                    # צור קונטקסט SSL שמתעלם מאימות תעודות
+                    context = ssl.create_default_context()
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                    
+                    # טען הגדרות מהמודל
+                    from inventory.models import SystemSettings
+                    settings_obj = SystemSettings.load()
+                    
+                    # שלח ידנית עם ההגדרות המותאמות
+                    connection = smtplib.SMTP(settings_obj.email_host, settings_obj.email_port)
+                    if settings_obj.email_use_tls:
+                        connection.starttls(context=context)
+                    connection.login(settings_obj.email_host_user, settings_obj.email_host_password)
+                    connection.send_message(email.message())
+                    connection.quit()
+                else:
+                    raise ssl_error
 
             self.stdout.write(self.style.SUCCESS(f'✅ הדוח נשלח בהצלחה ל-{recipient_email}!'))
             self.stdout.write(self.style.SUCCESS(f'📎 נשלחו {len(attachments)} קבצים מצורפים'))

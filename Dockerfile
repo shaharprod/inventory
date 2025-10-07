@@ -1,55 +1,50 @@
-# שלב 1: תמונת בסיס - Python 3.10
-FROM python:3.10-slim
+# מערכת ניהול מלאי - Docker
+FROM python:3.11-slim
 
 # הגדרת משתני סביבה
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    DJANGO_SETTINGS_MODULE=inventory_project.settings \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
 
-# התקנת תלויות מערכת
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# עדכון מערכת והתקנת חבילות נדרשות
+RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    make \
-    libpq-dev \
     libjpeg-dev \
-    zlib1g-dev \
+    libpng-dev \
     libfreetype6-dev \
-    libffi-dev \
-    sqlite3 \
+    liblcms2-dev \
+    libwebp-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libxcb1-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# יצירת משתמש לא-root לאבטחה
-RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app /app/media /app/logs /app/backups && \
-    chown -R appuser:appuser /app
-
-# הגדרת תיקיית עבודה
+# יצירת תיקיית עבודה
 WORKDIR /app
 
-# העתקת requirements והתקנת חבילות Python
-COPY --chown=appuser:appuser requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# העתקת קבצי requirements
+COPY requirements.txt .
 
-# העתקת כל הקבצים
-COPY --chown=appuser:appuser . .
+# התקנת חבילות Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# העתקת קוד האפליקציה
+COPY . .
 
 # יצירת תיקיות נדרשות
-RUN mkdir -p media/products media/barcodes logs backups static staticfiles && \
-    chown -R appuser:appuser media logs backups static staticfiles
+RUN mkdir -p media/products media/barcodes backups static
 
-# מעבר למשתמש לא-root
+# הגדרת הרשאות
+RUN chmod -R 755 media backups static
+
+# יצירת משתמש לא-root
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
 USER appuser
 
 # חשיפת פורט
 EXPOSE 8000
 
-# הרצת collectstatic, migrations ושרת
-CMD ["sh", "-c", "\
-    python manage.py collectstatic --noinput && \
-    python manage.py migrate --noinput && \
-    python manage.py runserver 0.0.0.0:8000\
-"]
+# פקודת הפעלה
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "inventory_project.wsgi:application"]

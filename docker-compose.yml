@@ -1,35 +1,111 @@
 version: '3.8'
 
 services:
-  web:
-    build: .
+  # מערכת ניהול מלאי וCRM
+  inventory:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inventory_system
+    image: inventory_management:latest
     ports:
       - "8000:8000"
     volumes:
-      - ./media:/app/media
-      - ./backups:/app/backups
+      # שמירת נתונים מתמשכת
       - ./db.sqlite3:/app/db.sqlite3
+      - media_data:/app/media
+      - logs_data:/app/logs
+      - backups_data:/app/backups
+      - static_data:/app/static
+      - staticfiles_data:/app/staticfiles
+      # סנכרון קבצי קוד לפיתוח (הסר בפרודקשן)
+      # - .:/app
     environment:
+      # משתני Django
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SETTINGS_MODULE=inventory_project.settings
       - DEBUG=False
-      - ALLOWED_HOSTS=localhost,127.0.0.1
+      # אפשר להגדיר מפתח סודי
+      # - SECRET_KEY=your-secret-key-here
+      # הגדרות בסיס נתונים (אם עוברים ל-PostgreSQL)
+      # - DATABASE_URL=postgres://user:pass@db:5432/inventory
+      # הגדרות Email (אופציונלי)
+      # - EMAIL_HOST=smtp.gmail.com
+      # - EMAIL_PORT=587
+      # - EMAIL_USE_TLS=True
+      # - EMAIL_HOST_USER=your-email@gmail.com
+      # - EMAIL_HOST_PASSWORD=your-app-password
     restart: unless-stopped
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             gunicorn --bind 0.0.0.0:8000 --workers 3 inventory_project.wsgi:application"
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check", "--deploy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: sh -c "
+      python manage.py collectstatic --noinput &&
+      python manage.py migrate --noinput &&
+      python manage.py runserver 0.0.0.0:8000
+      "
+    networks:
+      - inventory_network
 
-  # שירות גיבוי אוטומטי (אופציונלי)
-  backup:
-    build: .
-    volumes:
-      - ./media:/app/media
-      - ./backups:/app/backups
-      - ./db.sqlite3:/app/db.sqlite3
-    command: >
-      sh -c "while true; do
-               python manage.py backup_database &&
-               sleep 86400
-             done"
-    restart: unless-stopped
-    depends_on:
-      - web
+  # (אופציונלי) Nginx Reverse Proxy לפרודקשן
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: inventory_nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - static_data:/app/static:ro
+  #     - media_data:/app/media:ro
+  #   depends_on:
+  #     - inventory
+  #   restart: unless-stopped
+  #   networks:
+  #     - inventory_network
+
+  # (אופציונלי) PostgreSQL Database
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: inventory_postgres
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=inventory
+  #     - POSTGRES_USER=inventory_user
+  #     - POSTGRES_PASSWORD=strong_password_here
+  #   restart: unless-stopped
+  #   networks:
+  #     - inventory_network
+
+  # (אופציונלי) Redis לCache
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: inventory_redis
+  #   restart: unless-stopped
+  #   networks:
+  #     - inventory_network
+
+# הגדרת volumes לשמירת נתונים מתמשכת
+volumes:
+  media_data:
+    driver: local
+  logs_data:
+    driver: local
+  backups_data:
+    driver: local
+  static_data:
+    driver: local
+  staticfiles_data:
+    driver: local
+  # postgres_data:  # אם משתמשים ב-PostgreSQL
+  #   driver: local
+
+# רשת פנימית לתקשורת בין השירותים
+networks:
+  inventory_network:
+    driver: bridge
+

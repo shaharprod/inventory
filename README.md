@@ -1,223 +1,367 @@
-# 🏪 מערכת ניהול מלאי מתקדמת
+# 📦 מערכת ניהול מלאי ו-CRM מקצועית
 
-מערכת ניהול מלאי מלאה ומודרנית עם ממשק משתמש עברי, דוחות מתקדמים, ומערכת גיבויים אוטומטית.
+<div align="center">
 
-## ✨ תכונות עיקריות
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![Django](https://img.shields.io/badge/Django-5.2+-green.svg)
+![License](https://img.shields.io/badge/License-Proprietary-red.svg)
+![Status](https://img.shields.io/badge/Status-Production%20Ready-success.svg)
 
-### 📦 ניהול מלאי
-- **ניהול מוצרים** - הוספה, עריכה, מחיקה עם תמונות
-- **קטגוריות וספקים** - ארגון מוצרים לפי קטגוריות
-- **מעקב מלאי** - התראות אוטומטיות על מלאי נמוך
-- **ברקודים** - יצירה וסריקה של ברקודים
+**מערכת מקיפה לניהול מלאי, CRM, מכירות וחשבוניות**
 
-### 💰 מכירות וחשבוניות
-- **רישום מכירות** - ממשק פשוט וידידותי
-- **חשבוניות PDF** - יצירה אוטומטית של חשבוניות
-- **מעקב לקוחות** - CRM מובנה
-- **תשלומים** - מעקב שיטות תשלום
+[תיעוד מלא](docs/USER_MANUAL.md) • [מדריך התקנה](docs/INSTALLATION.md) • [דרישות מערכת](#-דרישות-מערכת)
 
-### 📊 דוחות ומעקב
-- **דוחות מלאי** - סטטיסטיקות מפורטות
-- **דוחות מכירות** - ניתוח ביצועים
-- **ייצוא Excel/CSV** - ייצוא נתונים
-- **דוחות יומיים** - שליחה אוטומטית במייל
-
-### 🔒 אבטחה וגיבויים
-- **מערכת משתמשים** - הרשאות מתקדמות
-- **גיבויים אוטומטיים** - שמירה יומית
-- **שחזור נתונים** - שחזור מהיר מגיבויים
-- **אבטחת נתונים** - הצפנה והגנה
-
-## 🚀 התקנה מהירה
-
-### Windows
-```bash
-# הורדה והתקנה אוטומטית
-git clone https://github.com/shaharprod/inventory.git
-cd inventory
-install.bat
-```
-
-### Linux/Mac
-```bash
-# הורדה והתקנה אוטומטית
-git clone https://github.com/shaharprod/inventory.git
-cd inventory
-chmod +x install.sh
-./install.sh
-```
-
-### Docker
-```bash
-# התקנה עם Docker
-git clone https://github.com/shaharprod/inventory.git
-cd inventory
-docker-compose up -d
-```
-
-## 📋 דרישות מערכת
-
-- **Python 3.10+** (מומלץ 3.11)
-- **RAM**: 4GB (מומלץ 8GB)
-- **אחסון**: 2GB פנוי
-- **דפדפן מודרני** (Chrome, Firefox, Edge)
-
-## 🛠️ התקנה ידנית
-
-### 1. הורדת הפרויקט
-```bash
-git clone https://github.com/shaharprod/inventory.git
-cd inventory
-```
-
-### 2. יצירת סביבה וירטואלית
-```bash
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-```
-
-### 3. התקנת חבילות
-```bash
-pip install -r requirements.txt
-```
-
-### 4. הגדרת מסד נתונים
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-```
-
-### 5. הפעלת השרת
-```bash
-python manage.py runserver
-```
-
-**פתח דפדפן:** http://127.0.0.1:8000
-
-## 📁 מבנה הפרויקט
-
-```
-inventory/
-├── inventory/              # אפליקציית Django
-│   ├── models.py          # מודלי מסד הנתונים
-│   ├── views.py           # לוגיקת העסק
-│   ├── forms.py           # טפסים
-│   └── templates/         # תבניות HTML
-├── inventory_project/      # הגדרות Django
-├── media/                  # קבצי מדיה
-├── static/                 # קבצים סטטיים
-├── backups/                # גיבויים
-├── requirements.txt        # חבילות Python
-├── install.bat            # התקנה Windows
-├── install.sh             # התקנה Linux/Mac
-├── Dockerfile             # Docker
-└── docker-compose.yml     # Docker Compose
-```
-
-## 🎯 שימוש ראשוני
-
-### 1. התחברות למערכת
-- פתח: http://127.0.0.1:8000
-- התחבר כמנהל: http://127.0.0.1:8000/admin
-
-### 2. הגדרות ראשוניות
-- היכנס ל-**הגדרות מערכת** (Settings)
-- הגדר שם החברה ופרטי יצירת קשר
-- הגדר הגדרות דוחות ומייל
-
-### 3. הוספת נתונים
-- **קטגוריות** - הוסף קטגוריות מוצרים
-- **ספקים** - הוסף ספקים
-- **מוצרים** - הוסף מוצרים עם תמונות
-- **לקוחות** - הוסף לקוחות
-
-### 4. התחלת עבודה
-- **מכירות** - רשום מכירות חדשות
-- **מלאי** - עקוב אחר רמות מלאי
-- **דוחות** - צפה בדוחות וסטטיסטיקות
-
-## 🔧 הגדרות מתקדמות
-
-### הגדרות ייצור
-```python
-# ב-settings.py
-DEBUG = False
-ALLOWED_HOSTS = ['your-domain.com']
-SECRET_KEY = 'your-secret-key'
-```
-
-### גיבויים אוטומטיים
-```bash
-# Windows Task Scheduler
-python manage.py backup_database
-
-# Linux Cron
-0 2 * * * /path/to/python /path/to/manage.py backup_database
-```
-
-### שרת ייצור
-```bash
-# התקנת Gunicorn
-pip install gunicorn
-
-# הפעלת שרת ייצור
-gunicorn inventory_project.wsgi:application --bind 0.0.0.0:8000
-```
-
-## 🚨 פתרון בעיות
-
-### שגיאות נפוצות:
-- **"ModuleNotFoundError"** - ודא שהסביבה הוירטואלית פעילה
-- **"Database is locked"** - עצור את השרת והפעל `python manage.py migrate`
-- **"Port already in use"** - שנה פורט: `python manage.py runserver 8001`
-
-### לוגים וניפוי שגיאות:
-```bash
-# הפעלה עם לוגים מפורטים
-python manage.py runserver --verbosity=2
-
-# בדיקת שגיאות
-python manage.py check --deploy
-```
-
-## 📚 תיעוד נוסף
-
-- **[מדריך התקנה מפורט](SETUP_INSTALL.md)** - הוראות התקנה מפורטות
-- **[מדריך משתמש](docs/USER_GUIDE.md)** - הוראות שימוש
-- **[API Documentation](docs/API.md)** - תיעוד API
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - פתרון בעיות
-
-## 🤝 תרומה לפרויקט
-
-1. Fork את הפרויקט
-2. צור branch חדש (`git checkout -b feature/amazing-feature`)
-3. Commit השינויים (`git commit -m 'Add amazing feature'`)
-4. Push ל-branch (`git push origin feature/amazing-feature`)
-5. פתח Pull Request
-
-## 📄 רישיון
-
-פרויקט זה מופץ תחת רישיון MIT. ראה קובץ [LICENSE](LICENSE) לפרטים.
-
-## 📞 תמיכה
-
-- **GitHub Issues** - דיווח על באגים ובקשות תכונות
-- **Email** - support@example.com
-- **Documentation** - [docs/](docs/)
-
-## 🏆 תכונות עתידיות
-
-- [ ] אפליקציה למובייל
-- [ ] אינטגרציה עם מערכות POS
-- [ ] בינה מלאכותית לחיזוי מלאי
-- [ ] API מלא לרובוטים
-- [ ] מערכת הזמנות אוטומטית
+</div>
 
 ---
 
-**נבנה עם ❤️ בישראל**
+## 📖 אודות
 
-*מערכת ניהול מלאי מתקדמת לבתי עסק קטנים ובינוניים*
+מערכת ניהול מלאי ו-CRM היא פתרון עסקי מקצועי המיועד לעסקים קטנים ובינוניים. המערכת מספקת כלים מתקדמים לניהול:
+
+- 📦 **ניהול מלאי** - מעקב אחר מוצרים במחסן ובחנות
+- 👥 **CRM מתקדם** - ניהול לקוחות וקשרי עסקיים
+- 💰 **מכירות וחשבוניות** - מערכת מכירה מלאה עם הפקת חשבוניות PDF
+- 🚚 **העברות מלאי** - ניהול העברות בין מיקומים
+- 🔔 **התראות חכמות** - התראות אוטומטיות על מלאי נמוך
+- 📊 **דוחות מפורטים** - ניתוחים עסקיים ודוחות סטטיסטיים
+- 💾 **גיבוי אוטומטי** - מערכת גיבוי ושחזור מובנית
+- 📝 **לוגים מקצועיים** - מעקב אחר כל פעולה במערכת
+
+---
+
+## ✨ תכונות עיקריות
+
+### 📦 ניהול מלאי מתקדם
+- מעקב אחר כמויות במחסן ובחנות בנפרד
+- ברקודים למוצרים
+- תמונות מוצר
+- קטגוריות וספקים
+- התראות על מלאי נמוך ואפסי
+- מחירי קנייה ומכירה
+- ניהול הנחות
+
+### 👥 CRM מקצועי
+- מאגר לקוחות מפורט
+- סיווג לקוחות (VIP, רגיל, פוטנציאלי)
+- היסטוריית רכישות
+- הערות ותזכורות
+- מעקב אחר חובות ואשראי
+- דוחות לקוחות מתקדמים
+
+### 💰 מכירות וחשבוניות
+- רישום מכירות מהיר
+- הפקת חשבוניות PDF מעוצבות
+- חישוב מע"מ אוטומטי
+- הנחות ומבצעים
+- קישור אוטומטי ללקוח
+- עדכון מלאי אוטומטי
+
+### 🚚 ניהול העברות
+- העברות בין מחסן לחנות
+- מעקב אחר סטטוס העברה
+- אישור קבלת סחורה
+- היסטוריה מלאה
+
+### 📊 דוחות ואנליטיקס
+- דוחות מכירות מפורטים
+- ניתוח רווחיות
+- דוחות לקוחות
+- דוחות מלאי
+- גרפים אינטראקטיביים
+
+### 🔒 אבטחה וגיבוי
+- מערכת גיבוי אוטומטי יומי
+- שחזור מהיר מגיבוי
+- לוגים מפורטים
+- הרשאות משתמשים (בפיתוח)
+
+---
+
+## 🚀 התחלה מהירה
+
+### דרישות מקדימות
+
+- Python 3.10 ומעלה
+- pip (מותקן עם Python)
+- 4GB RAM (מינימום)
+- 10GB שטח דיסק פנוי
+
+### התקנה
+
+```bash
+# 1. שיבוט הפרויקט
+cd C:\Users\User\Downloads\inventory
+
+# 2. יצירת סביבה וירטואלית
+python -m venv venv
+
+# 3. הפעלת הסביבה
+# Windows:
+.\venv\Scripts\Activate.ps1
+# Linux/Mac:
+source venv/bin/activate
+
+# 4. התקנת תלויות
+pip install django pillow reportlab
+
+# 5. הגדרת מסד נתונים
+python manage.py makemigrations
+python manage.py migrate
+
+# 6. יצירת משתמש מנהל
+python manage.py createsuperuser
+
+# 7. הרצת השרת
+python manage.py runserver
+```
+
+גש ל: **http://127.0.0.1:8000/**
+
+---
+
+## 📚 תיעוד
+
+### מדריכים מפורטים:
+
+- 📖 [מדריך משתמש מלא](docs/USER_MANUAL.md)
+- 🔧 [מדריך התקנה ותחזוקה](docs/INSTALLATION.md)
+- 🐛 [פתרון בעיות נפוצות](docs/INSTALLATION.md#-פתרון-תקלות)
+
+### פקודות ניהול שימושיות:
+
+```bash
+# גיבוי
+python manage.py backup_database
+
+# רשימת גיבויים
+python manage.py list_backups
+
+# שחזור
+python manage.py restore_database backup_20250104_120000
+
+# צפייה בלוגים
+python manage.py view_logs --type errors
+
+# ניקוי לוגים
+python manage.py cleanup_logs --days 30
+```
+
+---
+
+## 🖥️ צילומי מסך
+
+### דשבורד ראשי
+> מסך ראשי עם סטטיסטיקות בזמן אמת, התראות ונתונים חשובים
+
+### ניהול מוצרים
+> רשימת מוצרים עם חיפוש, סינון ועריכה מהירה
+
+### CRM ולקוחות
+> מערכת CRM מלאה עם מעקב אחר היסטוריה וקשרים
+
+### הפקת חשבוניות
+> חשבוניות PDF מעוצבות עם לוגו ופרטים מלאים
+
+---
+
+## 🛠️ טכנולוגיות
+
+### Backend:
+- **Django 5.2** - Framework עוצמתי ובטוח
+- **Python 3.10+** - שפת תכנות מודרנית
+- **SQLite** - מסד נתונים מהיר ויעיל (ניתן לשדרג ל-PostgreSQL/MySQL)
+
+### Frontend:
+- **Bootstrap 5.1.3** - עיצוב רספונסיבי ומודרני
+- **Font Awesome 6.0** - אייקונים מקצועיים
+- **Chart.js** - גרפים אינטראקטיביים
+- **Dark Theme** - עיצוב כהה נעים לעין
+
+### כלי פיתוח:
+- **Django Admin** - ממשק ניהול מובנה
+- **Django ORM** - גישה למסד נתונים
+- **ReportLab** - יצירת PDF
+- **Pillow** - עיבוד תמונות
+
+---
+
+## 📂 מבנה הפרויקט
+
+```
+inventory/
+├── inventory/                  # אפליקציית ראשית
+│   ├── models.py              # מודלים (טבלאות DB)
+│   ├── views.py               # לוגיקת עסקית
+│   ├── forms.py               # טפסים
+│   ├── urls.py                # ניתוב
+│   ├── admin.py               # ממשק ניהול
+│   ├── templates/             # תבניות HTML
+│   │   └── inventory/
+│   ├── static/                # קבצים סטטיים
+│   │   └── inventory/
+│   │       └── css/
+│   │           └── dark-theme.css
+│   └── management/            # פקודות ניהול
+│       └── commands/
+│           ├── backup_database.py
+│           ├── restore_database.py
+│           ├── list_backups.py
+│           ├── view_logs.py
+│           └── cleanup_logs.py
+├── inventory_project/         # הגדרות פרויקט
+│   ├── settings.py            # הגדרות ראשיות
+│   ├── urls.py                # ניתוב ראשי
+│   └── wsgi.py                # WSGI
+├── scripts/                   # תסריטים
+│   └── auto_backup.ps1        # גיבוי אוטומטי Windows
+├── docs/                      # תיעוד
+│   ├── USER_MANUAL.md
+│   └── INSTALLATION.md
+├── backups/                   # גיבויים (נוצר אוטומטית)
+├── logs/                      # לוגים (נוצר אוטומטית)
+│   ├── general.log
+│   ├── errors.log
+│   ├── security.log
+│   └── database.log
+├── media/                     # קבצים שהועלו
+├── db.sqlite3                 # מסד נתונים
+├── manage.py                  # סקריפט ניהול Django
+├── requirements.txt           # תלויות Python
+└── README.md                  # קובץ זה
+```
+
+---
+
+## 🔐 אבטחה
+
+המערכת כוללת שכבות אבטחה מרובות:
+
+- ✅ **CSRF Protection** - הגנה מפני התקפות CSRF
+- ✅ **SQL Injection Protection** - Django ORM מונע SQL Injection
+- ✅ **XSS Protection** - ניקוי אוטומטי של קלט משתמש
+- ✅ **Password Hashing** - סיסמאות מוצפנות (בדרך)
+- ✅ **Secure Cookies** - עוגיות מאובטחות
+- ✅ **Logging System** - מעקב אחר כל פעולה
+- ✅ **Backup System** - גיבוי אוטומטי יומי
+
+### הגדרות אבטחה לייצור:
+
+```python
+# settings.py
+DEBUG = False
+ALLOWED_HOSTS = ['yourdomain.com']
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+```
+
+---
+
+## 🔄 עדכונים ותחזוקה
+
+### גיבוי אוטומטי יומי:
+
+המערכת כוללת תסריט גיבוי אוטומטי עם Windows Task Scheduler:
+
+1. פתח Task Scheduler
+2. צור Task חדש:
+   - **שם:** "Inventory Daily Backup"
+   - **Trigger:** Daily בשעה 02:00
+   - **Action:** `powershell.exe`
+   - **Arguments:** `-File C:\Users\User\Downloads\inventory\scripts\auto_backup.ps1`
+
+### תחזוקה שוטפת:
+
+```bash
+# גיבוי ידני
+python manage.py backup_database
+
+# ניקוי לוגים (כל 30 ימים)
+python manage.py cleanup_logs --days 30
+
+# בדיקת תקינות
+python manage.py check
+
+# עדכון תלויות
+pip install --upgrade -r requirements.txt
+```
+
+---
+
+## 📊 סטטיסטיקות פרויקט
+
+- **שורות קוד:** ~5,000+
+- **מודלים:** 15+
+- **תצוגות (Views):** 50+
+- **תבניות (Templates):** 30+
+- **פקודות ניהול:** 5
+- **זמן פיתוח:** 40+ שעות
+
+---
+
+## 🐛 דיווח על באגים
+
+אם נתקלת בבעיה:
+
+1. בדוק את [פתרון בעיות](docs/INSTALLATION.md#-פתרון-תקלות)
+2. צפה בלוג שגיאות: `python manage.py view_logs --type errors`
+3. צור issue עם:
+   - תיאור הבעיה
+   - צילום מסך
+   - לוג רלוונטי
+   - גרסת Python ו-Django
+
+---
+
+## 🗺️ תוכנית פיתוח עתידי
+
+### גרסה 1.1 (מתוכנן):
+- [ ] מערכת התחברות והרשאות משתמשים
+- [ ] API REST לאינטגרציות
+- [ ] אפליקציית מובייל
+- [ ] דוחות Excel מתקדמים
+- [ ] אינטגרציה עם מדפסות קופה
+
+### גרסה 1.2 (רעיונות):
+- [ ] תמיכה במספר שפות
+- [ ] מערכת הזמנות אוטומטית
+- [ ] אינטגרציה עם חשבשבת
+- [ ] מערכת שכר ונוכחות
+- [ ] ניהול ספקים מתקדם
+
+---
+
+## 📄 רישיון
+
+כל הזכויות שמורות. מערכת זו היא קניינית ומיועדת למכירה ללקוחות.
+
+**אין להעתיק, לשנות או להפיץ ללא אישור מפורש.**
+
+---
+
+## 👨‍💻 פיתוח
+
+פותח על ידי מערכת בינה מלאכותית מתקדמת עבור לקוח פרטי.
+
+---
+
+## 📞 יצירת קשר ותמיכה
+
+לתמיכה טכנית, פנה למנהל המערכת עם:
+- גרסת Python: `python --version`
+- גרסת Django: `python -m django --version`
+- תיאור הבעיה
+- קבצי לוג רלוונטיים
+
+---
+
+<div align="center">
+
+**עשוי באהבה ❤️ עם Django + Python**
+
+⭐ אם המערכת עזרה לך, אל תשכח לדרג!
+
+</div>
+

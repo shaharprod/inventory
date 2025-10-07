@@ -21,7 +21,7 @@ openpyxl==3.1.2
 xlsxwriter==3.2.0
 
 # אימייל
-django-email-backends==0.1.0
+# django-email-backends==0.1.0  # חבילה לא קיימת
 
 # אבטחה
 django-cors-headers==4.3.1

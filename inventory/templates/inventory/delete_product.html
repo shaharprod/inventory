@@ -7,24 +7,24 @@
     <div class="col-md-8 offset-md-2">
         <div class="card border-danger">
             <div class="card-header bg-danger text-white">
-                <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>אישור מחיקת מוצר</h4>
+                <h4 class="mb-0">אישור מחיקת מוצר</h4>
             </div>
             <div class="card-body">
                 {% if not can_delete %}
                 <div class="alert alert-danger">
-                    <h5><i class="fas fa-exclamation-triangle me-2"></i>לא ניתן למחוק מוצר זה!</h5>
-                    <p class="mb-0">למוצר זה יש <strong>{{ sales_count }}</strong> מכירות קשורות. לא ניתן למחוק מוצר עם מכירות.</p>
-                    <p class="mb-0 mt-2"><strong>המלצה:</strong> שנה את סטטוס המוצר ל"הופסק" במקום למחוק אותו.</p>
+                    <h5>לא ניתן למחוק מוצר זה!</h5>
+                    <p>למוצר זה יש {{ sales_count }} מכירות קשורות. לא ניתן למחוק מוצר עם מכירות.</p>
+                    <p><strong>המלצה:</strong> שנה את סטטוס המוצר ל"הופסק" במקום למחוק אותו.</p>
                 </div>
                 {% else %}
                 <div class="alert alert-warning">
-                    <h5><i class="fas fa-info-circle me-2"></i>שים לב!</h5>
-                    <p class="mb-0">פעולה זו תמחק את המוצר לצמיתות ולא ניתן יהיה לשחזר אותו.</p>
+                    <h5>שים לב!</h5>
+                    <p>פעולה זו תמחק את המוצר לצמיתות ולא ניתן יהיה לשחזר אותו.</p>
                     {% if movements_count > 0 %}
-                    <p class="mb-0 mt-2">למוצר זה יש {{ movements_count }} תנועות מלאי שיימחקו גם כן.</p>
+                    <p>למוצר זה יש {{ movements_count }} תנועות מלאי שיימחקו גם כן.</p>
                     {% endif %}
                     {% if location_stocks > 0 %}
-                    <p class="mb-0">למוצר זה יש מלאי ב-{{ location_stocks }} מיקומים שיימחק גם כן.</p>
+                    <p>למוצר זה יש מלאי ב-{{ location_stocks }} מיקומים שיימחק גם כן.</p>
                     {% endif %}
                 </div>
                 {% endif %}
@@ -49,7 +49,7 @@
                     </tr>
                     <tr>
                         <th>מחיר מכירה:</th>
-                        <td>₪{{ product.selling_price|default:product.price|floatformat:2 }}</td>
+                        <td>₪{{ product.selling_price|default:0|floatformat:2 }}</td>
                     </tr>
                 </table>
 
@@ -58,20 +58,20 @@
                     {% csrf_token %}
                     <div class="d-flex gap-2 justify-content-end">
                         <a href="{% url 'product_detail' product.pk %}" class="btn btn-secondary btn-lg">
-                            <i class="fas fa-arrow-right me-2"></i>ביטול
+                            ביטול
                         </a>
                         <button type="submit" class="btn btn-danger btn-lg">
-                            <i class="fas fa-trash me-2"></i>אישור מחיקה
+                            אישור מחיקה
                         </button>
                     </div>
                 </form>
                 {% else %}
                 <div class="mt-4 text-center">
                     <a href="{% url 'edit_product' product.pk %}" class="btn btn-warning btn-lg me-2">
-                        <i class="fas fa-edit me-2"></i>עריכת המוצר
+                        עריכת המוצר
                     </a>
                     <a href="{% url 'product_detail' product.pk %}" class="btn btn-secondary btn-lg">
-                        <i class="fas fa-arrow-right me-2"></i>חזור
+                        חזור
                     </a>
                 </div>
                 {% endif %}

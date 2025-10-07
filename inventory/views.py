@@ -2143,15 +2143,19 @@ def backup_data(request):
             # חיפוש הגיבוי האחרון שנוצר
             backup_dir = os.path.join(settings.BASE_DIR, 'backups')
             if os.path.exists(backup_dir):
-                backups = sorted(
-                    [f for f in os.listdir(backup_dir) if f.endswith('.zip')],
-                    key=lambda x: os.path.getmtime(os.path.join(backup_dir, x)),
-                    reverse=True
-                )
-                if backups:
+                # חיפוש תיקיות גיבוי (מתחילות ב-backup_)
+                backup_dirs = []
+                for item in os.listdir(backup_dir):
+                    item_path = os.path.join(backup_dir, item)
+                    if os.path.isdir(item_path) and item.startswith('backup_'):
+                        backup_dirs.append(item)
+
+                if backup_dirs:
+                    # מיון לפי שם (החדש ביותר ראשון)
+                    backup_dirs.sort(reverse=True)
                     return JsonResponse({
                         'success': True,
-                        'backup_file': backups[0],
+                        'backup_file': backup_dirs[0],
                         'message': 'הגיבוי נוצר בהצלחה!'
                     })
             return JsonResponse({
@@ -2177,18 +2181,49 @@ def list_backups(request):
             return JsonResponse({'backups': []})
 
         backups = []
-        for filename in os.listdir(backup_dir):
-            if filename.endswith('.zip'):
-                file_path = os.path.join(backup_dir, filename)
-                file_stats = os.stat(file_path)
+        for item_name in os.listdir(backup_dir):
+            item_path = os.path.join(backup_dir, item_name)
+
+            # בדיקה אם זה תיקיית גיבוי (מתחילה ב-backup_)
+            if os.path.isdir(item_path) and item_name.startswith('backup_'):
+                # חישוב גודל התיקייה
+                total_size = 0
+                for root, dirs, files in os.walk(item_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        total_size += os.path.getsize(file_path)
+
+                # חילוץ תאריך מהשם
+                try:
+                    # פורמט: backup_YYYYMMDD_HHMMSS
+                    date_part = item_name.replace('backup_', '')
+                    if len(date_part) == 15:  # YYYYMMDD_HHMMSS
+                        year = date_part[:4]
+                        month = date_part[4:6]
+                        day = date_part[6:8]
+                        hour = date_part[9:11]
+                        minute = date_part[11:13]
+                        second = date_part[13:15]
+
+                        # יצירת תאריך קריא
+                        readable_date = f"{day}/{month}/{year} {hour}:{minute}:{second}"
+                    else:
+                        # אם הפורמט לא נכון, השתמש בתאריך הקובץ
+                        file_stats = os.stat(item_path)
+                        readable_date = datetime.fromtimestamp(file_stats.st_mtime).strftime('%d/%m/%Y %H:%M')
+                except:
+                    # אם יש בעיה בחילוץ התאריך, השתמש בתאריך הקובץ
+                    file_stats = os.stat(item_path)
+                    readable_date = datetime.fromtimestamp(file_stats.st_mtime).strftime('%d/%m/%Y %H:%M')
+
                 backups.append({
-                    'name': filename,
-                    'size': f"{file_stats.st_size / 1024:.1f} KB",
-                    'date': datetime.fromtimestamp(file_stats.st_mtime).strftime('%d/%m/%Y %H:%M')
+                    'name': item_name,
+                    'size': f"{total_size / 1024:.1f} KB",
+                    'date': readable_date
                 })
 
         # מיון לפי תאריך (החדש ביותר ראשון)
-        backups.sort(key=lambda x: x['date'], reverse=True)
+        backups.sort(key=lambda x: x['name'], reverse=True)
 
         return JsonResponse({'backups': backups})
     except Exception as e:

@@ -296,8 +296,8 @@
                         {% for product in products %}
                             <div class="product-item">
                                 <!-- תמונה -->
-                                {% if product.image %}
-                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                                {% if product.product_image %}
+                                    <img src="{{ product.product_image.url }}" alt="{{ product.name }}" class="product-image">
                                 {% else %}
                                     <div class="product-image d-flex align-items-center justify-content-center" style="background: var(--bg-tertiary);">
                                         <i class="fas fa-box fa-2x text-muted"></i>

@@ -2474,7 +2474,7 @@ def send_instant_report(request):
             <body>
                 <div class="container">
                     <div class="instant">
-                        <strong>⚡ דוח מיידי</strong> - נשלח לבקשתך ב-{timezone.now().strftime('%H:%M')}
+                        <strong>⚡ דוח מיידי</strong> - נשלח לבקשתך ב-{timezone.localtime().strftime('%H:%M')}
                     </div>
 
                     <h1>📊 דוח יומי - מערכת ניהול מלאי</h1>
@@ -2828,7 +2828,7 @@ def send_instant_report(request):
             # שליחת המייל
             from django.core.mail import EmailMessage
             email = EmailMessage(
-                subject=f'⚡ דוח מיידי - {today.strftime("%d/%m/%Y")} {timezone.now().strftime("%H:%M")}',
+                subject=f'⚡ דוח מיידי - {today.strftime("%d/%m/%Y")} {timezone.localtime().strftime("%H:%M")}',
                 body=html_content,
                 from_email=settings_obj.default_from_email or settings_obj.email_host_user,
                 to=[settings_obj.daily_report_email],

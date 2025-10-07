@@ -79,6 +79,9 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.email_host_password.id_for_label }}" class="form-label">
                                 {{ form.email_host_password.label }}
+                                <a href="https://myaccount.google.com/apppasswords" target="_blank" class="btn btn-sm btn-outline-info ms-2" title="הגדרת App Password">
+                                    <i class="fas fa-external-link-alt me-1"></i>הגדר App Password
+                                </a>
                             </label>
                             {{ form.email_host_password }}
                             <small class="text-muted d-block">App Password (16 תווים ללא רווחים)</small>
@@ -314,6 +317,59 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         return cookieValue;
+    }
+
+    // טיפול אוטומטי בסיסמת App Password
+    const passwordField = document.getElementById('{{ form.email_host_password.id_for_label }}');
+    if (passwordField) {
+        passwordField.addEventListener('paste', function(e) {
+            // המתן קצת ואז נקה את השדה
+            setTimeout(() => {
+                let password = this.value;
+                // הסר כל הרווחים
+                password = password.replace(/\s/g, '');
+                // קח רק 16 תווים ראשונים
+                password = password.substring(0, 16);
+                // עדכן את השדה
+                this.value = password;
+
+                // הצג הודעה אם הסיסמה נוקתה
+                if (password.length < 16 && this.value.length > 16) {
+                    showNotification('הסיסמה קוצרה ל-16 תווים', 'info');
+                }
+            }, 100);
+        });
+
+        // טיפול גם בהקלדה
+        passwordField.addEventListener('input', function() {
+            let password = this.value;
+            // הסר רווחים
+            password = password.replace(/\s/g, '');
+            // הגבל ל-16 תווים
+            if (password.length > 16) {
+                password = password.substring(0, 16);
+            }
+            this.value = password;
+        });
+    }
+
+    // פונקציה להצגת הודעות
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(notification);
+
+        // הסר אוטומטית אחרי 3 שניות
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
     }
 });
 </script>

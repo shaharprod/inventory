@@ -1,7 +1,7 @@
-# Dockerfile for GitHub + Google Cloud deployment
+# Dockerfile מותאם ל-Google App Engine
 FROM python:3.10-slim
 
-# Install system dependencies
+# התקנת תלויות מערכת
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
@@ -12,45 +12,39 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfreetype6-dev \
     libffi-dev \
     sqlite3 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create user
+# יצירת משתמש
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app && \
+    mkdir -p /app /app/media /app/logs /app/backups && \
     chown -R appuser:appuser /app
 
-# Set working directory
+# הגדרת תיקיית עבודה
 WORKDIR /app
 
-# Copy requirements
+# העתקת requirements
 COPY --chown=appuser:appuser requirements.txt .
 
-# Install Python packages
+# התקנת Python packages
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy code
+# העתקת קוד
 COPY --chown=appuser:appuser . .
 
-# Create directories
-RUN mkdir -p media logs backups static staticfiles && \
+# יצירת תיקיות
+RUN mkdir -p media/products media/barcodes logs backups static staticfiles && \
     chown -R appuser:appuser media logs backups static staticfiles
 
-# Switch to user
+# החלפה למשתמש
 USER appuser
 
-# Set Django settings
-ENV DJANGO_SETTINGS_MODULE=inventory_project.settings_appengine
+# הפעלת מיגרציות וקבצים סטטיים
+RUN python manage.py collectstatic --noinput
 
-# Run migrations and collect static
-RUN python manage.py migrate --noinput && \
-    python manage.py collectstatic --noinput
-
-# Create superuser
-RUN echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'admin@example.com', 'admin123')" | python manage.py shell
-
-# Expose port
+# חשיפת פורט
 EXPOSE 8080
 
-# Start server
+# הפעלת השרת
 CMD ["gunicorn", "inventory_project.wsgi:application", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120"]

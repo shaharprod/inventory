@@ -1,0 +1,23 @@
+runtime: custom
+env: flex
+service: default
+
+# Environment variables
+env_variables:
+  DEBUG: "False"
+  ALLOWED_HOSTS: "my-claude-drive.appspot.com,localhost"
+  SECRET_KEY: "django-insecure-fix-this-in-production"
+
+# Resources - minimal for GitHub deployment
+resources:
+  cpu: 1
+  memory_gb: 1
+  disk_size_gb: 10
+
+# Scaling - simple
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 3
+  cool_down_period_sec: 60
+  cpu_utilization:
+    target_utilization: 0.6

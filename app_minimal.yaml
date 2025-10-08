@@ -1,0 +1,19 @@
+runtime: custom
+env: flex
+service: default
+
+# Minimal environment variables
+env_variables:
+  DEBUG: "False"
+  ALLOWED_HOSTS: "*"
+  SECRET_KEY: "django-insecure-fix-this-in-production"
+
+# Ultra minimal resources
+resources:
+  cpu: 0.5
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+# No scaling - just 1 instance
+manual_scaling:
+  instances: 1

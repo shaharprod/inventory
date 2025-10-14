@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הדפסת מדבקות ברקוד</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5cm;
+            page-break-inside: avoid;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+
+        .print-container {
+            width: 100%;
+            max-width: 21cm;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .stickers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 2mm;
+            width: 100%;
+            height: 28cm;
+            padding: 5mm;
+            box-sizing: border-box;
+            page-break-inside: avoid;
+        }
+
+        .sticker {
+            border: 1px dashed #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1mm;
+            box-sizing: border-box;
+            position: relative;
+            background: white;
+        }
+
+        .sticker::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid #000;
+            pointer-events: none;
+        }
+
+        .barcode-image {
+            max-width: 100%;
+            max-height: 50%;
+            object-fit: contain;
+            margin-bottom: 1mm;
+        }
+
+        .barcode-text {
+            font-size: 6px;
+            font-weight: bold;
+            text-align: center;
+            word-break: break-all;
+            line-height: 1.1;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-container {
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .stickers-grid {
+                page-break-inside: avoid;
+                height: 28cm;
+                max-height: 28cm;
+            }
+
+            .sticker {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+
+        .print-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .print-controls button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .print-controls button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-controls no-print">
+        <button onclick="window.print()">🖨️ הדפס</button>
+        <button onclick="window.close()">❌ סגור</button>
+    </div>
+
+    <div class="print-container">
+        <div class="stickers-grid">
+            {% for i in "x"|ljust:30 %}
+            <div class="sticker">
+                <img src="{{ barcode_data }}" alt="Barcode" class="barcode-image">
+                <div class="barcode-text">{{ barcode_text }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // הדפסה אוטומטית כשהדף נטען
+        window.onload = function() {
+            // וידוא שהכל נכנס לדף אחד
+            const grid = document.querySelector('.stickers-grid');
+            if (grid) {
+                grid.style.height = '28cm';
+                grid.style.maxHeight = '28cm';
+            }
+
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+
+        // סגירת החלון אחרי הדפסה
+        window.onafterprint = function() {
+            setTimeout(function() {
+                window.close();
+            }, 1000);
+        };
+
+        // מניעת הדפסה על יותר מדף אחד
+        window.addEventListener('beforeprint', function() {
+            const grid = document.querySelector('.stickers-grid');
+            if (grid) {
+                grid.style.height = '28cm';
+                grid.style.maxHeight = '28cm';
+                grid.style.pageBreakInside = 'avoid';
+            }
+        });
+    </script>
+</body>
+</html>

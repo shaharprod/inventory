@@ -34,6 +34,7 @@ urlpatterns = [
 
     # API
     path('generate-barcode/', views.generate_barcode, name='generate_barcode'),
+    path('print-stickers/', views.print_stickers, name='print_stickers'),
 
     # ייצוא דוחות
     path('export/products-csv/', views.export_products_csv, name='export_products_csv'),

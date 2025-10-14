@@ -2879,3 +2879,61 @@ def send_instant_report(request):
             })
 
     return JsonResponse({'success': False, 'error': 'Method not allowed'})
+
+
+def generate_barcode(request):
+    """יצירת ברקוד אוטומטי"""
+    if request.method == 'POST':
+        barcode_text = request.POST.get('barcode_text', '').strip()
+
+        # בדיקת תקינות הקלט
+        if not barcode_text:
+            return JsonResponse({'success': False, 'error': 'אנא הכנס קוד ברקוד'})
+
+        # בדיקה שהקוד מכיל רק ספרות
+        if not barcode_text.isdigit():
+            return JsonResponse({'success': False, 'error': 'הקוד חייב להכיל רק ספרות'})
+
+        # בדיקה שאורך הקוד הוא 13 ספרות
+        if len(barcode_text) != 13:
+            return JsonResponse({'success': False, 'error': 'הקוד חייב להיות בדיוק 13 ספרות'})
+
+        try:
+            # יצירת ברקוד Code128 (ללא checksum אוטומטי)
+            code = barcode.get('code128', barcode_text, writer=ImageWriter())
+
+            # שמירת הברקוד כ-bytes
+            buffer = BytesIO()
+            code.write(buffer)
+            buffer.seek(0)
+
+            # המרה ל-base64
+            barcode_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            barcode_data_url = f"data:image/png;base64,{barcode_data}"
+
+            return JsonResponse({
+                'success': True,
+                'barcode_data': barcode_data_url,
+                'barcode_text': barcode_text  # החזרת הקוד המקורי
+            })
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'שגיאה ביצירת הברקוד: {str(e)}'})
+
+    return JsonResponse({'success': False, 'error': 'Method not allowed'})
+
+
+def print_stickers(request):
+    """הדפסת מדבקות ברקוד"""
+    barcode_text = request.GET.get('barcode_text', '')
+    barcode_data = request.GET.get('barcode_data', '')
+
+    if not barcode_text or not barcode_data:
+        return render(request, 'inventory/error.html', {
+            'error_message': 'חסרים נתונים להדפסת המדבקות'
+        })
+
+    return render(request, 'inventory/print_stickers.html', {
+        'barcode_text': barcode_text,
+        'barcode_data': barcode_data
+    })

@@ -5,19 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מערכת ניהול מלאי</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -26,24 +20,14 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
-        
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
-        
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1em; }
         .nav {
             background: #2d3748;
             padding: 15px;
@@ -51,7 +35,6 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        
         .nav button {
             background: #4a5568;
             color: white;
@@ -62,36 +45,17 @@
             font-size: 16px;
             transition: all 0.3s;
         }
-        
-        .nav button:hover {
-            background: #667eea;
-            transform: translateY(-2px);
-        }
-        
-        .nav button.active {
-            background: #667eea;
-        }
-        
-        .content {
-            padding: 30px;
-            min-height: 500px;
-        }
-        
-        .section {
-            display: none;
-        }
-        
-        .section.active {
-            display: block;
-        }
-        
+        .nav button:hover { background: #667eea; transform: translateY(-2px); }
+        .nav button.active { background: #667eea; }
+        .content { padding: 30px; min-height: 500px; }
+        .section { display: none; }
+        .section.active { display: block; }
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-        
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -99,49 +63,41 @@
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        
         .stat-card h3 {
             font-size: 0.9em;
             opacity: 0.9;
             margin-bottom: 10px;
         }
-        
         .stat-card .value {
             font-size: 2em;
             font-weight: bold;
         }
-        
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
         }
-        
-        .product-card {
+        .product-card, .customer-card, .sale-card, .supplier-card {
             background: #f7fafc;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
             padding: 20px;
             transition: all 0.3s;
         }
-        
-        .product-card:hover {
+        .product-card:hover, .customer-card:hover, .sale-card:hover, .supplier-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-        
-        .product-card h3 {
+        .product-card h3, .customer-card h3, .sale-card h3, .supplier-card h3 {
             color: #2d3748;
             margin-bottom: 10px;
         }
-        
-        .product-card .info {
+        .product-card .info, .customer-card .info, .sale-card .info, .supplier-card .info {
             display: flex;
             justify-content: space-between;
             margin: 8px 0;
             color: #4a5568;
         }
-        
         .btn {
             background: #667eea;
             color: white;
@@ -152,31 +108,19 @@
             margin: 5px;
             transition: all 0.3s;
         }
-        
         .btn:hover {
             background: #764ba2;
             transform: scale(1.05);
         }
-        
-        .btn-danger {
-            background: #e53e3e;
-        }
-        
-        .btn-danger:hover {
-            background: #c53030;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
+        .btn-danger { background: #e53e3e; }
+        .btn-danger:hover { background: #c53030; }
+        .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
             margin-bottom: 5px;
             color: #2d3748;
             font-weight: 600;
         }
-        
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -186,13 +130,41 @@
             border-radius: 8px;
             font-size: 16px;
         }
-        
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .close { color: #aaa; float: left; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        .report-card {
+            background: #fff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -202,7 +174,7 @@
             <h1>📦 מערכת ניהול מלאי</h1>
             <p>מערכת מלאה לניהול מלאי, CRM ומכירות</p>
         </div>
-        
+
         <div class="nav">
             <button class="active" onclick="showSection('dashboard')">🏠 דאשבורד</button>
             <button onclick="showSection('products')">📦 מוצרים</button>
@@ -212,31 +184,19 @@
             <button onclick="showSection('suppliers')">🏭 ספקים</button>
             <button onclick="showSection('reports')">📊 דוחות</button>
         </div>
-        
+
         <div class="content">
             <div id="dashboard" class="section active">
                 <h2>דאשבורד</h2>
                 <div class="stats">
-                    <div class="stat-card">
-                        <h3>סה"כ מוצרים</h3>
-                        <div class="value" id="total-products">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>סה"כ ערך מלאי</h3>
-                        <div class="value" id="total-value">₪0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>סה"כ לקוחות</h3>
-                        <div class="value" id="total-customers">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>סה"כ מכירות היום</h3>
-                        <div class="value" id="today-sales">₪0</div>
-                    </div>
+                    <div class="stat-card"><h3>סה"כ מוצרים</h3><div class="value" id="total-products">0</div></div>
+                    <div class="stat-card"><h3>סה"כ ערך מלאי</h3><div class="value" id="total-value">₪0</div></div>
+                    <div class="stat-card"><h3>סה"כ לקוחות</h3><div class="value" id="total-customers">0</div></div>
+                    <div class="stat-card"><h3>סה"כ מכירות היום</h3><div class="value" id="today-sales">₪0</div></div>
                 </div>
                 <div id="products-preview" class="product-grid"></div>
             </div>
-            
+
             <div id="products" class="section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>מוצרים</h2>
@@ -244,86 +204,110 @@
                 </div>
                 <div class="product-grid" id="products-list"></div>
             </div>
-            
+
             <div id="categories" class="section">
                 <h2>קטגוריות</h2>
                 <div id="categories-list"></div>
             </div>
-            
+
             <div id="customers" class="section">
-                <h2>לקוחות</h2>
-                <div id="customers-list"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>לקוחות</h2>
+                    <button class="btn" onclick="showAddCustomerForm()">+ הוסף לקוח חדש</button>
+                </div>
+                <div class="product-grid" id="customers-list"></div>
             </div>
-            
+
             <div id="sales" class="section">
-                <h2>מכירות</h2>
-                <div id="sales-list"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>מכירות</h2>
+                    <button class="btn" onclick="showAddSaleForm()">+ הוסף מכירה</button>
+                </div>
+                <div class="product-grid" id="sales-list"></div>
             </div>
-            
+
             <div id="suppliers" class="section">
                 <h2>ספקים</h2>
-                <div id="suppliers-list"></div>
+                <div class="product-grid" id="suppliers-list"></div>
             </div>
-            
+
             <div id="reports" class="section">
                 <h2>דוחות</h2>
                 <div id="reports-content"></div>
             </div>
         </div>
     </div>
-    
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">הוסף מוצר</h2>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <div class="form-group"><label>שם מוצר:</label><input type="text" id="product-name" required></div>
+                <div class="form-group"><label>SKU:</label><input type="text" id="product-sku" required></div>
+                <div class="form-group"><label>קטגוריה:</label><select id="product-category"></select></div>
+                <div class="form-group"><label>כמות:</label><input type="number" id="product-quantity" required></div>
+                <div class="form-group"><label>מחיר מכירה:</label><input type="number" step="0.01" id="product-selling" required></div>
+                <div class="form-group"><label>מחיר עלות:</label><input type="number" step="0.01" id="product-cost" required></div>
+                <button type="submit" class="btn">שמור</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>הוסף לקוח</h2>
+            <form id="customer-form">
+                <input type="hidden" id="customer-id">
+                <div class="form-group"><label>שם לקוח:</label><input type="text" id="customer-name" required></div>
+                <div class="form-group"><label>טלפון:</label><input type="tel" id="customer-phone" required></div>
+                <div class="form-group"><label>אימייל:</label><input type="email" id="customer-email"></div>
+                <div class="form-group"><label>כתובת:</label><input type="text" id="customer-address"></div>
+                <button type="submit" class="btn">שמור</button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Load data from JSON file
-        let appData = {
-            products: [],
-            categories: [],
-            customers: [],
-            sales: [],
-            suppliers: [],
-            locations: []
-        };
-        
-        // Load data on page load
+        let appData = { products: [], categories: [], customers: [], sales: [], suppliers: [], locations: [] };
+        let editingProductId = null;
+        let editingCustomerId = null;
+
         async function loadData() {
             try {
                 const response = await fetch('data.json');
                 const data = await response.json();
-                
-                // Parse Django data format
                 data.forEach(item => {
-                    if (item.model === 'inventory.product') {
-                        appData.products.push(item);
-                    } else if (item.model === 'inventory.category') {
-                        appData.categories.push(item);
-                    } else if (item.model === 'inventory.customer') {
-                        appData.customers.push(item);
-                    } else if (item.model === 'inventory.sale') {
-                        appData.sales.push(item);
-                    } else if (item.model === 'inventory.supplier') {
-                        appData.suppliers.push(item);
-                    } else if (item.model === 'inventory.location') {
-                        appData.locations.push(item);
-                    }
+                    if (item.model === 'inventory.product') appData.products.push(item);
+                    else if (item.model === 'inventory.category') appData.categories.push(item);
+                    else if (item.model === 'inventory.customer') appData.customers.push(item);
+                    else if (item.model === 'inventory.sale') appData.sales.push(item);
+                    else if (item.model === 'inventory.supplier') appData.suppliers.push(item);
+                    else if (item.model === 'inventory.location') appData.locations.push(item);
                 });
-                
                 updateDashboard();
                 renderProducts();
+                renderCustomers();
+                renderSales();
+                renderSuppliers();
+                renderCategories();
             } catch (error) {
                 console.error('Error loading data:', error);
             }
         }
-        
+
         function updateDashboard() {
             document.getElementById('total-products').textContent = appData.products.length;
-            
             let totalValue = 0;
             appData.products.forEach(p => {
                 totalValue += parseFloat(p.fields.selling_price || 0) * parseInt(p.fields.quantity || 0);
             });
             document.getElementById('total-value').textContent = '₪' + totalValue.toFixed(0);
-            
             document.getElementById('total-customers').textContent = appData.customers.length;
-            
             let todaySales = 0;
             const today = new Date().toISOString().split('T')[0];
             appData.sales.forEach(s => {
@@ -332,26 +316,20 @@
                 }
             });
             document.getElementById('today-sales').textContent = '₪' + todaySales.toFixed(0);
-            
-            // Show 6 recent products
             const preview = document.getElementById('products-preview');
             preview.innerHTML = '';
             appData.products.slice(0, 6).forEach(p => {
-                const card = createProductCard(p);
-                preview.appendChild(card);
+                preview.appendChild(createProductCard(p));
             });
         }
-        
+
+        // Products CRUD
         function renderProducts() {
             const container = document.getElementById('products-list');
             container.innerHTML = '';
-            
-            appData.products.forEach(product => {
-                const card = createProductCard(product);
-                container.appendChild(card);
-            });
+            appData.products.forEach(product => container.appendChild(createProductCard(product)));
         }
-        
+
         function createProductCard(product) {
             const card = document.createElement('div');
             card.className = 'product-card';
@@ -366,26 +344,59 @@
             `;
             return card;
         }
-        
-        function showSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-            
-            // Show selected section
-            document.getElementById(section).classList.add('active');
-            event.target.classList.add('active');
-            
-            // Load section specific data
-            if (section === 'products') {
-                renderProducts();
+
+        function showAddProductForm() {
+            document.getElementById('modal-title').textContent = 'הוסף מוצר';
+            document.getElementById('product-id').value = '';
+            document.getElementById('product-form').reset();
+            document.getElementById('product-category').innerHTML = '<option value="">בחר קטגוריה</option>' +
+                appData.categories.map(c => `<option value="${c.pk}">${c.fields.name}</option>`).join('');
+            editingProductId = null;
+            document.getElementById('productModal').style.display = 'block';
+        }
+
+        document.getElementById('product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const product = {
+                pk: editingProductId || appData.products.length + 1,
+                fields: {
+                    name: document.getElementById('product-name').value,
+                    sku: document.getElementById('product-sku').value,
+                    category: parseInt(document.getElementById('product-category').value),
+                    quantity: parseInt(document.getElementById('product-quantity').value),
+                    selling_price: parseFloat(document.getElementById('product-selling').value).toFixed(2),
+                    cost_price: parseFloat(document.getElementById('product-cost').value).toFixed(2),
+                    status: 'active'
+                }
+            };
+            if (editingProductId) {
+                const index = appData.products.findIndex(p => p.pk === editingProductId);
+                appData.products[index] = product;
+            } else {
+                appData.products.push(product);
             }
-        }
-        
+            renderProducts();
+            updateDashboard();
+            closeModal();
+        });
+
         function editProduct(id) {
-            alert('עריכת מוצר: ' + id);
+            const product = appData.products.find(p => p.pk === id);
+            if (!product) return;
+            editingProductId = id;
+            document.getElementById('modal-title').textContent = 'ערוך מוצר';
+            document.getElementById('product-id').value = id;
+            document.getElementById('product-name').value = product.fields.name || '';
+            document.getElementById('product-sku').value = product.fields.sku || '';
+            document.getElementById('product-category').value = product.fields.category || '';
+            document.getElementById('product-quantity').value = product.fields.quantity || '';
+            document.getElementById('product-selling').value = product.fields.selling_price || '';
+            document.getElementById('product-cost').value = product.fields.cost_price || '';
+            document.getElementById('product-category').innerHTML = '<option value="">בחר קטגוריה</option>' +
+                appData.categories.map(c => `<option value="${c.pk}" ${c.pk === product.fields.category ? 'selected' : ''}>${c.fields.name}</option>`).join('');
+            document.getElementById('productModal').style.display = 'block';
         }
-        
+
         function deleteProduct(id) {
             if (confirm('האם אתה בטוח שברצונך למחוק מוצר זה?')) {
                 appData.products = appData.products.filter(p => p.pk !== id);
@@ -393,12 +404,174 @@
                 updateDashboard();
             }
         }
-        
-        function showAddProductForm() {
-            alert('טופס הוספת מוצר חדש');
+
+        // Customers CRM
+        function renderCustomers() {
+            const container = document.getElementById('customers-list');
+            container.innerHTML = '';
+            appData.customers.forEach(customer => container.appendChild(createCustomerCard(customer)));
         }
-        
-        // Initialize app
+
+        function createCustomerCard(customer) {
+            const card = document.createElement('div');
+            card.className = 'customer-card';
+            card.innerHTML = `
+                <h3>${customer.fields.name || 'ללא שם'}</h3>
+                <div class="info"><span>טלפון:</span><span>${customer.fields.phone || '-'}</span></div>
+                <div class="info"><span>אימייל:</span><span>${customer.fields.email || '-'}</span></div>
+                <div class="info"><span>סיווג:</span><span>${customer.fields.customer_type || 'רגיל'}</span></div>
+                <button class="btn" onclick="editCustomer(${customer.pk})">ערוך</button>
+                <button class="btn btn-danger" onclick="deleteCustomer(${customer.pk})">מחק</button>
+            `;
+            return card;
+        }
+
+        function showAddCustomerForm() {
+            document.getElementById('customer-form').reset();
+            editingCustomerId = null;
+            document.getElementById('customerModal').style.display = 'block';
+        }
+
+        document.getElementById('customer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const customer = {
+                pk: editingCustomerId || appData.customers.length + 1,
+                fields: {
+                    name: document.getElementById('customer-name').value,
+                    phone: document.getElementById('customer-phone').value,
+                    email: document.getElementById('customer-email').value,
+                    address: document.getElementById('customer-address').value,
+                    customer_type: 'normal'
+                }
+            };
+            if (editingCustomerId) {
+                const index = appData.customers.findIndex(c => c.pk === editingCustomerId);
+                appData.customers[index] = customer;
+            } else {
+                appData.customers.push(customer);
+            }
+            renderCustomers();
+            updateDashboard();
+            closeModal();
+        });
+
+        function editCustomer(id) {
+            const customer = appData.customers.find(c => c.pk === id);
+            if (!customer) return;
+            editingCustomerId = id;
+            document.getElementById('customer-id').value = id;
+            document.getElementById('customer-name').value = customer.fields.name || '';
+            document.getElementById('customer-phone').value = customer.fields.phone || '';
+            document.getElementById('customer-email').value = customer.fields.email || '';
+            document.getElementById('customer-address').value = customer.fields.address || '';
+            document.getElementById('customerModal').style.display = 'block';
+        }
+
+        function deleteCustomer(id) {
+            if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה?')) {
+                appData.customers = appData.customers.filter(c => c.pk !== id);
+                renderCustomers();
+                updateDashboard();
+            }
+        }
+
+        // Sales
+        function renderSales() {
+            const container = document.getElementById('sales-list');
+            container.innerHTML = '';
+            appData.sales.forEach(sale => container.appendChild(createSaleCard(sale)));
+        }
+
+        function createSaleCard(sale) {
+            const customer = appData.customers.find(c => c.pk === sale.fields.customer);
+            const card = document.createElement('div');
+            card.className = 'sale-card';
+            card.innerHTML = `
+                <h3>מכירה #${sale.pk}</h3>
+                <div class="info"><span>לקוח:</span><span>${customer ? customer.fields.name : 'לקוח לא רשום'}</span></div>
+                <div class="info"><span>סכום:</span><span>₪${sale.fields.total_amount || 0}</span></div>
+                <div class="info"><span>תאריך:</span><span>${sale.fields.created_at ? sale.fields.created_at.split('T')[0] : '-'}</span></div>
+                <div class="info"><span>שיטת תשלום:</span><span>${sale.fields.payment_method || 'מזומן'}</span></div>
+            `;
+            return card;
+        }
+
+        function showAddSaleForm() {
+            alert('פונקציית הוספת מכירה תגיע בקרוב');
+        }
+
+        // Suppliers
+        function renderSuppliers() {
+            const container = document.getElementById('suppliers-list');
+            container.innerHTML = '';
+            appData.suppliers.forEach(supplier => container.appendChild(createSupplierCard(supplier)));
+        }
+
+        function createSupplierCard(supplier) {
+            const card = document.createElement('div');
+            card.className = 'supplier-card';
+            card.innerHTML = `
+                <h3>${supplier.fields.name || 'ללא שם'}</h3>
+                <div class="info"><span>טלפון:</span><span>${supplier.fields.phone || '-'}</span></div>
+                <div class="info"><span>אימייל:</span><span>${supplier.fields.email || '-'}</span></div>
+            `;
+            return card;
+        }
+
+        // Categories
+        function renderCategories() {
+            const container = document.getElementById('categories-list');
+            container.innerHTML = '';
+            appData.categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'customer-card';
+                div.innerHTML = `<h3>${cat.fields.name}</h3><p>${cat.fields.description || 'אין תיאור'}</p>`;
+                container.appendChild(div);
+            });
+        }
+
+        // Reports
+        function generateReports() {
+            const container = document.getElementById('reports-content');
+            let totalRevenue = 0;
+            appData.sales.forEach(s => totalRevenue += parseFloat(s.fields.total_amount || 0));
+            container.innerHTML = `
+                <div class="report-card">
+                    <h3>סה"כ הכנסות</h3>
+                    <div class="value" style="color: #667eea; font-size: 2em;">₪${totalRevenue.toFixed(2)}</div>
+                </div>
+                <div class="report-card">
+                    <h3>סה"כ מוצרים בחנות</h3>
+                    <div class="value" style="color: #667eea; font-size: 2em;">${appData.products.length}</div>
+                </div>
+                <div class="report-card">
+                    <h3>סה"כ לקוחות פעילים</h3>
+                    <div class="value" style="color: #667eea; font-size: 2em;">${appData.customers.length}</div>
+                </div>
+            `;
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            event.target.classList.add('active');
+            if (section === 'products') renderProducts();
+            else if (section === 'customers') renderCustomers();
+            else if (section === 'sales') renderSales();
+            else if (section === 'suppliers') renderSuppliers();
+            else if (section === 'categories') renderCategories();
+            else if (section === 'reports') generateReports();
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) closeModal();
+        }
+
         loadData();
     </script>
 </body>

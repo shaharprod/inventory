@@ -16,10 +16,9 @@ openpyxl>=3.1.0
 # יצירת ברקודים
 python-barcode>=0.15.0
 
-# שרת production (אופציונלי)
-# הסר # להתקנה
-# gunicorn>=21.0.0  # Linux/Mac
-# waitress>=2.1.0   # Windows
+# שרת production
+gunicorn>=21.0.0
+waitress>=2.1.0
 
 # כלי פיתוח (אופציונלי)
 # django-debug-toolbar>=4.2.0

@@ -376,7 +376,7 @@
 
             <div id="sales" class="section">
                 <h2>מכירות</h2>
-                
+
                 <div class="backup-section">
                     <h3>יצירת מכירה חדשה</h3>
                     <button class="btn btn-success" onclick="showCreateSaleForm()">💰 צור מכירה חדשה</button>
@@ -1371,7 +1371,7 @@
                                 <label>לקוח:</label>
                                 <select id="sale-customer" required>
                                     <option value="">בחר לקוח</option>
-                                    ${appData.customers.map(customer => 
+                                    ${appData.customers.map(customer =>
                                         `<option value="${customer.pk}">${customer.fields.name}</option>`
                                     ).join('')}
                                 </select>
@@ -1381,7 +1381,7 @@
                                 <input type="date" id="sale-date" required>
                             </div>
                         </div>
-                        
+
                         <div class="form-group">
                             <label>שיטת תשלום:</label>
                             <select id="sale-payment-method">
@@ -1398,7 +1398,7 @@
                             <div class="sale-item" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
                                 <select class="item-product" style="flex: 2;" required>
                                     <option value="">בחר מוצר</option>
-                                    ${appData.products.map(product => 
+                                    ${appData.products.map(product =>
                                         `<option value="${product.pk}" data-price="${product.fields.price}" data-stock="${product.fields.stock}">${product.fields.name} (מלאי: ${product.fields.stock})</option>`
                                     ).join('')}
                                 </select>
@@ -1409,9 +1409,9 @@
                                 <button type="button" onclick="removeSaleItem(this)">🗑️</button>
                             </div>
                         </div>
-                        
+
                         <button type="button" onclick="addSaleItem()">➕ הוסף פריט</button>
-                        
+
                         <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                                 <span>סכום לפני הנחה:</span>
@@ -1448,7 +1448,7 @@
 
             // הגדרת תאריך היום כברירת מחדל
             document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
-            
+
             // הוספת מאזינים
             document.getElementById('sale-form').addEventListener('submit', saveSale);
             setupSaleItemListeners();
@@ -1467,7 +1467,7 @@
                             <label>מוצר:</label>
                             <select id="quick-product" required>
                                 <option value="">בחר מוצר</option>
-                                ${appData.products.map(product => 
+                                ${appData.products.map(product =>
                                     `<option value="${product.pk}" data-price="${product.fields.price}">${product.fields.name} - ₪${product.fields.price}</option>`
                                 ).join('')}
                             </select>
@@ -1484,7 +1484,7 @@
                             <label>לקוח (אופציונלי):</label>
                             <select id="quick-customer">
                                 <option value="">לקוח כללי</option>
-                                ${appData.customers.map(customer => 
+                                ${appData.customers.map(customer =>
                                     `<option value="${customer.pk}">${customer.fields.name}</option>`
                                 ).join('')}
                             </select>
@@ -1514,11 +1514,11 @@
             const newItem = document.createElement('div');
             newItem.className = 'sale-item';
             newItem.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center;';
-            
+
             newItem.innerHTML = `
                 <select class="item-product" style="flex: 2;" required>
                     <option value="">בחר מוצר</option>
-                    ${appData.products.map(product => 
+                    ${appData.products.map(product =>
                         `<option value="${product.pk}" data-price="${product.fields.price}" data-stock="${product.fields.stock}">${product.fields.name} (מלאי: ${product.fields.stock})</option>`
                     ).join('')}
                 </select>
@@ -1528,7 +1528,7 @@
                 <span class="item-subtotal" style="flex: 1; font-weight: bold;">₪0</span>
                 <button type="button" onclick="removeSaleItem(this)">🗑️</button>
             `;
-            
+
             itemsContainer.appendChild(newItem);
             setupSaleItemListeners(newItem);
         }
@@ -1540,13 +1540,13 @@
 
         function setupSaleItemListeners(itemElement = null) {
             const items = itemElement ? [itemElement] : document.querySelectorAll('.sale-item');
-            
+
             items.forEach(item => {
                 const productSelect = item.querySelector('.item-product');
                 const quantityInput = item.querySelector('.item-quantity');
                 const priceInput = item.querySelector('.item-price');
                 const discountInput = item.querySelector('.item-discount');
-                
+
                 // מאזין לשינוי מוצר
                 productSelect.addEventListener('change', function() {
                     const selectedOption = this.options[this.selectedIndex];
@@ -1555,7 +1555,7 @@
                         updateSaleItemTotal(item);
                     }
                 });
-                
+
                 // מאזינים לעדכון סכום
                 [quantityInput, priceInput, discountInput].forEach(input => {
                     input.addEventListener('input', () => updateSaleItemTotal(item));
@@ -1567,11 +1567,11 @@
             const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
             const price = parseFloat(item.querySelector('.item-price').value) || 0;
             const discount = parseFloat(item.querySelector('.item-discount').value) || 0;
-            
+
             const subtotal = quantity * price;
             const discountAmount = subtotal * (discount / 100);
             const finalAmount = subtotal - discountAmount;
-            
+
             item.querySelector('.item-subtotal').textContent = `₪${finalAmount.toLocaleString()}`;
             updateSaleTotals();
         }
@@ -1580,23 +1580,23 @@
             const items = document.querySelectorAll('.sale-item');
             let subtotal = 0;
             let totalDiscount = 0;
-            
+
             items.forEach(item => {
                 const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
                 const price = parseFloat(item.querySelector('.item-price').value) || 0;
                 const discount = parseFloat(item.querySelector('.item-discount').value) || 0;
-                
+
                 const itemSubtotal = quantity * price;
                 const itemDiscount = itemSubtotal * (discount / 100);
-                
+
                 subtotal += itemSubtotal;
                 totalDiscount += itemDiscount;
             });
-            
+
             const afterDiscount = subtotal - totalDiscount;
             const tax = afterDiscount * 0.17;
             const total = afterDiscount + tax;
-            
+
             document.getElementById('sale-subtotal').textContent = `₪${subtotal.toLocaleString()}`;
             document.getElementById('sale-total-discount').textContent = `₪${totalDiscount.toLocaleString()}`;
             document.getElementById('sale-tax').textContent = `₪${tax.toLocaleString()}`;
@@ -1605,33 +1605,33 @@
 
         function saveSale(event) {
             event.preventDefault();
-            
+
             const customerId = document.getElementById('sale-customer').value;
             const date = document.getElementById('sale-date').value;
             const paymentMethod = document.getElementById('sale-payment-method').value;
             const notes = document.getElementById('sale-notes').value;
-            
+
             if (!customerId) {
                 showAlert('error', 'אנא בחר לקוח');
                 return;
             }
-            
+
             const items = [];
             const itemElements = document.querySelectorAll('.sale-item');
             let totalAmount = 0;
-            
+
             itemElements.forEach(item => {
                 const productId = item.querySelector('.item-product').value;
                 const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
                 const price = parseFloat(item.querySelector('.item-price').value) || 0;
                 const discount = parseFloat(item.querySelector('.item-discount').value) || 0;
-                
+
                 if (productId && quantity > 0 && price > 0) {
                     const subtotal = quantity * price;
                     const discountAmount = subtotal * (discount / 100);
                     const finalAmount = subtotal - discountAmount;
                     totalAmount += finalAmount;
-                    
+
                     items.push({
                         productId: parseInt(productId),
                         quantity: quantity,
@@ -1642,15 +1642,15 @@
                     });
                 }
             });
-            
+
             if (items.length === 0) {
                 showAlert('error', 'אנא הוסף לפחות פריט אחד');
                 return;
             }
-            
+
             const customer = appData.customers.find(c => c.pk == customerId);
             const saleNumber = generateSaleNumber();
-            
+
             const sale = {
                 id: Date.now(),
                 saleNumber: saleNumber,
@@ -1667,10 +1667,10 @@
                 notes: notes,
                 createdAt: new Date().toISOString()
             };
-            
+
             if (!appData.sales) appData.sales = [];
             appData.sales.push(sale);
-            
+
             // עדכון מלאי המוצרים
             items.forEach(item => {
                 const product = appData.products.find(p => p.pk == item.productId);
@@ -1679,9 +1679,9 @@
                     if (product.fields.stock < 0) product.fields.stock = 0;
                 }
             });
-            
+
             saveToStorage();
-            
+
             closeModal();
             renderSales();
             showAlert('success', 'המכירה נוצרה בהצלחה!');
@@ -1693,7 +1693,7 @@
             const form = document.getElementById('sale-form');
             const submitEvent = new Event('submit');
             form.dispatchEvent(submitEvent);
-            
+
             // יצירת חשבונית מהמכירה
             setTimeout(() => {
                 if (appData.sales && appData.sales.length > 0) {
@@ -1706,7 +1706,7 @@
         function createInvoiceFromSale(sale) {
             const customer = appData.customers.find(c => c.pk == sale.customerId);
             const invoiceNumber = generateInvoiceNumber();
-            
+
             const invoice = {
                 id: Date.now(),
                 invoiceNumber: invoiceNumber,
@@ -1729,35 +1729,35 @@
                 createdAt: new Date().toISOString(),
                 relatedSaleId: sale.id
             };
-            
+
             if (!appData.invoices) appData.invoices = [];
             appData.invoices.push(invoice);
             saveToStorage();
-            
+
             showAlert('success', 'החשבונית נוצרה מהמכירה בהצלחה!');
             log('info', `חשבונית נוצרה ממכירה #${sale.saleNumber}: #${invoiceNumber}`);
         }
 
         function saveQuickSale(event) {
             event.preventDefault();
-            
+
             const productId = document.getElementById('quick-product').value;
             const quantity = parseInt(document.getElementById('quick-quantity').value);
             const price = parseFloat(document.getElementById('quick-price').value);
             const customerId = document.getElementById('quick-customer').value;
-            
+
             if (!productId || !quantity || !price) {
                 showAlert('error', 'אנא מלא את כל השדות הנדרשים');
                 return;
             }
-            
+
             const product = appData.products.find(p => p.pk == productId);
             const customer = customerId ? appData.customers.find(c => c.pk == customerId) : null;
-            
+
             const subtotal = quantity * price;
             const tax = subtotal * 0.17;
             const total = subtotal + tax;
-            
+
             const sale = {
                 id: Date.now(),
                 saleNumber: generateSaleNumber(),
@@ -1781,18 +1781,18 @@
                 notes: 'מכירה מהירה',
                 createdAt: new Date().toISOString()
             };
-            
+
             if (!appData.sales) appData.sales = [];
             appData.sales.push(sale);
-            
+
             // עדכון מלאי
             if (product) {
                 product.fields.stock -= quantity;
                 if (product.fields.stock < 0) product.fields.stock = 0;
             }
-            
+
             saveToStorage();
-            
+
             closeModal();
             renderSales();
             showAlert('success', `מכירה מהירה הושלמה! סכום: ₪${total.toLocaleString()}`);
@@ -1809,7 +1809,7 @@
         function renderSales() {
             const container = document.getElementById('sales-list');
             container.innerHTML = '';
-            
+
             if (!appData.sales || appData.sales.length === 0) {
                 container.innerHTML = '<p>אין מכירות במערכת</p>';
                 renderSalesStats();
@@ -1896,7 +1896,7 @@
         function viewSale(saleId) {
             const sale = appData.sales.find(s => s.id == saleId);
             if (!sale) return;
-            
+
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.style.display = 'block';
@@ -1967,10 +1967,10 @@
         function cancelSale(saleId) {
             const sale = appData.sales.find(s => s.id == saleId);
             if (!sale) return;
-            
+
             if (confirm(`האם אתה בטוח שברצונך לבטל את המכירה #${sale.saleNumber}?`)) {
                 sale.status = 'cancelled';
-                
+
                 // החזרת מלאי
                 sale.items.forEach(item => {
                     const product = appData.products.find(p => p.pk == item.productId);
@@ -1978,7 +1978,7 @@
                         product.fields.stock += item.quantity;
                     }
                 });
-                
+
                 saveToStorage();
                 renderSales();
                 showAlert('success', 'המכירה בוטלה!');
@@ -1991,17 +1991,17 @@
             const statusFilter = document.getElementById('sales-status-filter').value;
             const dateFrom = document.getElementById('sales-date-from').value;
             const dateTo = document.getElementById('sales-date-to').value;
-            
+
             const container = document.getElementById('sales-list');
             const allCards = container.querySelectorAll('.sale-card');
-            
+
             allCards.forEach(card => {
                 const saleText = card.textContent.toLowerCase();
                 const matchesSearch = !searchTerm || saleText.includes(searchTerm);
-                
+
                 // כאן ניתן להוסיף לוגיקה נוספת לסינון לפי סטטוס ותאריכים
                 const shouldShow = matchesSearch;
-                
+
                 card.style.display = shouldShow ? 'block' : 'none';
             });
         }
@@ -2020,7 +2020,7 @@
                 container.innerHTML = '<p>אין נתונים להצגה</p>';
                 return;
             }
-            
+
             const totalSales = appData.sales.length;
             const completedSales = appData.sales.filter(s => s.status === 'completed').length;
             const cancelledSales = appData.sales.filter(s => s.status === 'cancelled').length;
@@ -2028,12 +2028,12 @@
             const completedAmount = appData.sales
                 .filter(s => s.status === 'completed')
                 .reduce((sum, s) => sum + s.totalAmount, 0);
-            
+
             // מכירות היום
             const today = new Date().toISOString().split('T')[0];
             const todaySales = appData.sales.filter(s => s.date === today && s.status === 'completed');
             const todayAmount = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
-            
+
             container.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                     <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">

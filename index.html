@@ -402,7 +402,7 @@
 
             <div id="settings" class="section">
                 <h2>הגדרות מערכת</h2>
-                
+
                 <div class="backup-section">
                     <h3>🏢 הגדרות עסק</h3>
                     <div class="form-group">
@@ -1322,7 +1322,7 @@
         // פונקציות הגדרות
         function loadSettings() {
             const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
-            
+
             // הגדרות עסק
             const businessNameEl = document.getElementById('business-name');
             if (businessNameEl) businessNameEl.value = settings.businessName || '';
@@ -1334,7 +1334,7 @@
             if (businessEmailEl) businessEmailEl.value = settings.businessEmail || '';
             const businessWebsiteEl = document.getElementById('business-website');
             if (businessWebsiteEl) businessWebsiteEl.value = settings.businessWebsite || '';
-            
+
             // הגדרות כספיות
             const currencyEl = document.getElementById('currency');
             if (currencyEl) currencyEl.value = settings.currency || 'ILS';
@@ -1344,7 +1344,7 @@
             if (maxDiscountEl) maxDiscountEl.value = settings.maxDiscount || 50;
             const lowStockThresholdEl = document.getElementById('low-stock-threshold');
             if (lowStockThresholdEl) lowStockThresholdEl.value = settings.lowStockThreshold || 10;
-            
+
             // הגדרות מייל
             const smtpServerEl = document.getElementById('smtp-server');
             if (smtpServerEl) smtpServerEl.value = settings.smtpServer || '';
@@ -1356,7 +1356,7 @@
             if (senderPasswordEl) senderPasswordEl.value = settings.senderPassword || '';
             const dailyReportTimeEl = document.getElementById('daily-report-time');
             if (dailyReportTimeEl) dailyReportTimeEl.value = settings.dailyReportTime || '09:00';
-            
+
             // הגדרות התראות
             const emailAlertsEl = document.getElementById('email-alerts');
             if (emailAlertsEl) emailAlertsEl.checked = settings.emailAlerts || false;
@@ -1368,7 +1368,7 @@
             if (saleAlertsEl) saleAlertsEl.checked = settings.saleAlerts || false;
             const backupAlertsEl = document.getElementById('backup-alerts');
             if (backupAlertsEl) backupAlertsEl.checked = settings.backupAlerts || true;
-            
+
             // הגדרות גיבוי
             const autoBackupEl = document.getElementById('auto-backup');
             if (autoBackupEl) autoBackupEl.checked = settings.autoBackup || false;
@@ -1378,7 +1378,7 @@
             if (backupRetentionEl) backupRetentionEl.value = settings.backupRetention || 30;
             const cloudBackupEl = document.getElementById('cloud-backup');
             if (cloudBackupEl) cloudBackupEl.checked = settings.cloudBackup || false;
-            
+
             // הגדרות עיצוב
             const colorThemeEl = document.getElementById('color-theme');
             if (colorThemeEl) colorThemeEl.value = settings.colorTheme || 'default';
@@ -1388,7 +1388,7 @@
             if (rtlModeEl) rtlModeEl.checked = settings.rtlMode !== false;
             const fontSizeEl = document.getElementById('font-size');
             if (fontSizeEl) fontSizeEl.value = settings.fontSize || 'medium';
-            
+
             // הגדרות אבטחה
             const requireLoginEl = document.getElementById('require-login');
             if (requireLoginEl) requireLoginEl.checked = settings.requireLogin || false;
@@ -1400,7 +1400,7 @@
             if (auditLogEl) auditLogEl.checked = settings.auditLog || true;
             const ipRestrictionEl = document.getElementById('ip-restriction');
             if (ipRestrictionEl) ipRestrictionEl.checked = settings.ipRestriction || false;
-            
+
             // הגדרות דוחות
             const autoReportsEl = document.getElementById('auto-reports');
             if (autoReportsEl) autoReportsEl.checked = settings.autoReports || false;
@@ -1410,7 +1410,7 @@
             if (reportFormatEl) reportFormatEl.value = settings.reportFormat || 'html';
             const includeChartsEl = document.getElementById('include-charts');
             if (includeChartsEl) includeChartsEl.checked = settings.includeCharts !== false;
-            
+
             // הגדרות כלליות
             const autoSaveEl = document.getElementById('auto-save');
             if (autoSaveEl) autoSaveEl.checked = settings.autoSave !== false;
@@ -1429,7 +1429,7 @@
             settings.businessPhone = document.getElementById('business-phone').value;
             settings.businessEmail = document.getElementById('business-email').value;
             settings.businessWebsite = document.getElementById('business-website').value;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות העסק נשמרו בהצלחה!');
             log('info', 'הגדרות עסק עודכנו');
@@ -1441,7 +1441,7 @@
             settings.vatRate = parseFloat(document.getElementById('vat-rate').value);
             settings.maxDiscount = parseFloat(document.getElementById('max-discount').value);
             settings.lowStockThreshold = parseInt(document.getElementById('low-stock-threshold').value);
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות כספיות נשמרו בהצלחה!');
             log('info', 'הגדרות כספיות עודכנו');
@@ -1454,7 +1454,7 @@
             settings.senderEmail = document.getElementById('sender-email').value;
             settings.senderPassword = document.getElementById('sender-password').value;
             settings.dailyReportTime = document.getElementById('daily-report-time').value;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות מייל נשמרו בהצלחה!');
             log('info', 'הגדרות מייל עודכנו');
@@ -1467,7 +1467,7 @@
             settings.lowStockAlerts = document.getElementById('low-stock-alerts').checked;
             settings.saleAlerts = document.getElementById('sale-alerts').checked;
             settings.backupAlerts = document.getElementById('backup-alerts').checked;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות התראות נשמרו בהצלחה!');
             log('info', 'הגדרות התראות עודכנו');
@@ -1479,7 +1479,7 @@
             settings.backupTime = document.getElementById('backup-time').value;
             settings.backupRetention = parseInt(document.getElementById('backup-retention').value);
             settings.cloudBackup = document.getElementById('cloud-backup').checked;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות גיבוי נשמרו בהצלחה!');
             log('info', 'הגדרות גיבוי עודכנו');
@@ -1491,11 +1491,11 @@
             settings.language = document.getElementById('language').value;
             settings.rtlMode = document.getElementById('rtl-mode').checked;
             settings.fontSize = document.getElementById('font-size').value;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות עיצוב נשמרו בהצלחה!');
             log('info', 'הגדרות עיצוב עודכנו');
-            
+
             // החלת עיצוב
             applyDesignSettings();
         }
@@ -1507,7 +1507,7 @@
             settings.sessionDuration = parseInt(document.getElementById('session-duration').value);
             settings.auditLog = document.getElementById('audit-log').checked;
             settings.ipRestriction = document.getElementById('ip-restriction').checked;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות אבטחה נשמרו בהצלחה!');
             log('info', 'הגדרות אבטחה עודכנו');
@@ -1519,7 +1519,7 @@
             settings.reportFrequency = document.getElementById('report-frequency').value;
             settings.reportFormat = document.getElementById('report-format').value;
             settings.includeCharts = document.getElementById('include-charts').checked;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות דוחות נשמרו בהצלחה!');
             log('info', 'הגדרות דוחות עודכנו');
@@ -1531,26 +1531,26 @@
             settings.autoSaveInterval = parseInt(document.getElementById('auto-save-interval').value);
             settings.debugMode = document.getElementById('debug-mode').checked;
             settings.maintenanceMode = document.getElementById('maintenance-mode').checked;
-            
+
             localStorage.setItem('systemSettings', JSON.stringify(settings));
             showAlert('success', 'הגדרות כלליות נשמרו בהצלחה!');
             log('info', 'הגדרות כלליות עודכנו');
-            
+
             // החלת הגדרות כלליות
             applyGeneralSettings();
         }
 
         function applyDesignSettings() {
             const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
-            
+
             // החלת ערכת צבעים
             document.body.className = settings.colorTheme || 'default';
-            
+
             // החלת גודל גופן
             const fontSize = settings.fontSize || 'medium';
-            document.body.style.fontSize = fontSize === 'small' ? '14px' : 
+            document.body.style.fontSize = fontSize === 'small' ? '14px' :
                                          fontSize === 'large' ? '18px' : '16px';
-            
+
             // החלת כיוון
             if (settings.rtlMode !== false) {
                 document.documentElement.dir = 'rtl';
@@ -1560,13 +1560,13 @@
 
         function applyGeneralSettings() {
             const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
-            
+
             // החלת שמירה אוטומטית
             if (settings.autoSave !== false) {
                 const interval = (settings.autoSaveInterval || 30) * 1000;
                 setInterval(autoSave, interval);
             }
-            
+
             // מצב תחזוקה
             if (settings.maintenanceMode) {
                 showAlert('warning', 'המערכת במצב תחזוקה');
@@ -1577,14 +1577,14 @@
             const smtpServer = document.getElementById('smtp-server').value;
             const smtpPort = document.getElementById('smtp-port').value;
             const senderEmail = document.getElementById('sender-email').value;
-            
+
             if (!smtpServer || !smtpPort || !senderEmail) {
                 showAlert('error', 'אנא מלא את כל פרטי השרת');
                 return;
             }
-            
+
             showAlert('info', 'בודק חיבור לשרת המייל...');
-            
+
             // סימולציה של בדיקת חיבור
             setTimeout(() => {
                 showAlert('success', 'חיבור לשרת המייל הושלם בהצלחה!');
@@ -1605,7 +1605,7 @@
                 emailHistory: appData.emailHistory || [],
                 exportDate: new Date().toISOString()
             };
-            
+
             const dataStr = JSON.stringify(allData, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
@@ -1614,7 +1614,7 @@
             link.download = `inventory_export_${new Date().toISOString().split('T')[0]}.json`;
             link.click();
             URL.revokeObjectURL(url);
-            
+
             showAlert('success', 'כל הנתונים יוצאו בהצלחה!');
             log('info', 'ייצוא כל הנתונים הושלם');
         }

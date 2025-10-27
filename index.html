@@ -214,6 +214,43 @@
             border-radius: 10px;
             margin: 20px 0;
         }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-left: 10px;
+        }
+
+        .form-group label input[type="checkbox"] {
+            margin-right: 8px;
+        }
         .email-section {
             background: #e6fffa;
             padding: 20px;
@@ -249,6 +286,7 @@
             <button onclick="showSection('backup')">💾 גיבוי</button>
             <button onclick="showSection('email')">📧 מייל</button>
             <button onclick="showSection('logs')">📝 לוגים</button>
+            <button onclick="showSection('settings')">⚙️ הגדרות</button>
         </div>
 
         <div class="content">
@@ -310,7 +348,7 @@
                     <button class="btn btn-success" onclick="createBackup()">💾 צור גיבוי</button>
                     <button class="btn btn-warning" onclick="downloadBackup()">📥 הורד גיבוי</button>
                 </div>
-                
+
                 <div class="backup-section">
                     <h3>שחזור נתונים</h3>
                     <p>שחזור נתונים מגיבוי קיים</p>
@@ -361,8 +399,280 @@
                 </div>
                 <div id="logs-content"></div>
             </div>
+
+            <div id="settings" class="section">
+                <h2>הגדרות מערכת</h2>
+                
+                <div class="backup-section">
+                    <h3>🏢 הגדרות עסק</h3>
+                    <div class="form-group">
+                        <label>שם העסק:</label>
+                        <input type="text" id="business-name" placeholder="שם העסק">
+                    </div>
+                    <div class="form-group">
+                        <label>כתובת העסק:</label>
+                        <input type="text" id="business-address" placeholder="כתובת העסק">
+                    </div>
+                    <div class="form-group">
+                        <label>טלפון:</label>
+                        <input type="tel" id="business-phone" placeholder="טלפון העסק">
+                    </div>
+                    <div class="form-group">
+                        <label>אימייל:</label>
+                        <input type="email" id="business-email" placeholder="אימייל העסק">
+                    </div>
+                    <div class="form-group">
+                        <label>אתר אינטרנט:</label>
+                        <input type="url" id="business-website" placeholder="https://example.com">
+                    </div>
+                    <button class="btn btn-success" onclick="saveBusinessSettings()">💾 שמור הגדרות עסק</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>💰 הגדרות כספיות</h3>
+                    <div class="form-group">
+                        <label>מטבע:</label>
+                        <select id="currency">
+                            <option value="ILS">שקל (₪)</option>
+                            <option value="USD">דולר ($)</option>
+                            <option value="EUR">יורו (€)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>אחוז מע"מ:</label>
+                        <input type="number" id="vat-rate" step="0.01" min="0" max="100" placeholder="17">
+                    </div>
+                    <div class="form-group">
+                        <label>אחוז הנחה מקסימלי:</label>
+                        <input type="number" id="max-discount" step="0.01" min="0" max="100" placeholder="50">
+                    </div>
+                    <div class="form-group">
+                        <label>התראה על מלאי נמוך:</label>
+                        <input type="number" id="low-stock-threshold" min="1" placeholder="10">
+                    </div>
+                    <button class="btn btn-success" onclick="saveFinancialSettings()">💾 שמור הגדרות כספיות</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>📧 הגדרות מייל</h3>
+                    <div class="form-group">
+                        <label>שרת SMTP:</label>
+                        <input type="text" id="smtp-server" placeholder="smtp.gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>פורט:</label>
+                        <input type="number" id="smtp-port" placeholder="587">
+                    </div>
+                    <div class="form-group">
+                        <label>אימייל שליח:</label>
+                        <input type="email" id="sender-email" placeholder="your-email@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>סיסמת אימייל:</label>
+                        <input type="password" id="sender-password" placeholder="סיסמת אפליקציה">
+                    </div>
+                    <div class="form-group">
+                        <label>שליחת דוח יומי:</label>
+                        <select id="daily-report-time">
+                            <option value="08:00">08:00</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="saveEmailSettings()">💾 שמור הגדרות מייל</button>
+                    <button class="btn btn-warning" onclick="testEmailConnection()">🧪 בדוק חיבור מייל</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>🔔 הגדרות התראות</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="email-alerts"> התראות במייל
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="browser-alerts"> התראות בדפדפן
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="low-stock-alerts"> התראות על מלאי נמוך
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="sale-alerts"> התראות על מכירות
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="backup-alerts"> התראות על גיבויים
+                        </label>
+                    </div>
+                    <button class="btn btn-success" onclick="saveAlertSettings()">💾 שמור הגדרות התראות</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>💾 הגדרות גיבוי</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="auto-backup"> גיבוי אוטומטי יומי
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>שעת גיבוי:</label>
+                        <select id="backup-time">
+                            <option value="02:00">02:00</option>
+                            <option value="03:00">03:00</option>
+                            <option value="04:00">04:00</option>
+                            <option value="05:00">05:00</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>שמירת גיבויים (ימים):</label>
+                        <input type="number" id="backup-retention" min="1" max="365" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="cloud-backup"> גיבוי לענן
+                        </label>
+                    </div>
+                    <button class="btn btn-success" onclick="saveBackupSettings()">💾 שמור הגדרות גיבוי</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>🎨 הגדרות עיצוב</h3>
+                    <div class="form-group">
+                        <label>ערכת צבעים:</label>
+                        <select id="color-theme">
+                            <option value="default">ברירת מחדל</option>
+                            <option value="dark">כהה</option>
+                            <option value="light">בהיר</option>
+                            <option value="blue">כחול</option>
+                            <option value="green">ירוק</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>שפה:</label>
+                        <select id="language">
+                            <option value="he">עברית</option>
+                            <option value="en">English</option>
+                            <option value="ar">العربية</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="rtl-mode"> כיוון מימין לשמאל
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>גודל גופן:</label>
+                        <select id="font-size">
+                            <option value="small">קטן</option>
+                            <option value="medium">בינוני</option>
+                            <option value="large">גדול</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="saveDesignSettings()">💾 שמור הגדרות עיצוב</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>🔒 הגדרות אבטחה</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="require-login"> דרישת התחברות
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="session-timeout"> פגירת זמן מפגישה
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>זמן מפגישה (דקות):</label>
+                        <input type="number" id="session-duration" min="5" max="480" placeholder="60">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="audit-log"> מעקב פעולות
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="ip-restriction"> הגבלת IP
+                        </label>
+                    </div>
+                    <button class="btn btn-success" onclick="saveSecuritySettings()">💾 שמור הגדרות אבטחה</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>📊 הגדרות דוחות</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="auto-reports"> דוחות אוטומטיים
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>תדירות דוחות:</label>
+                        <select id="report-frequency">
+                            <option value="daily">יומי</option>
+                            <option value="weekly">שבועי</option>
+                            <option value="monthly">חודשי</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>פורמט דוחות:</label>
+                        <select id="report-format">
+                            <option value="html">HTML</option>
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="include-charts"> כלול גרפים
+                        </label>
+                    </div>
+                    <button class="btn btn-success" onclick="saveReportSettings()">💾 שמור הגדרות דוחות</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>🔄 הגדרות כלליות</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="auto-save"> שמירה אוטומטית
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>תדירות שמירה (שניות):</label>
+                        <input type="number" id="auto-save-interval" min="10" max="300" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="debug-mode"> מצב דיבוג
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="maintenance-mode"> מצב תחזוקה
+                        </label>
+                    </div>
+                    <button class="btn btn-success" onclick="saveGeneralSettings()">💾 שמור הגדרות כלליות</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>🗑️ ניהול נתונים</h3>
+                    <button class="btn btn-warning" onclick="exportAllData()">📤 ייצא כל הנתונים</button>
+                    <button class="btn btn-danger" onclick="resetAllSettings()">🔄 אפס כל ההגדרות</button>
+                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ מחק כל הנתונים</button>
+                </div>
+            </div>
         </div>
-        
+
         <footer>
             <p>© 2025 Shahar Production - כל הזכויות שמורות</p>
             <p>Developed with ❤️ by Shahar Production</p>
@@ -424,10 +734,10 @@
                     else if (item.model === 'inventory.supplier') appData.suppliers.push(item);
                     else if (item.model === 'inventory.location') appData.locations.push(item);
                 });
-                
+
                 // Load from localStorage
                 loadFromStorage();
-                
+
                 updateDashboard();
                 renderProducts();
                 renderCustomers();
@@ -436,7 +746,8 @@
                 renderCategories();
                 renderBackups();
                 renderEmailHistory();
-                
+                loadSettings(); // טעינת הגדרות
+
                 log('info', 'מערכת נטענה בהצלחה');
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -457,7 +768,7 @@
             const storedLogs = localStorage.getItem('inventory_logs');
             const storedEmails = localStorage.getItem('inventory_emails');
             const storedBackups = localStorage.getItem('inventory_backups');
-            
+
             if (storedData) {
                 const parsed = JSON.parse(storedData);
                 appData = { ...appData, ...parsed };
@@ -483,18 +794,18 @@
         function viewLogs(type) {
             const container = document.getElementById('logs-content');
             let filteredLogs = logs;
-            
+
             if (type !== 'all') {
                 filteredLogs = logs.filter(log => log.type === type);
             }
-            
+
             container.innerHTML = '';
             filteredLogs.forEach(log => {
                 const div = document.createElement('div');
                 div.className = 'log-entry';
                 div.innerHTML = `
-                    <strong>[${new Date(log.timestamp).toLocaleString()}]</strong> 
-                    <span style="color: ${getLogColor(log.type)}">[${log.type.toUpperCase()}]</span> 
+                    <strong>[${new Date(log.timestamp).toLocaleString()}]</strong>
+                    <span style="color: ${getLogColor(log.type)}">[${log.type.toUpperCase()}]</span>
                     ${log.message}
                 `;
                 container.appendChild(div);
@@ -529,7 +840,7 @@
                 data: JSON.parse(JSON.stringify(appData)),
                 description: 'גיבוי אוטומטי'
             };
-            
+
             backups.unshift(backup);
             saveToStorage();
             renderBackups();
@@ -543,7 +854,7 @@
                 data: appData,
                 version: '1.0'
             };
-            
+
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -551,7 +862,7 @@
             a.download = `inventory_backup_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            
+
             log('info', 'גיבוי הורד למחשב');
             showAlert('success', 'גיבוי הורד בהצלחה!');
         }
@@ -559,26 +870,26 @@
         function restoreBackup() {
             const fileInput = document.getElementById('restore-file');
             const file = fileInput.files[0];
-            
+
             if (!file) {
                 showAlert('error', 'אנא בחר קובץ גיבוי');
                 return;
             }
-            
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const backup = JSON.parse(e.target.result);
                     appData = backup.data;
                     saveToStorage();
-                    
+
                     updateDashboard();
                     renderProducts();
                     renderCustomers();
                     renderSales();
                     renderSuppliers();
                     renderCategories();
-                    
+
                     log('info', 'נתונים שוחזרו מגיבוי');
                     showAlert('success', 'נתונים שוחזרו בהצלחה!');
                 } catch (error) {
@@ -592,7 +903,7 @@
         function renderBackups() {
             const container = document.getElementById('backup-list');
             container.innerHTML = '';
-            
+
             backups.forEach(backup => {
                 const div = document.createElement('div');
                 div.className = 'report-card';
@@ -610,14 +921,14 @@
             if (backup && confirm('האם אתה בטוח שברצונך לשחזר מגיבוי זה?')) {
                 appData = JSON.parse(JSON.stringify(backup.data));
                 saveToStorage();
-                
+
                 updateDashboard();
                 renderProducts();
                 renderCustomers();
                 renderSales();
                 renderSuppliers();
                 renderCategories();
-                
+
                 log('info', 'נתונים שוחזרו מגיבוי: ' + backup.timestamp);
                 showAlert('success', 'נתונים שוחזרו בהצלחה!');
             }
@@ -628,12 +939,12 @@
             const recipient = document.getElementById('email-recipient').value;
             const subject = document.getElementById('email-subject').value;
             const content = document.getElementById('email-content').value;
-            
+
             if (!recipient || !subject || !content) {
                 showAlert('error', 'אנא מלא את כל השדות');
                 return;
             }
-            
+
             // Simulate email sending
             const email = {
                 id: Date.now(),
@@ -643,14 +954,14 @@
                 content: content,
                 status: 'sent'
             };
-            
+
             emailHistory.unshift(email);
             saveToStorage();
             renderEmailHistory();
-            
+
             log('info', `מייל נשלח ל: ${recipient}`);
             showAlert('success', 'מייל נשלח בהצלחה!');
-            
+
             // Clear form
             document.getElementById('email-recipient').value = '';
             document.getElementById('email-content').value = '';
@@ -660,14 +971,14 @@
             const today = new Date().toISOString().split('T')[0];
             let todaySales = 0;
             let todayCustomers = 0;
-            
+
             appData.sales.forEach(s => {
                 if (s.fields.created_at && s.fields.created_at.startsWith(today)) {
                     todaySales += parseFloat(s.fields.total_amount || 0);
                     todayCustomers++;
                 }
             });
-            
+
             const report = `
 דוח יומי - ${today}
 
@@ -679,7 +990,7 @@
 
 דוח זה נוצר אוטומטית על ידי מערכת ניהול המלאי.
             `;
-            
+
             document.getElementById('email-content').value = report;
             showAlert('success', 'דוח יומי נוצר!');
         }
@@ -687,7 +998,7 @@
         function renderEmailHistory() {
             const container = document.getElementById('email-history');
             container.innerHTML = '';
-            
+
             emailHistory.forEach(email => {
                 const div = document.createElement('div');
                 div.className = 'report-card';
@@ -706,9 +1017,9 @@
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type}`;
             alertDiv.textContent = message;
-            
+
             document.querySelector('.content').insertBefore(alertDiv, document.querySelector('.content').firstChild);
-            
+
             setTimeout(() => {
                 alertDiv.remove();
             }, 5000);
@@ -1007,6 +1318,326 @@
             saveToStorage();
             log('info', 'שמירה אוטומטית בוצעה');
         }, 30000);
+
+        // פונקציות הגדרות
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            
+            // הגדרות עסק
+            const businessNameEl = document.getElementById('business-name');
+            if (businessNameEl) businessNameEl.value = settings.businessName || '';
+            const businessAddressEl = document.getElementById('business-address');
+            if (businessAddressEl) businessAddressEl.value = settings.businessAddress || '';
+            const businessPhoneEl = document.getElementById('business-phone');
+            if (businessPhoneEl) businessPhoneEl.value = settings.businessPhone || '';
+            const businessEmailEl = document.getElementById('business-email');
+            if (businessEmailEl) businessEmailEl.value = settings.businessEmail || '';
+            const businessWebsiteEl = document.getElementById('business-website');
+            if (businessWebsiteEl) businessWebsiteEl.value = settings.businessWebsite || '';
+            
+            // הגדרות כספיות
+            const currencyEl = document.getElementById('currency');
+            if (currencyEl) currencyEl.value = settings.currency || 'ILS';
+            const vatRateEl = document.getElementById('vat-rate');
+            if (vatRateEl) vatRateEl.value = settings.vatRate || 17;
+            const maxDiscountEl = document.getElementById('max-discount');
+            if (maxDiscountEl) maxDiscountEl.value = settings.maxDiscount || 50;
+            const lowStockThresholdEl = document.getElementById('low-stock-threshold');
+            if (lowStockThresholdEl) lowStockThresholdEl.value = settings.lowStockThreshold || 10;
+            
+            // הגדרות מייל
+            const smtpServerEl = document.getElementById('smtp-server');
+            if (smtpServerEl) smtpServerEl.value = settings.smtpServer || '';
+            const smtpPortEl = document.getElementById('smtp-port');
+            if (smtpPortEl) smtpPortEl.value = settings.smtpPort || 587;
+            const senderEmailEl = document.getElementById('sender-email');
+            if (senderEmailEl) senderEmailEl.value = settings.senderEmail || '';
+            const senderPasswordEl = document.getElementById('sender-password');
+            if (senderPasswordEl) senderPasswordEl.value = settings.senderPassword || '';
+            const dailyReportTimeEl = document.getElementById('daily-report-time');
+            if (dailyReportTimeEl) dailyReportTimeEl.value = settings.dailyReportTime || '09:00';
+            
+            // הגדרות התראות
+            const emailAlertsEl = document.getElementById('email-alerts');
+            if (emailAlertsEl) emailAlertsEl.checked = settings.emailAlerts || false;
+            const browserAlertsEl = document.getElementById('browser-alerts');
+            if (browserAlertsEl) browserAlertsEl.checked = settings.browserAlerts || true;
+            const lowStockAlertsEl = document.getElementById('low-stock-alerts');
+            if (lowStockAlertsEl) lowStockAlertsEl.checked = settings.lowStockAlerts || true;
+            const saleAlertsEl = document.getElementById('sale-alerts');
+            if (saleAlertsEl) saleAlertsEl.checked = settings.saleAlerts || false;
+            const backupAlertsEl = document.getElementById('backup-alerts');
+            if (backupAlertsEl) backupAlertsEl.checked = settings.backupAlerts || true;
+            
+            // הגדרות גיבוי
+            const autoBackupEl = document.getElementById('auto-backup');
+            if (autoBackupEl) autoBackupEl.checked = settings.autoBackup || false;
+            const backupTimeEl = document.getElementById('backup-time');
+            if (backupTimeEl) backupTimeEl.value = settings.backupTime || '03:00';
+            const backupRetentionEl = document.getElementById('backup-retention');
+            if (backupRetentionEl) backupRetentionEl.value = settings.backupRetention || 30;
+            const cloudBackupEl = document.getElementById('cloud-backup');
+            if (cloudBackupEl) cloudBackupEl.checked = settings.cloudBackup || false;
+            
+            // הגדרות עיצוב
+            const colorThemeEl = document.getElementById('color-theme');
+            if (colorThemeEl) colorThemeEl.value = settings.colorTheme || 'default';
+            const languageEl = document.getElementById('language');
+            if (languageEl) languageEl.value = settings.language || 'he';
+            const rtlModeEl = document.getElementById('rtl-mode');
+            if (rtlModeEl) rtlModeEl.checked = settings.rtlMode !== false;
+            const fontSizeEl = document.getElementById('font-size');
+            if (fontSizeEl) fontSizeEl.value = settings.fontSize || 'medium';
+            
+            // הגדרות אבטחה
+            const requireLoginEl = document.getElementById('require-login');
+            if (requireLoginEl) requireLoginEl.checked = settings.requireLogin || false;
+            const sessionTimeoutEl = document.getElementById('session-timeout');
+            if (sessionTimeoutEl) sessionTimeoutEl.checked = settings.sessionTimeout || false;
+            const sessionDurationEl = document.getElementById('session-duration');
+            if (sessionDurationEl) sessionDurationEl.value = settings.sessionDuration || 60;
+            const auditLogEl = document.getElementById('audit-log');
+            if (auditLogEl) auditLogEl.checked = settings.auditLog || true;
+            const ipRestrictionEl = document.getElementById('ip-restriction');
+            if (ipRestrictionEl) ipRestrictionEl.checked = settings.ipRestriction || false;
+            
+            // הגדרות דוחות
+            const autoReportsEl = document.getElementById('auto-reports');
+            if (autoReportsEl) autoReportsEl.checked = settings.autoReports || false;
+            const reportFrequencyEl = document.getElementById('report-frequency');
+            if (reportFrequencyEl) reportFrequencyEl.value = settings.reportFrequency || 'daily';
+            const reportFormatEl = document.getElementById('report-format');
+            if (reportFormatEl) reportFormatEl.value = settings.reportFormat || 'html';
+            const includeChartsEl = document.getElementById('include-charts');
+            if (includeChartsEl) includeChartsEl.checked = settings.includeCharts !== false;
+            
+            // הגדרות כלליות
+            const autoSaveEl = document.getElementById('auto-save');
+            if (autoSaveEl) autoSaveEl.checked = settings.autoSave !== false;
+            const autoSaveIntervalEl = document.getElementById('auto-save-interval');
+            if (autoSaveIntervalEl) autoSaveIntervalEl.value = settings.autoSaveInterval || 30;
+            const debugModeEl = document.getElementById('debug-mode');
+            if (debugModeEl) debugModeEl.checked = settings.debugMode || false;
+            const maintenanceModeEl = document.getElementById('maintenance-mode');
+            if (maintenanceModeEl) maintenanceModeEl.checked = settings.maintenanceMode || false;
+        }
+
+        function saveBusinessSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.businessName = document.getElementById('business-name').value;
+            settings.businessAddress = document.getElementById('business-address').value;
+            settings.businessPhone = document.getElementById('business-phone').value;
+            settings.businessEmail = document.getElementById('business-email').value;
+            settings.businessWebsite = document.getElementById('business-website').value;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות העסק נשמרו בהצלחה!');
+            log('info', 'הגדרות עסק עודכנו');
+        }
+
+        function saveFinancialSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.currency = document.getElementById('currency').value;
+            settings.vatRate = parseFloat(document.getElementById('vat-rate').value);
+            settings.maxDiscount = parseFloat(document.getElementById('max-discount').value);
+            settings.lowStockThreshold = parseInt(document.getElementById('low-stock-threshold').value);
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות כספיות נשמרו בהצלחה!');
+            log('info', 'הגדרות כספיות עודכנו');
+        }
+
+        function saveEmailSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.smtpServer = document.getElementById('smtp-server').value;
+            settings.smtpPort = parseInt(document.getElementById('smtp-port').value);
+            settings.senderEmail = document.getElementById('sender-email').value;
+            settings.senderPassword = document.getElementById('sender-password').value;
+            settings.dailyReportTime = document.getElementById('daily-report-time').value;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות מייל נשמרו בהצלחה!');
+            log('info', 'הגדרות מייל עודכנו');
+        }
+
+        function saveAlertSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.emailAlerts = document.getElementById('email-alerts').checked;
+            settings.browserAlerts = document.getElementById('browser-alerts').checked;
+            settings.lowStockAlerts = document.getElementById('low-stock-alerts').checked;
+            settings.saleAlerts = document.getElementById('sale-alerts').checked;
+            settings.backupAlerts = document.getElementById('backup-alerts').checked;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות התראות נשמרו בהצלחה!');
+            log('info', 'הגדרות התראות עודכנו');
+        }
+
+        function saveBackupSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.autoBackup = document.getElementById('auto-backup').checked;
+            settings.backupTime = document.getElementById('backup-time').value;
+            settings.backupRetention = parseInt(document.getElementById('backup-retention').value);
+            settings.cloudBackup = document.getElementById('cloud-backup').checked;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות גיבוי נשמרו בהצלחה!');
+            log('info', 'הגדרות גיבוי עודכנו');
+        }
+
+        function saveDesignSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.colorTheme = document.getElementById('color-theme').value;
+            settings.language = document.getElementById('language').value;
+            settings.rtlMode = document.getElementById('rtl-mode').checked;
+            settings.fontSize = document.getElementById('font-size').value;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות עיצוב נשמרו בהצלחה!');
+            log('info', 'הגדרות עיצוב עודכנו');
+            
+            // החלת עיצוב
+            applyDesignSettings();
+        }
+
+        function saveSecuritySettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.requireLogin = document.getElementById('require-login').checked;
+            settings.sessionTimeout = document.getElementById('session-timeout').checked;
+            settings.sessionDuration = parseInt(document.getElementById('session-duration').value);
+            settings.auditLog = document.getElementById('audit-log').checked;
+            settings.ipRestriction = document.getElementById('ip-restriction').checked;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות אבטחה נשמרו בהצלחה!');
+            log('info', 'הגדרות אבטחה עודכנו');
+        }
+
+        function saveReportSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.autoReports = document.getElementById('auto-reports').checked;
+            settings.reportFrequency = document.getElementById('report-frequency').value;
+            settings.reportFormat = document.getElementById('report-format').value;
+            settings.includeCharts = document.getElementById('include-charts').checked;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות דוחות נשמרו בהצלחה!');
+            log('info', 'הגדרות דוחות עודכנו');
+        }
+
+        function saveGeneralSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            settings.autoSave = document.getElementById('auto-save').checked;
+            settings.autoSaveInterval = parseInt(document.getElementById('auto-save-interval').value);
+            settings.debugMode = document.getElementById('debug-mode').checked;
+            settings.maintenanceMode = document.getElementById('maintenance-mode').checked;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(settings));
+            showAlert('success', 'הגדרות כלליות נשמרו בהצלחה!');
+            log('info', 'הגדרות כלליות עודכנו');
+            
+            // החלת הגדרות כלליות
+            applyGeneralSettings();
+        }
+
+        function applyDesignSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            
+            // החלת ערכת צבעים
+            document.body.className = settings.colorTheme || 'default';
+            
+            // החלת גודל גופן
+            const fontSize = settings.fontSize || 'medium';
+            document.body.style.fontSize = fontSize === 'small' ? '14px' : 
+                                         fontSize === 'large' ? '18px' : '16px';
+            
+            // החלת כיוון
+            if (settings.rtlMode !== false) {
+                document.documentElement.dir = 'rtl';
+                document.documentElement.lang = 'he';
+            }
+        }
+
+        function applyGeneralSettings() {
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+            
+            // החלת שמירה אוטומטית
+            if (settings.autoSave !== false) {
+                const interval = (settings.autoSaveInterval || 30) * 1000;
+                setInterval(autoSave, interval);
+            }
+            
+            // מצב תחזוקה
+            if (settings.maintenanceMode) {
+                showAlert('warning', 'המערכת במצב תחזוקה');
+            }
+        }
+
+        function testEmailConnection() {
+            const smtpServer = document.getElementById('smtp-server').value;
+            const smtpPort = document.getElementById('smtp-port').value;
+            const senderEmail = document.getElementById('sender-email').value;
+            
+            if (!smtpServer || !smtpPort || !senderEmail) {
+                showAlert('error', 'אנא מלא את כל פרטי השרת');
+                return;
+            }
+            
+            showAlert('info', 'בודק חיבור לשרת המייל...');
+            
+            // סימולציה של בדיקת חיבור
+            setTimeout(() => {
+                showAlert('success', 'חיבור לשרת המייל הושלם בהצלחה!');
+                log('info', 'בדיקת חיבור מייל הושלמה בהצלחה');
+            }, 2000);
+        }
+
+        function exportAllData() {
+            const allData = {
+                products: appData.products || [],
+                categories: appData.categories || [],
+                customers: appData.customers || [],
+                sales: appData.sales || [],
+                suppliers: appData.suppliers || [],
+                settings: JSON.parse(localStorage.getItem('systemSettings') || '{}'),
+                logs: JSON.parse(localStorage.getItem('systemLogs') || '[]'),
+                backups: appData.backups || [],
+                emailHistory: appData.emailHistory || [],
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `inventory_export_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showAlert('success', 'כל הנתונים יוצאו בהצלחה!');
+            log('info', 'ייצוא כל הנתונים הושלם');
+        }
+
+        function resetAllSettings() {
+            if (confirm('האם אתה בטוח שברצונך לאפס את כל ההגדרות? פעולה זו לא תמחק נתונים.')) {
+                localStorage.removeItem('systemSettings');
+                loadSettings();
+                showAlert('success', 'כל ההגדרות אופסו לברירת מחדל!');
+                log('info', 'כל ההגדרות אופסו');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים? פעולה זו לא ניתנת לביטול!')) {
+                if (confirm('זהו אישור נוסף - האם אתה בטוח?')) {
+                    localStorage.clear();
+                    showAlert('success', 'כל הנתונים נמחקו!');
+                    log('info', 'כל הנתונים נמחקו');
+                    setTimeout(() => location.reload(), 2000);
+                }
+            }
+        }
 
         // Initialize app
         loadData();

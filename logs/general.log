@@ -1,0 +1,29 @@
+[INFO] 2025-10-15 08:17:04 autoreload 206760 205296 - Watching for file changes with StatReloader
+[INFO] 2025-10-28 00:21:15 autoreload 617080 616508 - Watching for file changes with StatReloader
+[INFO] 2025-10-28 00:21:30 basehttp 617080 619296 - "GET / HTTP/1.1" 200 40198
+[INFO] 2025-10-28 00:21:31 basehttp 617080 619296 - "GET /static/inventory/css/dark-theme.css HTTP/1.1" 200 15203
+[INFO] 2025-10-28 00:21:31 basehttp 617080 619248 - "GET /static/inventory/images/logo.png HTTP/1.1" 200 1771369
+[INFO] 2025-10-28 00:21:31 basehttp 617080 619248 - "GET /list-backups/ HTTP/1.1" 200 15
+[WARNING] 2025-10-28 00:21:31 basehttp 617080 619248 - "GET /favicon.ico HTTP/1.1" 404 20380
+[INFO] 2025-10-28 00:21:33 basehttp 617080 619248 - "GET /products/ HTTP/1.1" 200 103533
+[WARNING] 2025-10-28 00:21:33 basehttp 617080 619248 - "GET /media/products/0fe69384-f0e0-4381-abe7-d9cbe5b6846e.jpg HTTP/1.1" 404 20772
+[INFO] 2025-10-28 00:21:33 basehttp 617080 619248 - "GET /categories/ HTTP/1.1" 200 19712
+[INFO] 2025-10-28 00:21:34 basehttp 617080 619248 - "GET /suppliers/ HTTP/1.1" 200 15926
+[INFO] 2025-10-28 00:21:35 basehttp 617080 619248 - "GET /crm/ HTTP/1.1" 200 23982
+[INFO] 2025-10-28 00:21:35 basehttp 617080 619248 - "GET /sales/add/ HTTP/1.1" 200 56424
+[INFO] 2025-10-28 00:21:36 basehttp 617080 619248 - "GET /sales/ HTTP/1.1" 200 25256
+[INFO] 2025-10-28 00:21:37 basehttp 617080 619248 - "GET /transfers/ HTTP/1.1" 200 11459
+[INFO] 2025-10-28 00:21:37 basehttp 617080 619248 - "GET /alerts/ HTTP/1.1" 200 17075
+[INFO] 2025-10-28 00:21:38 basehttp 617080 619248 - "GET /reports/ HTTP/1.1" 200 31766
+[INFO] 2025-10-28 00:21:38 basehttp 617080 619248 - "GET /settings/ HTTP/1.1" 200 30022
+[INFO] 2025-10-28 00:21:41 basehttp 617080 619248 - "GET / HTTP/1.1" 200 40198
+[INFO] 2025-10-28 00:21:41 basehttp 617080 619248 - "GET /list-backups/ HTTP/1.1" 200 15
+[INFO] 2025-10-28 00:21:46 basehttp 617080 619248 - "POST /backup-data/ HTTP/1.1" 200 172
+[INFO] 2025-10-28 00:21:47 basehttp 617080 619248 - "GET /list-backups/ HTTP/1.1" 200 100
+[INFO] 2025-10-28 00:31:51 basehttp 617080 611680 - "GET / HTTP/1.1" 200 40198
+[INFO] 2025-10-28 00:31:51 basehttp 617080 611680 - "GET /static/inventory/css/dark-theme.css HTTP/1.1" 200 15203
+[INFO] 2025-10-28 00:31:51 basehttp 617080 611680 - "GET /static/inventory/images/logo.png HTTP/1.1" 200 1771369
+[INFO] 2025-10-28 00:31:51 basehttp 617080 611680 - "GET /list-backups/ HTTP/1.1" 200 100
+[WARNING] 2025-10-28 00:31:52 basehttp 617080 611680 - "GET /favicon.ico HTTP/1.1" 404 20380
+[INFO] 2025-10-28 00:36:33 autoreload 617080 616508 - C:\Users\User\Downloads\inventory\inventory\templatetags\invoice_tags.py changed, reloading.
+[INFO] 2025-10-28 00:36:34 autoreload 609232 594772 - Watching for file changes with StatReloader

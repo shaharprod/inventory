@@ -1,0 +1,6 @@
+{
+  "backup_date": "2025-10-28T00:21:46.070970",
+  "django_version": [],
+  "database": "django.db.backends.sqlite3",
+  "backup_version": "1.0"
+}

@@ -451,6 +451,11 @@
             <div class="copyright-badge">© 2025 Shahar Production</div>
             <h1>📦 מערכת ניהול מלאי</h1>
             <p>מערכת מלאה לניהול מלאי, CRM ומכירות</p>
+            <div id="user-header-info" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                <span id="header-username"></span> | 
+                <span id="header-license"></span> | 
+                <button class="btn btn-sm btn-danger" onclick="logoutUser()" style="margin-right: 10px;">🚪 התנתק</button>
+            </div>
         </div>
 
         <div class="nav">
@@ -651,7 +656,7 @@
 
             <div id="licensing" class="section">
                 <h2>מערכת רישוי ותשלום</h2>
-                
+
                 <div class="backup-section">
                     <h3>🔐 התחברות משתמש</h3>
                     <div id="login-section">
@@ -725,7 +730,7 @@
                         <button class="btn btn-success" onclick="showCreateUserForm()">➕ הוסף משתמש חדש</button>
                         <button class="btn btn-warning" onclick="showLicenseManagement()">🔧 ניהול רישיונות</button>
                         <button class="btn btn-info" onclick="showPaymentHistory()">💳 היסטוריית תשלומים</button>
-                        
+
                         <div id="users-list" style="margin-top: 20px;"></div>
                     </div>
                     <div id="non-admin-message">
@@ -2327,6 +2332,11 @@
             document.getElementById('license-type').textContent = getLicenseTypeText(currentUser.licenseType);
             document.getElementById('license-expiry').textContent = new Date(currentUser.licenseExpiry).toLocaleDateString('he-IL');
             
+            // הצגת מידע בכותרת
+            document.getElementById('user-header-info').style.display = 'block';
+            document.getElementById('header-username').textContent = '👤 ' + currentUser.fullname + ' (' + currentUser.username + ')';
+            document.getElementById('header-license').textContent = '🔐 ' + getLicenseTypeText(currentUser.licenseType);
+            
             if (currentUser.isAdmin) {
                 document.getElementById('admin-section').style.display = 'block';
                 document.getElementById('non-admin-message').style.display = 'none';
@@ -2339,27 +2349,27 @@
         function loginUser() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
-            
+
             if (!username || !password) {
                 showAlert('error', 'אנא מלא את כל השדות');
                 return;
             }
-            
+
             // טעינת נתוני משתמשים
             const savedLicensing = localStorage.getItem('licensingData');
             if (savedLicensing) {
                 licensingData = JSON.parse(savedLicensing);
             }
-            
+
             const user = licensingData.users.find(u => u.username === username && u.password === password);
-            
+
             if (user) {
                 currentUser = user;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 showUserInfo();
                 showAlert('success', 'התחברת בהצלחה!');
                 log('info', `משתמש ${username} התחבר למערכת`);
-                
+
                 // בדיקת הגבלות רישיון
                 checkLicenseLimits();
             } else {
@@ -2371,8 +2381,14 @@
             currentUser = null;
             localStorage.removeItem('currentUser');
             showLoginForm();
+            document.getElementById('user-header-info').style.display = 'none';
             showAlert('success', 'התנתקת בהצלחה');
             log('info', 'משתמש התנתק מהמערכת');
+            
+            // ניקוי נתונים
+            appData = { products: [], categories: [], customers: [], sales: [], suppliers: [], backups: [], emailHistory: [] };
+            localStorage.removeItem('appData');
+            updateDashboard();
         }
 
         function showRegisterForm() {
@@ -2412,26 +2428,26 @@
                 </div>
             `;
             document.body.appendChild(modal);
-            
+
             document.getElementById('register-form').addEventListener('submit', registerUser);
         }
 
         function registerUser(event) {
             event.preventDefault();
-            
+
             const username = document.getElementById('reg-username').value;
             const password = document.getElementById('reg-password').value;
             const email = document.getElementById('reg-email').value;
             const fullname = document.getElementById('reg-fullname').value;
             const company = document.getElementById('reg-company').value;
-            
+
             // בדיקה אם המשתמש כבר קיים
             const existingUser = licensingData.users.find(u => u.username === username);
             if (existingUser) {
                 showAlert('error', 'שם המשתמש כבר קיים');
                 return;
             }
-            
+
             const newUser = {
                 id: Date.now(),
                 username: username,
@@ -2446,10 +2462,10 @@
                 createdAt: new Date().toISOString(),
                 lastLogin: null
             };
-            
+
             licensingData.users.push(newUser);
             localStorage.setItem('licensingData', JSON.stringify(licensingData));
-            
+
             closeModal();
             showAlert('success', 'ההרשמה הושלמה בהצלחה! קיבלת 30 יום ניסיון חינם');
             log('info', `משתמש חדש נרשם: ${username}`);
@@ -2470,41 +2486,40 @@
             const price = licensePrices[licenseType];
             
             if (confirm(`האם אתה בטוח שברצונך לרכוש רישיון ${getLicenseTypeText(licenseType)} תמורת ₪${price}/חודש?`)) {
-                // סימולציה של תשלום
-                showAlert('info', 'מעביר אותך לעמוד התשלום...');
+                // מעבר לטפענת תשלום PayPal
+                const paymentForm = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h3>המשך לתשלום PayPal</h3>
+                        <p>תועבר למעבדת תשלומים מאובטחת של PayPal</p>
+                        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+                            <input type="hidden" name="cmd" value="_xclick">
+                            <input type="hidden" name="business" value="shaharprod@gmail.com">
+                            <input type="hidden" name="item_name" value="רישיון ${getLicenseTypeText(licenseType)} - מערכת ניהול מלאי">
+                            <input type="hidden" name="amount" value="${price}">
+                            <input type="hidden" name="currency_code" value="ILS">
+                            <input type="hidden" name="return" value="${window.location.href}?payment=success&type=${licenseType}">
+                            <input type="hidden" name="cancel_return" value="${window.location.href}?payment=cancel">
+                            <input type="hidden" name="custom" value="${currentUser.id}_${licenseType}">
+                            <button type="submit" class="btn btn-success" style="font-size: 18px; padding: 15px 30px;">
+                                💳 לשלם באמצעות PayPal - ₪${price}
+                            </button>
+                        </form>
+                        <button type="button" class="btn" onclick="closeModal()" style="margin-top: 10px;">ביטול</button>
+                    </div>
+                `;
                 
-                setTimeout(() => {
-                    // עדכון רישיון המשתמש
-                    currentUser.licenseType = licenseType;
-                    currentUser.licenseExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 יום
-                    
-                    // עדכון במערכת
-                    const userIndex = licensingData.users.findIndex(u => u.id === currentUser.id);
-                    if (userIndex !== -1) {
-                        licensingData.users[userIndex] = currentUser;
-                    }
-                    
-                    // הוספת תשלום להיסטוריה
-                    const payment = {
-                        id: Date.now(),
-                        userId: currentUser.id,
-                        username: currentUser.username,
-                        licenseType: licenseType,
-                        amount: price,
-                        date: new Date().toISOString(),
-                        status: 'completed',
-                        method: 'credit_card'
-                    };
-                    
-                    licensingData.payments.push(payment);
-                    
-                    localStorage.setItem('licensingData', JSON.stringify(licensingData));
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    
-                    showUserInfo();
-                    showAlert('success', `רישיון ${getLicenseTypeText(licenseType)} נרכש בהצלחה!`);
-                    log('info', `משתמש ${currentUser.username} רכש רישיון ${licenseType}`);
-                }, 2000);
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.style.display = 'block';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 500px;">
+                        <span class="close" onclick="closeModal()">&times;</span>
+                        ${paymentForm}
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                log('info', `משתמש ${currentUser.username} מתחיל תהליך רכישת רישיון ${licenseType}`);
             }
         }
 
@@ -2520,23 +2535,23 @@
 
         function checkLicenseLimits() {
             if (!currentUser) return;
-            
+
             const limits = getLicenseLimits(currentUser.licenseType);
             const currentCounts = getCurrentCounts();
-            
+
             // בדיקת הגבלות
             if (currentCounts.products > limits.products) {
                 showAlert('warning', `הגעת למגבלת המוצרים ברישיון שלך (${limits.products}). שדרג את הרישיון להמשך`);
             }
-            
+
             if (currentCounts.customers > limits.customers) {
                 showAlert('warning', `הגעת למגבלת הלקוחות ברישיון שלך (${limits.customers}). שדרג את הרישיון להמשך`);
             }
-            
+
             // בדיקת תאריך פג תוקף
             const expiryDate = new Date(currentUser.licenseExpiry);
             const daysUntilExpiry = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
-            
+
             if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
                 showAlert('warning', `הרישיון שלך יפוג בעוד ${daysUntilExpiry} ימים. אנא חדש את הרישיון`);
             } else if (daysUntilExpiry <= 0) {
@@ -2575,7 +2590,7 @@
                 showAlert('error', 'רק מנהלי מערכת יכולים ליצור משתמשים');
                 return;
             }
-            
+
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.style.display = 'block';
@@ -2626,13 +2641,13 @@
                 </div>
             `;
             document.body.appendChild(modal);
-            
+
             document.getElementById('create-user-form').addEventListener('submit', createUser);
         }
 
         function createUser(event) {
             event.preventDefault();
-            
+
             const username = document.getElementById('new-username').value;
             const password = document.getElementById('new-password').value;
             const email = document.getElementById('new-email').value;
@@ -2640,14 +2655,14 @@
             const company = document.getElementById('new-company').value;
             const licenseType = document.getElementById('new-license-type').value;
             const isAdmin = document.getElementById('new-is-admin').checked;
-            
+
             // בדיקה אם המשתמש כבר קיים
             const existingUser = licensingData.users.find(u => u.username === username);
             if (existingUser) {
                 showAlert('error', 'שם המשתמש כבר קיים');
                 return;
             }
-            
+
             const newUser = {
                 id: Date.now(),
                 username: username,
@@ -2662,10 +2677,10 @@
                 createdAt: new Date().toISOString(),
                 lastLogin: null
             };
-            
+
             licensingData.users.push(newUser);
             localStorage.setItem('licensingData', JSON.stringify(licensingData));
-            
+
             closeModal();
             renderUsersList();
             showAlert('success', 'המשתמש נוצר בהצלחה!');
@@ -2675,19 +2690,19 @@
         function renderUsersList() {
             const container = document.getElementById('users-list');
             container.innerHTML = '';
-            
+
             if (!licensingData.users || licensingData.users.length === 0) {
                 container.innerHTML = '<p>אין משתמשים במערכת</p>';
                 return;
             }
-            
+
             licensingData.users.forEach(user => {
                 const userCard = document.createElement('div');
                 userCard.className = 'user-card';
-                
+
                 const isExpired = new Date(user.licenseExpiry) < new Date();
                 const licenseClass = isExpired ? 'license-expired' : `license-${user.licenseType}`;
-                
+
                 userCard.innerHTML = `
                     <div class="user-info">
                         <h5>${user.fullname} (${user.username})</h5>
@@ -2705,7 +2720,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 container.appendChild(userCard);
             });
         }
@@ -2717,7 +2732,7 @@
         function deleteUser(userId) {
             const user = licensingData.users.find(u => u.id === userId);
             if (!user) return;
-            
+
             if (confirm(`האם אתה בטוח שברצונך למחוק את המשתמש ${user.username}?`)) {
                 licensingData.users = licensingData.users.filter(u => u.id !== userId);
                 localStorage.setItem('licensingData', JSON.stringify(licensingData));
@@ -2743,19 +2758,19 @@
                 </div>
             `;
             document.body.appendChild(modal);
-            
+
             renderPaymentsList();
         }
 
         function renderPaymentsList() {
             const container = document.getElementById('payments-list');
             container.innerHTML = '';
-            
+
             if (!licensingData.payments || licensingData.payments.length === 0) {
                 container.innerHTML = '<p>אין תשלומים במערכת</p>';
                 return;
             }
-            
+
             const paymentsHtml = licensingData.payments.map(payment => `
                 <div class="user-card">
                     <div class="user-info">
@@ -2771,21 +2786,21 @@
                     </div>
                 </div>
             `).join('');
-            
+
             container.innerHTML = paymentsHtml;
         }
 
         function renderLicensingStats() {
             const container = document.getElementById('licensing-stats');
-            
+
             const totalUsers = licensingData.users ? licensingData.users.length : 0;
             const activeUsers = licensingData.users ? licensingData.users.filter(u => u.isActive).length : 0;
             const totalRevenue = licensingData.payments ? licensingData.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
-            const monthlyRevenue = licensingData.payments ? 
+            const monthlyRevenue = licensingData.payments ?
                 licensingData.payments
                     .filter(p => new Date(p.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                     .reduce((sum, p) => sum + p.amount, 0) : 0;
-            
+
             container.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                     <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
@@ -3715,6 +3730,72 @@
                     </div>
                 </div>
             `;
+        }
+
+        // טיפול בהחזרה מתשלום PayPal
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentStatus = urlParams.get('payment');
+            const licenseType = urlParams.get('type');
+            
+            if (paymentStatus === 'success' && licenseType) {
+                // טעינת נתוני משתמש
+                const savedUser = localStorage.getItem('currentUser');
+                const savedLicensing = localStorage.getItem('licensingData');
+                
+                if (savedUser && savedLicensing) {
+                    currentUser = JSON.parse(savedUser);
+                    licensingData = JSON.parse(savedLicensing);
+                    
+                    // עדכון רישיון המשתמש
+                    currentUser.licenseType = licenseType;
+                    currentUser.licenseExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+                    
+                    // עדכון במערכת
+                    const userIndex = licensingData.users.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        licensingData.users[userIndex] = currentUser;
+                    }
+                    
+                    // הוספת תשלום להיסטוריה
+                    const payment = {
+                        id: Date.now(),
+                        userId: currentUser.id,
+                        username: currentUser.username,
+                        licenseType: licenseType,
+                        amount: getLicensePrice(licenseType),
+                        date: new Date().toISOString(),
+                        status: 'completed',
+                        method: 'paypal'
+                    };
+                    
+                    licensingData.payments.push(payment);
+                    
+                    localStorage.setItem('licensingData', JSON.stringify(licensingData));
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    // ניקוי URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    showAlert('success', `רישיון ${getLicenseTypeText(licenseType)} נרכש בהצלחה!`);
+                    log('info', `משתמש ${currentUser.username} רכש רישיון ${licenseType}`);
+                    
+                    // רענון דף
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } else if (paymentStatus === 'cancel') {
+                showAlert('error', 'התשלום בוטל');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
+        function getLicensePrice(licenseType) {
+            const prices = {
+                'basic': 99,
+                'professional': 199,
+                'enterprise': 399
+            };
+            return prices[licenseType] || 0;
         }
 
         // Initialize app

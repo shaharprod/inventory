@@ -124,6 +124,10 @@
         }
         .btn-danger { background: #e53e3e; }
         .btn-danger:hover { background: #c53030; }
+        .btn-success { background: #38a169; }
+        .btn-success:hover { background: #2f855a; }
+        .btn-warning { background: #ed8936; }
+        .btn-warning:hover { background: #dd6b20; }
         .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
@@ -183,6 +187,47 @@
             color: white;
             font-size: 0.9em;
         }
+        .alert {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        .alert-success {
+            background: #f0fff4;
+            border-color: #38a169;
+            color: #2f855a;
+        }
+        .alert-error {
+            background: #fed7d7;
+            border-color: #e53e3e;
+            color: #c53030;
+        }
+        .alert-warning {
+            background: #fef5e7;
+            border-color: #ed8936;
+            color: #dd6b20;
+        }
+        .backup-section {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .email-section {
+            background: #e6fffa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .log-entry {
+            background: #f7fafc;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -201,6 +246,9 @@
             <button onclick="showSection('sales')">💰 מכירות</button>
             <button onclick="showSection('suppliers')">🏭 ספקים</button>
             <button onclick="showSection('reports')">📊 דוחות</button>
+            <button onclick="showSection('backup')">💾 גיבוי</button>
+            <button onclick="showSection('email')">📧 מייל</button>
+            <button onclick="showSection('logs')">📝 לוגים</button>
         </div>
 
         <div class="content">
@@ -253,6 +301,66 @@
                 <h2>דוחות</h2>
                 <div id="reports-content"></div>
             </div>
+
+            <div id="backup" class="section">
+                <h2>גיבוי ושחזור</h2>
+                <div class="backup-section">
+                    <h3>גיבוי נתונים</h3>
+                    <p>יצירת גיבוי של כל הנתונים במערכת</p>
+                    <button class="btn btn-success" onclick="createBackup()">💾 צור גיבוי</button>
+                    <button class="btn btn-warning" onclick="downloadBackup()">📥 הורד גיבוי</button>
+                </div>
+                
+                <div class="backup-section">
+                    <h3>שחזור נתונים</h3>
+                    <p>שחזור נתונים מגיבוי קיים</p>
+                    <input type="file" id="restore-file" accept=".json" style="margin: 10px 0;">
+                    <button class="btn btn-warning" onclick="restoreBackup()">🔄 שחזר מגיבוי</button>
+                </div>
+
+                <div class="backup-section">
+                    <h3>רשימת גיבויים</h3>
+                    <div id="backup-list"></div>
+                </div>
+            </div>
+
+            <div id="email" class="section">
+                <h2>שליחת מייל</h2>
+                <div class="email-section">
+                    <h3>שליחת דוח יומי</h3>
+                    <div class="form-group">
+                        <label>אימייל נמען:</label>
+                        <input type="email" id="email-recipient" placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>נושא:</label>
+                        <input type="text" id="email-subject" value="דוח יומי - מערכת ניהול מלאי">
+                    </div>
+                    <div class="form-group">
+                        <label>תוכן:</label>
+                        <textarea id="email-content" rows="5" placeholder="תוכן המייל..."></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="sendEmail()">📧 שלח מייל</button>
+                    <button class="btn" onclick="generateDailyReport()">📊 צור דוח יומי</button>
+                </div>
+
+                <div class="email-section">
+                    <h3>היסטוריית מיילים</h3>
+                    <div id="email-history"></div>
+                </div>
+            </div>
+
+            <div id="logs" class="section">
+                <h2>לוגים ומעקב</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn" onclick="viewLogs('all')">כל הלוגים</button>
+                    <button class="btn" onclick="viewLogs('errors')">שגיאות</button>
+                    <button class="btn" onclick="viewLogs('security')">אבטחה</button>
+                    <button class="btn" onclick="viewLogs('database')">מסד נתונים</button>
+                    <button class="btn btn-danger" onclick="clearLogs()">נקה לוגים</button>
+                </div>
+                <div id="logs-content"></div>
+            </div>
         </div>
         
         <footer>
@@ -299,7 +407,11 @@
         let appData = { products: [], categories: [], customers: [], sales: [], suppliers: [], locations: [] };
         let editingProductId = null;
         let editingCustomerId = null;
+        let logs = [];
+        let emailHistory = [];
+        let backups = [];
 
+        // Initialize app
         async function loadData() {
             try {
                 const response = await fetch('data.json');
@@ -312,17 +424,297 @@
                     else if (item.model === 'inventory.supplier') appData.suppliers.push(item);
                     else if (item.model === 'inventory.location') appData.locations.push(item);
                 });
+                
+                // Load from localStorage
+                loadFromStorage();
+                
                 updateDashboard();
                 renderProducts();
                 renderCustomers();
                 renderSales();
                 renderSuppliers();
                 renderCategories();
+                renderBackups();
+                renderEmailHistory();
+                
+                log('info', 'מערכת נטענה בהצלחה');
             } catch (error) {
                 console.error('Error loading data:', error);
+                log('error', 'שגיאה בטעינת נתונים: ' + error.message);
             }
         }
 
+        // Storage functions
+        function saveToStorage() {
+            localStorage.setItem('inventory_data', JSON.stringify(appData));
+            localStorage.setItem('inventory_logs', JSON.stringify(logs));
+            localStorage.setItem('inventory_emails', JSON.stringify(emailHistory));
+            localStorage.setItem('inventory_backups', JSON.stringify(backups));
+        }
+
+        function loadFromStorage() {
+            const storedData = localStorage.getItem('inventory_data');
+            const storedLogs = localStorage.getItem('inventory_logs');
+            const storedEmails = localStorage.getItem('inventory_emails');
+            const storedBackups = localStorage.getItem('inventory_backups');
+            
+            if (storedData) {
+                const parsed = JSON.parse(storedData);
+                appData = { ...appData, ...parsed };
+            }
+            if (storedLogs) logs = JSON.parse(storedLogs);
+            if (storedEmails) emailHistory = JSON.parse(storedEmails);
+            if (storedBackups) backups = JSON.parse(storedBackups);
+        }
+
+        // Logging system
+        function log(type, message) {
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                type: type,
+                message: message,
+                user: 'System'
+            };
+            logs.unshift(logEntry);
+            if (logs.length > 1000) logs = logs.slice(0, 1000); // Keep only last 1000 logs
+            saveToStorage();
+        }
+
+        function viewLogs(type) {
+            const container = document.getElementById('logs-content');
+            let filteredLogs = logs;
+            
+            if (type !== 'all') {
+                filteredLogs = logs.filter(log => log.type === type);
+            }
+            
+            container.innerHTML = '';
+            filteredLogs.forEach(log => {
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerHTML = `
+                    <strong>[${new Date(log.timestamp).toLocaleString()}]</strong> 
+                    <span style="color: ${getLogColor(log.type)}">[${log.type.toUpperCase()}]</span> 
+                    ${log.message}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function getLogColor(type) {
+            switch(type) {
+                case 'error': return '#e53e3e';
+                case 'warning': return '#ed8936';
+                case 'info': return '#38a169';
+                case 'security': return '#9f7aea';
+                case 'database': return '#3182ce';
+                default: return '#4a5568';
+            }
+        }
+
+        function clearLogs() {
+            if (confirm('האם אתה בטוח שברצונך למחוק את כל הלוגים?')) {
+                logs = [];
+                saveToStorage();
+                viewLogs('all');
+                log('info', 'לוגים נוקו בהצלחה');
+            }
+        }
+
+        // Backup system
+        function createBackup() {
+            const backup = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                data: JSON.parse(JSON.stringify(appData)),
+                description: 'גיבוי אוטומטי'
+            };
+            
+            backups.unshift(backup);
+            saveToStorage();
+            renderBackups();
+            log('info', 'גיבוי נוצר בהצלחה');
+            showAlert('success', 'גיבוי נוצר בהצלחה!');
+        }
+
+        function downloadBackup() {
+            const backup = {
+                timestamp: new Date().toISOString(),
+                data: appData,
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `inventory_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log('info', 'גיבוי הורד למחשב');
+            showAlert('success', 'גיבוי הורד בהצלחה!');
+        }
+
+        function restoreBackup() {
+            const fileInput = document.getElementById('restore-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('error', 'אנא בחר קובץ גיבוי');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backup = JSON.parse(e.target.result);
+                    appData = backup.data;
+                    saveToStorage();
+                    
+                    updateDashboard();
+                    renderProducts();
+                    renderCustomers();
+                    renderSales();
+                    renderSuppliers();
+                    renderCategories();
+                    
+                    log('info', 'נתונים שוחזרו מגיבוי');
+                    showAlert('success', 'נתונים שוחזרו בהצלחה!');
+                } catch (error) {
+                    log('error', 'שגיאה בשחזור: ' + error.message);
+                    showAlert('error', 'שגיאה בקובץ הגיבוי');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function renderBackups() {
+            const container = document.getElementById('backup-list');
+            container.innerHTML = '';
+            
+            backups.forEach(backup => {
+                const div = document.createElement('div');
+                div.className = 'report-card';
+                div.innerHTML = `
+                    <h4>גיבוי ${new Date(backup.timestamp).toLocaleString()}</h4>
+                    <p>${backup.description}</p>
+                    <button class="btn btn-warning" onclick="restoreFromList('${backup.id}')">שחזר</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function restoreFromList(backupId) {
+            const backup = backups.find(b => b.id == backupId);
+            if (backup && confirm('האם אתה בטוח שברצונך לשחזר מגיבוי זה?')) {
+                appData = JSON.parse(JSON.stringify(backup.data));
+                saveToStorage();
+                
+                updateDashboard();
+                renderProducts();
+                renderCustomers();
+                renderSales();
+                renderSuppliers();
+                renderCategories();
+                
+                log('info', 'נתונים שוחזרו מגיבוי: ' + backup.timestamp);
+                showAlert('success', 'נתונים שוחזרו בהצלחה!');
+            }
+        }
+
+        // Email system
+        function sendEmail() {
+            const recipient = document.getElementById('email-recipient').value;
+            const subject = document.getElementById('email-subject').value;
+            const content = document.getElementById('email-content').value;
+            
+            if (!recipient || !subject || !content) {
+                showAlert('error', 'אנא מלא את כל השדות');
+                return;
+            }
+            
+            // Simulate email sending
+            const email = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                recipient: recipient,
+                subject: subject,
+                content: content,
+                status: 'sent'
+            };
+            
+            emailHistory.unshift(email);
+            saveToStorage();
+            renderEmailHistory();
+            
+            log('info', `מייל נשלח ל: ${recipient}`);
+            showAlert('success', 'מייל נשלח בהצלחה!');
+            
+            // Clear form
+            document.getElementById('email-recipient').value = '';
+            document.getElementById('email-content').value = '';
+        }
+
+        function generateDailyReport() {
+            const today = new Date().toISOString().split('T')[0];
+            let todaySales = 0;
+            let todayCustomers = 0;
+            
+            appData.sales.forEach(s => {
+                if (s.fields.created_at && s.fields.created_at.startsWith(today)) {
+                    todaySales += parseFloat(s.fields.total_amount || 0);
+                    todayCustomers++;
+                }
+            });
+            
+            const report = `
+דוח יומי - ${today}
+
+סיכום מכירות היום:
+- סה"כ מכירות: ₪${todaySales.toFixed(2)}
+- מספר לקוחות: ${todayCustomers}
+- סה"כ מוצרים במלאי: ${appData.products.length}
+- סה"כ לקוחות במערכת: ${appData.customers.length}
+
+דוח זה נוצר אוטומטית על ידי מערכת ניהול המלאי.
+            `;
+            
+            document.getElementById('email-content').value = report;
+            showAlert('success', 'דוח יומי נוצר!');
+        }
+
+        function renderEmailHistory() {
+            const container = document.getElementById('email-history');
+            container.innerHTML = '';
+            
+            emailHistory.forEach(email => {
+                const div = document.createElement('div');
+                div.className = 'report-card';
+                div.innerHTML = `
+                    <h4>${email.subject}</h4>
+                    <p><strong>נמען:</strong> ${email.recipient}</p>
+                    <p><strong>תאריך:</strong> ${new Date(email.timestamp).toLocaleString()}</p>
+                    <p><strong>סטטוס:</strong> ${email.status}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Alert system
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            document.querySelector('.content').insertBefore(alertDiv, document.querySelector('.content').firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Dashboard functions
         function updateDashboard() {
             document.getElementById('total-products').textContent = appData.products.length;
             let totalValue = 0;
@@ -395,9 +787,12 @@
             if (editingProductId) {
                 const index = appData.products.findIndex(p => p.pk === editingProductId);
                 appData.products[index] = product;
+                log('info', `מוצר עודכן: ${product.fields.name}`);
             } else {
                 appData.products.push(product);
+                log('info', `מוצר נוסף: ${product.fields.name}`);
             }
+            saveToStorage();
             renderProducts();
             updateDashboard();
             closeModal();
@@ -422,9 +817,12 @@
 
         function deleteProduct(id) {
             if (confirm('האם אתה בטוח שברצונך למחוק מוצר זה?')) {
+                const product = appData.products.find(p => p.pk === id);
                 appData.products = appData.products.filter(p => p.pk !== id);
+                saveToStorage();
                 renderProducts();
                 updateDashboard();
+                log('warning', `מוצר נמחק: ${product ? product.fields.name : 'לא ידוע'}`);
             }
         }
 
@@ -470,9 +868,12 @@
             if (editingCustomerId) {
                 const index = appData.customers.findIndex(c => c.pk === editingCustomerId);
                 appData.customers[index] = customer;
+                log('info', `לקוח עודכן: ${customer.fields.name}`);
             } else {
                 appData.customers.push(customer);
+                log('info', `לקוח נוסף: ${customer.fields.name}`);
             }
+            saveToStorage();
             renderCustomers();
             updateDashboard();
             closeModal();
@@ -492,9 +893,12 @@
 
         function deleteCustomer(id) {
             if (confirm('האם אתה בטוח שברצונך למחוק לקוח זה?')) {
+                const customer = appData.customers.find(c => c.pk === id);
                 appData.customers = appData.customers.filter(c => c.pk !== id);
+                saveToStorage();
                 renderCustomers();
                 updateDashboard();
+                log('warning', `לקוח נמחק: ${customer ? customer.fields.name : 'לא ידוע'}`);
             }
         }
 
@@ -585,6 +989,9 @@
             else if (section === 'suppliers') renderSuppliers();
             else if (section === 'categories') renderCategories();
             else if (section === 'reports') generateReports();
+            else if (section === 'backup') renderBackups();
+            else if (section === 'email') renderEmailHistory();
+            else if (section === 'logs') viewLogs('all');
         }
 
         function closeModal() {
@@ -595,6 +1002,13 @@
             if (event.target.classList.contains('modal')) closeModal();
         }
 
+        // Auto-save every 30 seconds
+        setInterval(() => {
+            saveToStorage();
+            log('info', 'שמירה אוטומטית בוצעה');
+        }, 30000);
+
+        // Initialize app
         loadData();
     </script>
 </body>

@@ -279,6 +279,29 @@
             padding: 4px 8px;
             font-size: 12px;
         }
+
+        .sale-card {
+            transition: transform 0.2s ease;
+        }
+
+        .sale-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .sale-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .sale-item select,
+        .sale-item input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
         .email-section {
             background: #e6fffa;
             padding: 20px;
@@ -352,11 +375,41 @@
             </div>
 
             <div id="sales" class="section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>מכירות</h2>
-                    <button class="btn" onclick="showAddSaleForm()">+ הוסף מכירה</button>
+                <h2>מכירות</h2>
+                
+                <div class="backup-section">
+                    <h3>יצירת מכירה חדשה</h3>
+                    <button class="btn btn-success" onclick="showCreateSaleForm()">💰 צור מכירה חדשה</button>
+                    <button class="btn btn-warning" onclick="showQuickSaleForm()">⚡ מכירה מהירה</button>
                 </div>
-                <div class="product-grid" id="sales-list"></div>
+
+                <div class="backup-section">
+                    <h3>חיפוש וסינון מכירות</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <input type="text" id="sales-search" placeholder="חיפוש לפי לקוח או מוצר" style="flex: 1; min-width: 200px;">
+                        <select id="sales-status-filter">
+                            <option value="">כל הסטטוסים</option>
+                            <option value="pending">ממתין</option>
+                            <option value="completed">הושלם</option>
+                            <option value="cancelled">בוטל</option>
+                            <option value="refunded">הוחזר</option>
+                        </select>
+                        <input type="date" id="sales-date-from" placeholder="מתאריך">
+                        <input type="date" id="sales-date-to" placeholder="עד תאריך">
+                        <button class="btn" onclick="filterSales()">🔍 חפש</button>
+                        <button class="btn" onclick="clearSalesFilters()">🗑️ נקה</button>
+                    </div>
+                </div>
+
+                <div class="backup-section">
+                    <h3>סטטיסטיקות מכירות</h3>
+                    <div id="sales-stats"></div>
+                </div>
+
+                <div class="backup-section">
+                    <h3>רשימת מכירות</h3>
+                    <div id="sales-list"></div>
+                </div>
             </div>
 
             <div id="suppliers" class="section">
@@ -431,7 +484,7 @@
 
             <div id="invoices" class="section">
                 <h2>חשבוניות</h2>
-                
+
                 <div class="backup-section">
                     <h3>יצירת חשבונית חדשה</h3>
                     <button class="btn btn-success" onclick="showCreateInvoiceForm()">🧾 צור חשבונית חדשה</button>
@@ -1303,8 +1356,716 @@
             return card;
         }
 
+        // פונקציות מכירות מתקדמות
+        function showCreateSaleForm() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>יצירת מכירה חדשה</h2>
+                    <form id="sale-form">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label>לקוח:</label>
+                                <select id="sale-customer" required>
+                                    <option value="">בחר לקוח</option>
+                                    ${appData.customers.map(customer => 
+                                        `<option value="${customer.pk}">${customer.fields.name}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>תאריך מכירה:</label>
+                                <input type="date" id="sale-date" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>שיטת תשלום:</label>
+                            <select id="sale-payment-method">
+                                <option value="cash">מזומן</option>
+                                <option value="credit">אשראי</option>
+                                <option value="check">המחאה</option>
+                                <option value="transfer">העברה בנקאית</option>
+                                <option value="installments">תשלומים</option>
+                            </select>
+                        </div>
+
+                        <div id="sale-items">
+                            <h3>פריטים במכירה</h3>
+                            <div class="sale-item" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                <select class="item-product" style="flex: 2;" required>
+                                    <option value="">בחר מוצר</option>
+                                    ${appData.products.map(product => 
+                                        `<option value="${product.pk}" data-price="${product.fields.price}" data-stock="${product.fields.stock}">${product.fields.name} (מלאי: ${product.fields.stock})</option>`
+                                    ).join('')}
+                                </select>
+                                <input type="number" class="item-quantity" placeholder="כמות" min="1" value="1" style="flex: 1;" required>
+                                <input type="number" class="item-price" placeholder="מחיר" step="0.01" style="flex: 1;" required>
+                                <input type="number" class="item-discount" placeholder="הנחה %" min="0" max="100" value="0" style="flex: 1;">
+                                <span class="item-subtotal" style="flex: 1; font-weight: bold;">₪0</span>
+                                <button type="button" onclick="removeSaleItem(this)">🗑️</button>
+                            </div>
+                        </div>
+                        
+                        <button type="button" onclick="addSaleItem()">➕ הוסף פריט</button>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>סכום לפני הנחה:</span>
+                                <span id="sale-subtotal">₪0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>הנחה כוללת:</span>
+                                <span id="sale-total-discount">₪0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>מע"מ (17%):</span>
+                                <span id="sale-tax">₪0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; border-top: 2px solid #333; padding-top: 10px;">
+                                <span>סכום כולל:</span>
+                                <span id="sale-total">₪0</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>הערות:</label>
+                            <textarea id="sale-notes" rows="3"></textarea>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-success">💾 שמור מכירה</button>
+                            <button type="button" class="btn btn-warning" onclick="saveSaleAndCreateInvoice()">🧾 שמור וצור חשבונית</button>
+                            <button type="button" class="btn" onclick="closeModal()">ביטול</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // הגדרת תאריך היום כברירת מחדל
+            document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
+            
+            // הוספת מאזינים
+            document.getElementById('sale-form').addEventListener('submit', saveSale);
+            setupSaleItemListeners();
+        }
+
+        function showQuickSaleForm() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>מכירה מהירה</h2>
+                    <form id="quick-sale-form">
+                        <div class="form-group">
+                            <label>מוצר:</label>
+                            <select id="quick-product" required>
+                                <option value="">בחר מוצר</option>
+                                ${appData.products.map(product => 
+                                    `<option value="${product.pk}" data-price="${product.fields.price}">${product.fields.name} - ₪${product.fields.price}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>כמות:</label>
+                            <input type="number" id="quick-quantity" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מחיר ליחידה:</label>
+                            <input type="number" id="quick-price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>לקוח (אופציונלי):</label>
+                            <select id="quick-customer">
+                                <option value="">לקוח כללי</option>
+                                ${appData.customers.map(customer => 
+                                    `<option value="${customer.pk}">${customer.fields.name}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-success">💰 סיים מכירה</button>
+                            <button type="button" class="btn" onclick="closeModal()">ביטול</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // הוספת מאזין לשינוי מוצר
+            document.getElementById('quick-product').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.dataset.price) {
+                    document.getElementById('quick-price').value = selectedOption.dataset.price;
+                }
+            });
+
+            document.getElementById('quick-sale-form').addEventListener('submit', saveQuickSale);
+        }
+
+        function addSaleItem() {
+            const itemsContainer = document.getElementById('sale-items');
+            const newItem = document.createElement('div');
+            newItem.className = 'sale-item';
+            newItem.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center;';
+            
+            newItem.innerHTML = `
+                <select class="item-product" style="flex: 2;" required>
+                    <option value="">בחר מוצר</option>
+                    ${appData.products.map(product => 
+                        `<option value="${product.pk}" data-price="${product.fields.price}" data-stock="${product.fields.stock}">${product.fields.name} (מלאי: ${product.fields.stock})</option>`
+                    ).join('')}
+                </select>
+                <input type="number" class="item-quantity" placeholder="כמות" min="1" value="1" style="flex: 1;" required>
+                <input type="number" class="item-price" placeholder="מחיר" step="0.01" style="flex: 1;" required>
+                <input type="number" class="item-discount" placeholder="הנחה %" min="0" max="100" value="0" style="flex: 1;">
+                <span class="item-subtotal" style="flex: 1; font-weight: bold;">₪0</span>
+                <button type="button" onclick="removeSaleItem(this)">🗑️</button>
+            `;
+            
+            itemsContainer.appendChild(newItem);
+            setupSaleItemListeners(newItem);
+        }
+
+        function removeSaleItem(button) {
+            button.parentElement.remove();
+            updateSaleTotals();
+        }
+
+        function setupSaleItemListeners(itemElement = null) {
+            const items = itemElement ? [itemElement] : document.querySelectorAll('.sale-item');
+            
+            items.forEach(item => {
+                const productSelect = item.querySelector('.item-product');
+                const quantityInput = item.querySelector('.item-quantity');
+                const priceInput = item.querySelector('.item-price');
+                const discountInput = item.querySelector('.item-discount');
+                
+                // מאזין לשינוי מוצר
+                productSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.dataset.price) {
+                        priceInput.value = selectedOption.dataset.price;
+                        updateSaleItemTotal(item);
+                    }
+                });
+                
+                // מאזינים לעדכון סכום
+                [quantityInput, priceInput, discountInput].forEach(input => {
+                    input.addEventListener('input', () => updateSaleItemTotal(item));
+                });
+            });
+        }
+
+        function updateSaleItemTotal(item) {
+            const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+            const price = parseFloat(item.querySelector('.item-price').value) || 0;
+            const discount = parseFloat(item.querySelector('.item-discount').value) || 0;
+            
+            const subtotal = quantity * price;
+            const discountAmount = subtotal * (discount / 100);
+            const finalAmount = subtotal - discountAmount;
+            
+            item.querySelector('.item-subtotal').textContent = `₪${finalAmount.toLocaleString()}`;
+            updateSaleTotals();
+        }
+
+        function updateSaleTotals() {
+            const items = document.querySelectorAll('.sale-item');
+            let subtotal = 0;
+            let totalDiscount = 0;
+            
+            items.forEach(item => {
+                const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+                const price = parseFloat(item.querySelector('.item-price').value) || 0;
+                const discount = parseFloat(item.querySelector('.item-discount').value) || 0;
+                
+                const itemSubtotal = quantity * price;
+                const itemDiscount = itemSubtotal * (discount / 100);
+                
+                subtotal += itemSubtotal;
+                totalDiscount += itemDiscount;
+            });
+            
+            const afterDiscount = subtotal - totalDiscount;
+            const tax = afterDiscount * 0.17;
+            const total = afterDiscount + tax;
+            
+            document.getElementById('sale-subtotal').textContent = `₪${subtotal.toLocaleString()}`;
+            document.getElementById('sale-total-discount').textContent = `₪${totalDiscount.toLocaleString()}`;
+            document.getElementById('sale-tax').textContent = `₪${tax.toLocaleString()}`;
+            document.getElementById('sale-total').textContent = `₪${total.toLocaleString()}`;
+        }
+
+        function saveSale(event) {
+            event.preventDefault();
+            
+            const customerId = document.getElementById('sale-customer').value;
+            const date = document.getElementById('sale-date').value;
+            const paymentMethod = document.getElementById('sale-payment-method').value;
+            const notes = document.getElementById('sale-notes').value;
+            
+            if (!customerId) {
+                showAlert('error', 'אנא בחר לקוח');
+                return;
+            }
+            
+            const items = [];
+            const itemElements = document.querySelectorAll('.sale-item');
+            let totalAmount = 0;
+            
+            itemElements.forEach(item => {
+                const productId = item.querySelector('.item-product').value;
+                const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+                const price = parseFloat(item.querySelector('.item-price').value) || 0;
+                const discount = parseFloat(item.querySelector('.item-discount').value) || 0;
+                
+                if (productId && quantity > 0 && price > 0) {
+                    const subtotal = quantity * price;
+                    const discountAmount = subtotal * (discount / 100);
+                    const finalAmount = subtotal - discountAmount;
+                    totalAmount += finalAmount;
+                    
+                    items.push({
+                        productId: parseInt(productId),
+                        quantity: quantity,
+                        price: price,
+                        discount: discount,
+                        discountAmount: discountAmount,
+                        subtotal: finalAmount
+                    });
+                }
+            });
+            
+            if (items.length === 0) {
+                showAlert('error', 'אנא הוסף לפחות פריט אחד');
+                return;
+            }
+            
+            const customer = appData.customers.find(c => c.pk == customerId);
+            const saleNumber = generateSaleNumber();
+            
+            const sale = {
+                id: Date.now(),
+                saleNumber: saleNumber,
+                customerId: parseInt(customerId),
+                customerName: customer.fields.name,
+                date: date,
+                items: items,
+                subtotal: totalAmount,
+                taxRate: 17,
+                taxAmount: totalAmount * 0.17,
+                totalAmount: totalAmount * 1.17,
+                paymentMethod: paymentMethod,
+                status: 'completed',
+                notes: notes,
+                createdAt: new Date().toISOString()
+            };
+            
+            if (!appData.sales) appData.sales = [];
+            appData.sales.push(sale);
+            
+            // עדכון מלאי המוצרים
+            items.forEach(item => {
+                const product = appData.products.find(p => p.pk == item.productId);
+                if (product) {
+                    product.fields.stock -= item.quantity;
+                    if (product.fields.stock < 0) product.fields.stock = 0;
+                }
+            });
+            
+            saveToStorage();
+            
+            closeModal();
+            renderSales();
+            showAlert('success', 'המכירה נוצרה בהצלחה!');
+            log('info', `מכירה חדשה נוצרה: #${saleNumber}`);
+        }
+
+        function saveSaleAndCreateInvoice() {
+            // שמירת המכירה קודם
+            const form = document.getElementById('sale-form');
+            const submitEvent = new Event('submit');
+            form.dispatchEvent(submitEvent);
+            
+            // יצירת חשבונית מהמכירה
+            setTimeout(() => {
+                if (appData.sales && appData.sales.length > 0) {
+                    const lastSale = appData.sales[appData.sales.length - 1];
+                    createInvoiceFromSale(lastSale);
+                }
+            }, 500);
+        }
+
+        function createInvoiceFromSale(sale) {
+            const customer = appData.customers.find(c => c.pk == sale.customerId);
+            const invoiceNumber = generateInvoiceNumber();
+            
+            const invoice = {
+                id: Date.now(),
+                invoiceNumber: invoiceNumber,
+                customerId: sale.customerId,
+                customerName: customer ? customer.fields.name : 'לקוח לא ידוע',
+                date: new Date().toISOString().split('T')[0],
+                dueDate: null,
+                items: sale.items.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.price,
+                    subtotal: item.subtotal
+                })),
+                subtotal: sale.subtotal,
+                taxRate: sale.taxRate,
+                taxAmount: sale.taxAmount,
+                totalAmount: sale.totalAmount,
+                status: 'draft',
+                notes: `נוצר ממכירה #${sale.saleNumber}`,
+                createdAt: new Date().toISOString(),
+                relatedSaleId: sale.id
+            };
+            
+            if (!appData.invoices) appData.invoices = [];
+            appData.invoices.push(invoice);
+            saveToStorage();
+            
+            showAlert('success', 'החשבונית נוצרה מהמכירה בהצלחה!');
+            log('info', `חשבונית נוצרה ממכירה #${sale.saleNumber}: #${invoiceNumber}`);
+        }
+
+        function saveQuickSale(event) {
+            event.preventDefault();
+            
+            const productId = document.getElementById('quick-product').value;
+            const quantity = parseInt(document.getElementById('quick-quantity').value);
+            const price = parseFloat(document.getElementById('quick-price').value);
+            const customerId = document.getElementById('quick-customer').value;
+            
+            if (!productId || !quantity || !price) {
+                showAlert('error', 'אנא מלא את כל השדות הנדרשים');
+                return;
+            }
+            
+            const product = appData.products.find(p => p.pk == productId);
+            const customer = customerId ? appData.customers.find(c => c.pk == customerId) : null;
+            
+            const subtotal = quantity * price;
+            const tax = subtotal * 0.17;
+            const total = subtotal + tax;
+            
+            const sale = {
+                id: Date.now(),
+                saleNumber: generateSaleNumber(),
+                customerId: customerId ? parseInt(customerId) : null,
+                customerName: customer ? customer.fields.name : 'לקוח כללי',
+                date: new Date().toISOString().split('T')[0],
+                items: [{
+                    productId: parseInt(productId),
+                    quantity: quantity,
+                    price: price,
+                    discount: 0,
+                    discountAmount: 0,
+                    subtotal: subtotal
+                }],
+                subtotal: subtotal,
+                taxRate: 17,
+                taxAmount: tax,
+                totalAmount: total,
+                paymentMethod: 'cash',
+                status: 'completed',
+                notes: 'מכירה מהירה',
+                createdAt: new Date().toISOString()
+            };
+            
+            if (!appData.sales) appData.sales = [];
+            appData.sales.push(sale);
+            
+            // עדכון מלאי
+            if (product) {
+                product.fields.stock -= quantity;
+                if (product.fields.stock < 0) product.fields.stock = 0;
+            }
+            
+            saveToStorage();
+            
+            closeModal();
+            renderSales();
+            showAlert('success', `מכירה מהירה הושלמה! סכום: ₪${total.toLocaleString()}`);
+            log('info', `מכירה מהירה נוצרה: #${sale.saleNumber}`);
+        }
+
+        function generateSaleNumber() {
+            const year = new Date().getFullYear();
+            const month = String(new Date().getMonth() + 1).padStart(2, '0');
+            const count = (appData.sales ? appData.sales.length : 0) + 1;
+            return `SALE-${year}${month}-${String(count).padStart(4, '0')}`;
+        }
+
+        function renderSales() {
+            const container = document.getElementById('sales-list');
+            container.innerHTML = '';
+            
+            if (!appData.sales || appData.sales.length === 0) {
+                container.innerHTML = '<p>אין מכירות במערכת</p>';
+                renderSalesStats();
+                return;
+            }
+
+            appData.sales.forEach(sale => {
+                const saleCard = createSaleCard(sale);
+                container.appendChild(saleCard);
+            });
+
+            renderSalesStats();
+        }
+
+        function createSaleCard(sale) {
+            const card = document.createElement('div');
+            card.className = 'sale-card';
+            card.style.cssText = `
+                background: white;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border-left: 4px solid ${getSaleStatusColor(sale.status)};
+            `;
+
+            const statusText = getSaleStatusText(sale.status);
+            const paymentText = getPaymentMethodText(sale.paymentMethod);
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h4>מכירה #${sale.saleNumber}</h4>
+                        <p><strong>לקוח:</strong> ${sale.customerName}</p>
+                        <p><strong>סכום:</strong> ₪${sale.totalAmount.toLocaleString()}</p>
+                        <p><strong>תאריך:</strong> ${new Date(sale.date).toLocaleDateString('he-IL')}</p>
+                        <p><strong>שיטת תשלום:</strong> ${paymentText}</p>
+                        <p><strong>סטטוס:</strong> <span style="color: ${getSaleStatusColor(sale.status)}">${statusText}</span></p>
+                        <p><strong>פריטים:</strong> ${sale.items.length}</p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <button class="btn btn-sm" onclick="viewSale(${sale.id})">👁️ צפה</button>
+                        <button class="btn btn-sm btn-warning" onclick="editSale(${sale.id})">✏️ ערוך</button>
+                        <button class="btn btn-sm btn-success" onclick="createInvoiceFromSale(${sale.id})">🧾 צור חשבונית</button>
+                        <button class="btn btn-sm btn-danger" onclick="cancelSale(${sale.id})">❌ בטל</button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getSaleStatusColor(status) {
+            const colors = {
+                'pending': '#ffc107',
+                'completed': '#28a745',
+                'cancelled': '#dc3545',
+                'refunded': '#6c757d'
+            };
+            return colors[status] || '#6c757d';
+        }
+
+        function getSaleStatusText(status) {
+            const texts = {
+                'pending': 'ממתין',
+                'completed': 'הושלם',
+                'cancelled': 'בוטל',
+                'refunded': 'הוחזר'
+            };
+            return texts[status] || 'לא ידוע';
+        }
+
+        function getPaymentMethodText(method) {
+            const texts = {
+                'cash': 'מזומן',
+                'credit': 'אשראי',
+                'check': 'המחאה',
+                'transfer': 'העברה בנקאית',
+                'installments': 'תשלומים'
+            };
+            return texts[method] || 'לא ידוע';
+        }
+
+        function viewSale(saleId) {
+            const sale = appData.sales.find(s => s.id == saleId);
+            if (!sale) return;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 700px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>מכירה #${sale.saleNumber}</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <h3>פרטי הלקוח</h3>
+                            <p><strong>שם:</strong> ${sale.customerName}</p>
+                            <p><strong>תאריך:</strong> ${new Date(sale.date).toLocaleDateString('he-IL')}</p>
+                            <p><strong>שיטת תשלום:</strong> ${getPaymentMethodText(sale.paymentMethod)}</p>
+                        </div>
+                        <div>
+                            <h3>פרטי המכירה</h3>
+                            <p><strong>מספר:</strong> ${sale.saleNumber}</p>
+                            <p><strong>סטטוס:</strong> <span style="color: ${getSaleStatusColor(sale.status)}">${getSaleStatusText(sale.status)}</span></p>
+                            <p><strong>סכום כולל:</strong> ₪${sale.totalAmount.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <h3>פריטים</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="border: 1px solid #ddd; padding: 8px;">מוצר</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">כמות</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">מחיר</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">הנחה</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">סכום</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sale.items.map(item => {
+                                const product = appData.products.find(p => p.pk == item.productId);
+                                return `
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">${product ? product.fields.name : 'מוצר לא ידוע'}</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">${item.quantity}</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">₪${item.price.toLocaleString()}</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">${item.discount}%</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">₪${item.subtotal.toLocaleString()}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px; text-align: left;">
+                        <p><strong>סכום לפני מע"מ:</strong> ₪${sale.subtotal.toLocaleString()}</p>
+                        <p><strong>מע"מ (${sale.taxRate}%):</strong> ₪${sale.taxAmount.toLocaleString()}</p>
+                        <p><strong>סכום כולל:</strong> ₪${sale.totalAmount.toLocaleString()}</p>
+                    </div>
+                    ${sale.notes ? `<div style="margin-top: 20px;"><h3>הערות</h3><p>${sale.notes}</p></div>` : ''}
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-success" onclick="createInvoiceFromSale(${sale.id})">🧾 צור חשבונית</button>
+                        <button class="btn btn-warning" onclick="editSale(${sale.id})">✏️ ערוך</button>
+                        <button class="btn" onclick="closeModal()">סגור</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function editSale(saleId) {
+            showAlert('info', 'פונקציית עריכת מכירה תגיע בקרוב');
+        }
+
+        function cancelSale(saleId) {
+            const sale = appData.sales.find(s => s.id == saleId);
+            if (!sale) return;
+            
+            if (confirm(`האם אתה בטוח שברצונך לבטל את המכירה #${sale.saleNumber}?`)) {
+                sale.status = 'cancelled';
+                
+                // החזרת מלאי
+                sale.items.forEach(item => {
+                    const product = appData.products.find(p => p.pk == item.productId);
+                    if (product) {
+                        product.fields.stock += item.quantity;
+                    }
+                });
+                
+                saveToStorage();
+                renderSales();
+                showAlert('success', 'המכירה בוטלה!');
+                log('info', `מכירה #${sale.saleNumber} בוטלה`);
+            }
+        }
+
+        function filterSales() {
+            const searchTerm = document.getElementById('sales-search').value.toLowerCase();
+            const statusFilter = document.getElementById('sales-status-filter').value;
+            const dateFrom = document.getElementById('sales-date-from').value;
+            const dateTo = document.getElementById('sales-date-to').value;
+            
+            const container = document.getElementById('sales-list');
+            const allCards = container.querySelectorAll('.sale-card');
+            
+            allCards.forEach(card => {
+                const saleText = card.textContent.toLowerCase();
+                const matchesSearch = !searchTerm || saleText.includes(searchTerm);
+                
+                // כאן ניתן להוסיף לוגיקה נוספת לסינון לפי סטטוס ותאריכים
+                const shouldShow = matchesSearch;
+                
+                card.style.display = shouldShow ? 'block' : 'none';
+            });
+        }
+
+        function clearSalesFilters() {
+            document.getElementById('sales-search').value = '';
+            document.getElementById('sales-status-filter').value = '';
+            document.getElementById('sales-date-from').value = '';
+            document.getElementById('sales-date-to').value = '';
+            filterSales();
+        }
+
+        function renderSalesStats() {
+            const container = document.getElementById('sales-stats');
+            if (!appData.sales || appData.sales.length === 0) {
+                container.innerHTML = '<p>אין נתונים להצגה</p>';
+                return;
+            }
+            
+            const totalSales = appData.sales.length;
+            const completedSales = appData.sales.filter(s => s.status === 'completed').length;
+            const cancelledSales = appData.sales.filter(s => s.status === 'cancelled').length;
+            const totalAmount = appData.sales.reduce((sum, s) => sum + s.totalAmount, 0);
+            const completedAmount = appData.sales
+                .filter(s => s.status === 'completed')
+                .reduce((sum, s) => sum + s.totalAmount, 0);
+            
+            // מכירות היום
+            const today = new Date().toISOString().split('T')[0];
+            const todaySales = appData.sales.filter(s => s.date === today && s.status === 'completed');
+            const todayAmount = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
+            
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                        <h4>סה"כ מכירות</h4>
+                        <p style="font-size: 24px; font-weight: bold; color: #1976d2;">${totalSales}</p>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: center;">
+                        <h4>הושלמו</h4>
+                        <p style="font-size: 24px; font-weight: bold; color: #388e3c;">${completedSales}</p>
+                    </div>
+                    <div style="background: #ffebee; padding: 15px; border-radius: 8px; text-align: center;">
+                        <h4>בוטלו</h4>
+                        <p style="font-size: 24px; font-weight: bold; color: #d32f2f;">${cancelledSales}</p>
+                    </div>
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+                        <h4>סה"כ סכום</h4>
+                        <p style="font-size: 24px; font-weight: bold; color: #f57c00;">₪${totalAmount.toLocaleString()}</p>
+                    </div>
+                    <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; text-align: center;">
+                        <h4>סכום הושלם</h4>
+                        <p style="font-size: 24px; font-weight: bold; color: #7b1fa2;">₪${completedAmount.toLocaleString()}</p>
+                    </div>
+                    <div style="background: #e0f2f1; padding: 15px; border-radius: 8px; text-align: center;">
+                        <h4>מכירות היום</h4>
+                        <p style="font-size: 24px; font-weight: bold; color: #00695c;">₪${todayAmount.toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+        }
+
         function showAddSaleForm() {
-            alert('פונקציית הוספת מכירה תגיע בקרוב');
+            showCreateSaleForm();
         }
 
         // Suppliers
@@ -1712,7 +2473,7 @@
         function renderInvoices() {
             const container = document.getElementById('invoices-list');
             container.innerHTML = '';
-            
+
             if (!appData.invoices || appData.invoices.length === 0) {
                 container.innerHTML = '<p>אין חשבוניות במערכת</p>';
                 return;
@@ -1800,7 +2561,7 @@
                             <label>לקוח:</label>
                             <select id="invoice-customer" required>
                                 <option value="">בחר לקוח</option>
-                                ${appData.customers.map(customer => 
+                                ${appData.customers.map(customer =>
                                     `<option value="${customer.pk}">${customer.fields.name}</option>`
                                 ).join('')}
                             </select>
@@ -1822,7 +2583,7 @@
                             <div class="invoice-item">
                                 <select class="item-product">
                                     <option value="">בחר מוצר</option>
-                                    ${appData.products.map(product => 
+                                    ${appData.products.map(product =>
                                         `<option value="${product.pk}" data-price="${product.fields.price}">${product.fields.name}</option>`
                                     ).join('')}
                                 </select>
@@ -1843,7 +2604,7 @@
 
             // הגדרת תאריך היום כברירת מחדל
             document.getElementById('invoice-date').value = new Date().toISOString().split('T')[0];
-            
+
             // הוספת מאזין לטופס
             document.getElementById('invoice-form').addEventListener('submit', saveInvoice);
         }
@@ -1853,11 +2614,11 @@
             const newItem = document.createElement('div');
             newItem.className = 'invoice-item';
             newItem.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center;';
-            
+
             newItem.innerHTML = `
                 <select class="item-product" style="flex: 2;">
                     <option value="">בחר מוצר</option>
-                    ${appData.products.map(product => 
+                    ${appData.products.map(product =>
                         `<option value="${product.pk}" data-price="${product.fields.price}">${product.fields.name}</option>`
                     ).join('')}
                 </select>
@@ -1865,9 +2626,9 @@
                 <input type="number" class="item-price" placeholder="מחיר" step="0.01" style="flex: 1;">
                 <button type="button" onclick="removeInvoiceItem(this)">🗑️</button>
             `;
-            
+
             itemsContainer.appendChild(newItem);
-            
+
             // הוספת מאזין לשינוי מוצר
             const productSelect = newItem.querySelector('.item-product');
             productSelect.addEventListener('change', function() {
@@ -1885,30 +2646,30 @@
 
         function saveInvoice(event) {
             event.preventDefault();
-            
+
             const customerId = document.getElementById('invoice-customer').value;
             const date = document.getElementById('invoice-date').value;
             const dueDate = document.getElementById('invoice-due-date').value;
             const notes = document.getElementById('invoice-notes').value;
-            
+
             if (!customerId) {
                 showAlert('error', 'אנא בחר לקוח');
                 return;
             }
-            
+
             const items = [];
             const itemElements = document.querySelectorAll('.invoice-item');
             let totalAmount = 0;
-            
+
             itemElements.forEach(item => {
                 const productId = item.querySelector('.item-product').value;
                 const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
                 const price = parseFloat(item.querySelector('.item-price').value) || 0;
-                
+
                 if (productId && quantity > 0 && price > 0) {
                     const subtotal = quantity * price;
                     totalAmount += subtotal;
-                    
+
                     items.push({
                         productId: parseInt(productId),
                         quantity: quantity,
@@ -1917,15 +2678,15 @@
                     });
                 }
             });
-            
+
             if (items.length === 0) {
                 showAlert('error', 'אנא הוסף לפחות פריט אחד');
                 return;
             }
-            
+
             const customer = appData.customers.find(c => c.pk == customerId);
             const invoiceNumber = generateInvoiceNumber();
-            
+
             const invoice = {
                 id: Date.now(),
                 invoiceNumber: invoiceNumber,
@@ -1942,11 +2703,11 @@
                 notes: notes,
                 createdAt: new Date().toISOString()
             };
-            
+
             if (!appData.invoices) appData.invoices = [];
             appData.invoices.push(invoice);
             saveToStorage();
-            
+
             closeModal();
             renderInvoices();
             showAlert('success', 'החשבונית נוצרה בהצלחה!');
@@ -1965,7 +2726,7 @@
                 showAlert('error', 'אין מכירות במערכת');
                 return;
             }
-            
+
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.style.display = 'block';
@@ -1998,16 +2759,16 @@
                 showAlert('error', 'אנא בחר מכירה');
                 return;
             }
-            
+
             const sale = appData.sales.find(s => s.pk == saleId);
             if (!sale) {
                 showAlert('error', 'מכירה לא נמצאה');
                 return;
             }
-            
+
             const customer = appData.customers.find(c => c.pk == sale.fields.customer);
             const invoiceNumber = generateInvoiceNumber();
-            
+
             const invoice = {
                 id: Date.now(),
                 invoiceNumber: invoiceNumber,
@@ -2030,11 +2791,11 @@
                 createdAt: new Date().toISOString(),
                 relatedSaleId: sale.pk
             };
-            
+
             if (!appData.invoices) appData.invoices = [];
             appData.invoices.push(invoice);
             saveToStorage();
-            
+
             closeModal();
             renderInvoices();
             showAlert('success', 'החשבונית נוצרה מהמכירה בהצלחה!');
@@ -2044,7 +2805,7 @@
         function viewInvoice(invoiceId) {
             const invoice = appData.invoices.find(i => i.id == invoiceId);
             if (!invoice) return;
-            
+
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.style.display = 'block';
@@ -2113,7 +2874,7 @@
         function markInvoicePaid(invoiceId) {
             const invoice = appData.invoices.find(i => i.id == invoiceId);
             if (!invoice) return;
-            
+
             if (confirm(`האם אתה בטוח שברצונך לסמן את החשבונית #${invoice.invoiceNumber} כשולם?`)) {
                 invoice.status = 'paid';
                 invoice.paidDate = new Date().toISOString();
@@ -2127,7 +2888,7 @@
         function deleteInvoice(invoiceId) {
             const invoice = appData.invoices.find(i => i.id == invoiceId);
             if (!invoice) return;
-            
+
             if (confirm(`האם אתה בטוח שברצונך למחוק את החשבונית #${invoice.invoiceNumber}?`)) {
                 appData.invoices = appData.invoices.filter(i => i.id != invoiceId);
                 saveToStorage();
@@ -2146,17 +2907,17 @@
             const statusFilter = document.getElementById('invoice-status-filter').value;
             const dateFrom = document.getElementById('invoice-date-from').value;
             const dateTo = document.getElementById('invoice-date-to').value;
-            
+
             const container = document.getElementById('invoices-list');
             const allCards = container.querySelectorAll('.invoice-card');
-            
+
             allCards.forEach(card => {
                 const invoiceText = card.textContent.toLowerCase();
                 const matchesSearch = !searchTerm || invoiceText.includes(searchTerm);
-                
+
                 // כאן ניתן להוסיף לוגיקה נוספת לסינון לפי סטטוס ותאריכים
                 const shouldShow = matchesSearch;
-                
+
                 card.style.display = shouldShow ? 'block' : 'none';
             });
         }
@@ -2175,17 +2936,17 @@
                 container.innerHTML = '<p>אין נתונים להצגה</p>';
                 return;
             }
-            
+
             const totalInvoices = appData.invoices.length;
             const paidInvoices = appData.invoices.filter(i => i.status === 'paid').length;
-            const overdueInvoices = appData.invoices.filter(i => 
+            const overdueInvoices = appData.invoices.filter(i =>
                 i.dueDate && new Date(i.dueDate) < new Date() && i.status !== 'paid'
             ).length;
             const totalAmount = appData.invoices.reduce((sum, i) => sum + i.totalAmount, 0);
             const paidAmount = appData.invoices
                 .filter(i => i.status === 'paid')
                 .reduce((sum, i) => sum + i.totalAmount, 0);
-            
+
             container.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                     <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">

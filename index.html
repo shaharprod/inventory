@@ -3654,7 +3654,85 @@
         }
 
         function editSale(saleId) {
-            showAlert('info', 'פונקציית עריכת מכירה תגיע בקרוב');
+            const sale = appData.sales.find(s => s.id === saleId);
+            if (!sale) {
+                showAlert('error', 'מכירה לא נמצאה');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h3>✏️ עריכת מכירה</h3>
+                    <div class="sale-edit-form">
+                        <div class="form-group">
+                            <label>לקוח:</label>
+                            <select id="edit-sale-customer" class="form-control">
+                                ${appData.customers.map(c => 
+                                    `<option value="${c.id}" ${c.id === sale.customerId ? 'selected' : ''}>${c.name}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>מוצרים:</label>
+                            <div id="edit-sale-items" class="sale-items-list">
+                                ${sale.items.map((item, idx) => {
+                                    const product = appData.products.find(p => p.id === item.productId);
+                                    return `
+                                        <div class="sale-item" data-index="${idx}">
+                                            <div class="item-name">${product ? product.name : 'מוצר לא ידוע'}</div>
+                                            <div class="item-quantity">
+                                                <label>כמות:</label>
+                                                <input type="number" value="${item.quantity}" min="1" class="item-qty-input" data-index="${idx}">
+                                            </div>
+                                            <div class="item-price">₪${(product ? product.price : 0) * item.quantity}</div>
+                                            <button class="btn btn-sm btn-danger" onclick="removeSaleItem(${idx})">🗑️</button>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="addProductToSale()">➕ הוסף מוצר</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>שיטת תשלום:</label>
+                            <select id="edit-sale-payment" class="form-control">
+                                <option value="cash" ${sale.paymentMethod === 'cash' ? 'selected' : ''}>מזומן</option>
+                                <option value="credit" ${sale.paymentMethod === 'credit' ? 'selected' : ''}>אשראי</option>
+                                <option value="check" ${sale.paymentMethod === 'check' ? 'selected' : ''}>צ'ק</option>
+                                <option value="transfer" ${sale.paymentMethod === 'transfer' ? 'selected' : ''}>העברה</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>סטטוס:</label>
+                            <select id="edit-sale-status" class="form-control">
+                                <option value="completed" ${sale.status === 'completed' ? 'selected' : ''}>הושלם</option>
+                                <option value="pending" ${sale.status === 'pending' ? 'selected' : ''}>ממתין</option>
+                                <option value="cancelled" ${sale.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>סה"כ:</label>
+                            <input type="number" id="edit-sale-total" value="${sale.total}" step="0.01" class="form-control" readonly>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="updateSale(${saleId})">💾 שמור שינויים</button>
+                            <button class="btn" onclick="closeModal()">ביטול</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
 
         function cancelSale(saleId) {

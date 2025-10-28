@@ -429,6 +429,338 @@
             background: #fee2e2;
             color: #dc2626;
         }
+
+        /* עיצוב מתקדם לדאשבורד */
+        .quick-actions {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .analytics-section {
+            margin: 30px 0;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .analytics-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .analytics-card h4 {
+            margin-bottom: 15px;
+            color: #2d3748;
+            font-size: 1.1em;
+        }
+
+        .alerts-section {
+            margin: 30px 0;
+        }
+
+        .alerts-container {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .daily-summary {
+            margin: 30px 0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .summary-label {
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .summary-value {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 1.1em;
+        }
+
+        .forecasts-section {
+            margin: 30px 0;
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .forecast-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .forecast-card h4 {
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .forecast-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .forecast-progress {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .recent-activity {
+            margin: 30px 0;
+        }
+
+        .activity-list {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .advanced-tools {
+            margin: 30px 0;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .tool-btn {
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .tool-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* כפתורים נוספים */
+        .btn-outline-primary {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline-primary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-outline-success {
+            background: transparent;
+            border: 2px solid #28a745;
+            color: #28a745;
+        }
+
+        .btn-outline-success:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-outline-info {
+            background: transparent;
+            border: 2px solid #17a2b8;
+            color: #17a2b8;
+        }
+
+        .btn-outline-info:hover {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-light {
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            color: #495057;
+        }
+
+        .btn-light:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        /* עיצוב מתקדם למוצרים */
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .products-filters {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-item label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .filter-item input,
+        .filter-item select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .products-stats {
+            margin: 20px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-label {
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 1.1em;
+        }
+
+        .products-tools {
+            margin: 20px 0;
+        }
+
+        .products-list-section {
+            margin: 20px 0;
+        }
+
+        .list-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .products-alerts {
+            margin: 20px 0;
+        }
+
+        .alerts-list {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .alert-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #ffeaa7;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
         .email-section {
             background: #e6fffa;
             padding: 20px;
@@ -452,8 +784,8 @@
             <h1>📦 מערכת ניהול מלאי</h1>
             <p>מערכת מלאה לניהול מלאי, CRM ומכירות</p>
             <div id="user-header-info" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
-                <span id="header-username"></span> | 
-                <span id="header-license"></span> | 
+                <span id="header-username"></span> |
+                <span id="header-license"></span> |
                 <button class="btn btn-sm btn-danger" onclick="logoutUser()" style="margin-right: 10px;">🚪 התנתק</button>
             </div>
         </div>
@@ -476,22 +808,248 @@
 
         <div class="content">
             <div id="dashboard" class="section active">
-                <h2>דאשבורד</h2>
+                <h2>📊 דאשבורד מתקדם</h2>
+                
+                <!-- סטטיסטיקות מהירות -->
                 <div class="stats">
-                    <div class="stat-card"><h3>סה"כ מוצרים</h3><div class="value" id="total-products">0</div></div>
-                    <div class="stat-card"><h3>סה"כ ערך מלאי</h3><div class="value" id="total-value">₪0</div></div>
-                    <div class="stat-card"><h3>סה"כ לקוחות</h3><div class="value" id="total-customers">0</div></div>
-                    <div class="stat-card"><h3>סה"כ מכירות היום</h3><div class="value" id="today-sales">₪0</div></div>
+                    <div class="stat-card"><h3>📦 סה"כ מוצרים</h3><div class="value" id="total-products">0</div></div>
+                    <div class="stat-card"><h3>💰 סה"כ ערך מלאי</h3><div class="value" id="total-value">₪0</div></div>
+                    <div class="stat-card"><h3>👥 סה"כ לקוחות</h3><div class="value" id="total-customers">0</div></div>
+                    <div class="stat-card"><h3>💸 מכירות היום</h3><div class="value" id="today-sales">₪0</div></div>
+                    <div class="stat-card"><h3>📈 מכירות החודש</h3><div class="value" id="month-sales">₪0</div></div>
+                    <div class="stat-card"><h3>⚠️ מוצרים נגמרים</h3><div class="value" id="low-stock">0</div></div>
+                    <div class="stat-card"><h3>📋 חשבוניות פתוחות</h3><div class="value" id="open-invoices">0</div></div>
+                    <div class="stat-card"><h3>🏆 לקוחות VIP</h3><div class="value" id="vip-customers">0</div></div>
                 </div>
+
+                <!-- כלי ניהול מהיר -->
+                <div class="quick-actions">
+                    <h3>⚡ פעולות מהירות</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showAddProductForm()">➕ הוסף מוצר</button>
+                        <button class="btn btn-success" onclick="showAddSaleForm()">💰 מכירה מהירה</button>
+                        <button class="btn btn-info" onclick="showAddCustomerForm()">👤 הוסף לקוח</button>
+                        <button class="btn btn-warning" onclick="showCreateInvoiceForm()">📄 חשבונית חדשה</button>
+                        <button class="btn btn-secondary" onclick="exportData()">📤 ייצא נתונים</button>
+                        <button class="btn btn-dark" onclick="showBackupForm()">💾 גיבוי</button>
+                        <button class="btn btn-light" onclick="showInventoryAnalysis()">📊 ניתוח מלאי</button>
+                        <button class="btn btn-outline-primary" onclick="showCustomerSegmentation()">👥 חלוקת לקוחות</button>
+                        <button class="btn btn-outline-success" onclick="showProfitAnalysis()">💰 ניתוח רווחיות</button>
+                        <button class="btn btn-outline-info" onclick="showTrendAnalysis()">📈 ניתוח מגמות</button>
+                    </div>
+                </div>
+
+                <!-- גרפים וניתוחים -->
+                <div class="analytics-section">
+                    <h3>📊 ניתוחים מתקדמים</h3>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h4>📈 מכירות שבועיות</h4>
+                            <canvas id="weeklySalesChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>🏆 מוצרים פופולריים</h4>
+                            <canvas id="popularProductsChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>👥 לקוחות פעילים</h4>
+                            <canvas id="activeCustomersChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>💰 רווחיות לפי קטגוריה</h4>
+                            <canvas id="categoryProfitChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- התראות ופעולות נדרשות -->
+                <div class="alerts-section">
+                    <h3>🔔 התראות ופעולות נדרשות</h3>
+                    <div id="dashboard-alerts" class="alerts-container">
+                        <!-- התראות יוצגו כאן -->
+                    </div>
+                </div>
+
+                <!-- סיכום יומי -->
+                <div class="daily-summary">
+                    <h3>📋 סיכום יומי</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">מכירות היום:</span>
+                            <span class="summary-value" id="daily-sales-summary">₪0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">לקוחות חדשים:</span>
+                            <span class="summary-value" id="daily-customers-summary">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">מוצרים שנוספו:</span>
+                            <span class="summary-value" id="daily-products-summary">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">חשבוניות שנוצרו:</span>
+                            <span class="summary-value" id="daily-invoices-summary">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- תחזיות ומטרות -->
+                <div class="forecasts-section">
+                    <h3>🎯 תחזיות ומטרות</h3>
+                    <div class="forecast-grid">
+                        <div class="forecast-card">
+                            <h4>📊 תחזית מכירות החודש</h4>
+                            <div class="forecast-value" id="monthly-forecast">₪0</div>
+                            <div class="forecast-progress">
+                                <div class="progress-bar" id="monthly-progress"></div>
+                            </div>
+                        </div>
+                        <div class="forecast-card">
+                            <h4>🎯 מטרת מכירות חודשית</h4>
+                            <div class="forecast-value" id="monthly-target">₪50,000</div>
+                            <div class="forecast-progress">
+                                <div class="progress-bar" id="target-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- פעילות אחרונה -->
+                <div class="recent-activity">
+                    <h3>🕒 פעילות אחרונה</h3>
+                    <div id="recent-activity-list" class="activity-list">
+                        <!-- פעילות אחרונה תוצג כאן -->
+                    </div>
+                </div>
+
+                <!-- כלי עזר מתקדמים -->
+                <div class="advanced-tools">
+                    <h3>🛠️ כלי עזר מתקדמים</h3>
+                    <div class="tools-grid">
+                        <button class="tool-btn" onclick="showInventoryAnalysis()">📊 ניתוח מלאי</button>
+                        <button class="tool-btn" onclick="showCustomerSegmentation()">👥 חלוקת לקוחות</button>
+                        <button class="tool-btn" onclick="showProfitAnalysis()">💰 ניתוח רווחיות</button>
+                        <button class="tool-btn" onclick="showTrendAnalysis()">📈 ניתוח מגמות</button>
+                        <button class="tool-btn" onclick="showSeasonalAnalysis()">📅 ניתוח עונתי</button>
+                        <button class="tool-btn" onclick="showCompetitorAnalysis()">🏆 ניתוח מתחרים</button>
+                        <button class="tool-btn" onclick="showCashFlowAnalysis()">💸 ניתוח תזרים מזומנים</button>
+                        <button class="tool-btn" onclick="showRiskAnalysis()">⚠️ ניתוח סיכונים</button>
+                        <button class="tool-btn" onclick="showOptimizationSuggestions()">🎯 הצעות אופטימיזציה</button>
+                        <button class="tool-btn" onclick="showPerformanceMetrics()">📊 מדדי ביצועים</button>
+                    </div>
+                </div>
+
                 <div id="products-preview" class="product-grid"></div>
             </div>
 
             <div id="products" class="section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>מוצרים</h2>
-                    <button class="btn" onclick="showAddProductForm()">+ הוסף מוצר חדש</button>
+                    <h2>📦 מוצרים מתקדמים</h2>
+                    <div class="product-actions">
+                        <button class="btn btn-primary" onclick="showAddProductForm()">➕ הוסף מוצר חדש</button>
+                        <button class="btn btn-success" onclick="showBulkImportForm()">📥 ייבוא המוני</button>
+                        <button class="btn btn-info" onclick="showProductAnalysis()">📊 ניתוח מוצרים</button>
+                    </div>
                 </div>
-                <div class="product-grid" id="products-list"></div>
+
+                <!-- סינון וחיפוש מתקדם -->
+                <div class="products-filters">
+                    <h3>🔍 סינון וחיפוש</h3>
+                    <div class="filter-grid">
+                        <div class="filter-item">
+                            <label>חיפוש:</label>
+                            <input type="text" id="product-search" placeholder="חפש מוצר..." onkeyup="filterProducts()">
+                        </div>
+                        <div class="filter-item">
+                            <label>קטגוריה:</label>
+                            <select id="category-filter" onchange="filterProducts()">
+                                <option value="">כל הקטגוריות</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>מחיר מינימלי:</label>
+                            <input type="number" id="min-price-filter" placeholder="0" onchange="filterProducts()">
+                        </div>
+                        <div class="filter-item">
+                            <label>מחיר מקסימלי:</label>
+                            <input type="number" id="max-price-filter" placeholder="∞" onchange="filterProducts()">
+                        </div>
+                        <div class="filter-item">
+                            <label>מלאי נמוך:</label>
+                            <input type="checkbox" id="low-stock-filter" onchange="filterProducts()">
+                        </div>
+                        <div class="filter-item">
+                            <label>מיון לפי:</label>
+                            <select id="sort-products" onchange="sortProducts()">
+                                <option value="name">שם</option>
+                                <option value="price">מחיר</option>
+                                <option value="stock">מלאי</option>
+                                <option value="category">קטגוריה</option>
+                                <option value="date">תאריך הוספה</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- סטטיסטיקות מוצרים -->
+                <div class="products-stats">
+                    <h3>📊 סטטיסטיקות מוצרים</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">סה"כ מוצרים:</span>
+                            <span class="stat-value" id="total-products-count">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ערך מלאי כולל:</span>
+                            <span class="stat-value" id="total-inventory-value">₪0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">מוצרים נגמרים:</span>
+                            <span class="stat-value" id="low-stock-count">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">מוצרים פופולריים:</span>
+                            <span class="stat-value" id="popular-products-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- כלי ניהול מוצרים -->
+                <div class="products-tools">
+                    <h3>🛠️ כלי ניהול מוצרים</h3>
+                    <div class="tools-grid">
+                        <button class="tool-btn" onclick="showProductComparison()">⚖️ השוואת מוצרים</button>
+                        <button class="tool-btn" onclick="showPriceOptimization()">💰 אופטימיזציית מחירים</button>
+                        <button class="tool-btn" onclick="showInventoryForecast()">📈 תחזית מלאי</button>
+                        <button class="tool-btn" onclick="showProductLifecycle()">🔄 מחזור חיי מוצר</button>
+                        <button class="tool-btn" onclick="showSupplierAnalysis()">🏭 ניתוח ספקים</button>
+                        <button class="tool-btn" onclick="showProductPerformance()">📊 ביצועי מוצרים</button>
+                        <button class="tool-btn" onclick="showSeasonalTrends()">📅 מגמות עונתיות</button>
+                        <button class="tool-btn" onclick="showCompetitorPricing()">🏆 מחירי מתחרים</button>
+                        <button class="tool-btn" onclick="showProductRecommendations()">🎯 המלצות מוצרים</button>
+                        <button class="tool-btn" onclick="showInventoryOptimization()">🎯 אופטימיזציית מלאי</button>
+                    </div>
+                </div>
+
+                <!-- רשימת מוצרים -->
+                <div class="products-list-section">
+                    <h3>📋 רשימת מוצרים</h3>
+                    <div class="list-controls">
+                        <button class="btn btn-sm" onclick="toggleProductView('grid')">⊞ תצוגת רשת</button>
+                        <button class="btn btn-sm" onclick="toggleProductView('table')">📊 תצוגת טבלה</button>
+                        <button class="btn btn-sm" onclick="exportProducts()">📤 ייצא מוצרים</button>
+                        <button class="btn btn-sm" onclick="printProducts()">🖨️ הדפס מוצרים</button>
+                    </div>
+                    <div class="product-grid" id="products-list"></div>
+                </div>
+
+                <!-- התראות מוצרים -->
+                <div class="products-alerts">
+                    <h3>🔔 התראות מוצרים</h3>
+                    <div id="products-alerts-list" class="alerts-list">
+                        <!-- התראות יוצגו כאן -->
+                    </div>
+                </div>
             </div>
 
             <div id="categories" class="section">
@@ -2331,12 +2889,12 @@
             document.getElementById('current-user-name').textContent = currentUser.username;
             document.getElementById('license-type').textContent = getLicenseTypeText(currentUser.licenseType);
             document.getElementById('license-expiry').textContent = new Date(currentUser.licenseExpiry).toLocaleDateString('he-IL');
-            
+
             // הצגת מידע בכותרת
             document.getElementById('user-header-info').style.display = 'block';
             document.getElementById('header-username').textContent = '👤 ' + currentUser.fullname + ' (' + currentUser.username + ')';
             document.getElementById('header-license').textContent = '🔐 ' + getLicenseTypeText(currentUser.licenseType);
-            
+
             if (currentUser.isAdmin) {
                 document.getElementById('admin-section').style.display = 'block';
                 document.getElementById('non-admin-message').style.display = 'none';
@@ -2384,7 +2942,7 @@
             document.getElementById('user-header-info').style.display = 'none';
             showAlert('success', 'התנתקת בהצלחה');
             log('info', 'משתמש התנתק מהמערכת');
-            
+
             // ניקוי נתונים
             appData = { products: [], categories: [], customers: [], sales: [], suppliers: [], backups: [], emailHistory: [] };
             localStorage.removeItem('appData');
@@ -2476,15 +3034,15 @@
                 showAlert('error', 'אנא התחבר קודם למערכת');
                 return;
             }
-            
+
             const licensePrices = {
                 'basic': 99,
                 'professional': 199,
                 'enterprise': 399
             };
-            
+
             const price = licensePrices[licenseType];
-            
+
             if (confirm(`האם אתה בטוח שברצונך לרכוש רישיון ${getLicenseTypeText(licenseType)} תמורת ₪${price}/חודש?`)) {
                 // מעבר לטפענת תשלום PayPal
                 const paymentForm = `
@@ -2507,7 +3065,7 @@
                         <button type="button" class="btn" onclick="closeModal()" style="margin-top: 10px;">ביטול</button>
                     </div>
                 `;
-                
+
                 const modal = document.createElement('div');
                 modal.className = 'modal';
                 modal.style.display = 'block';
@@ -2518,7 +3076,7 @@
                     </div>
                 `;
                 document.body.appendChild(modal);
-                
+
                 log('info', `משתמש ${currentUser.username} מתחיל תהליך רכישת רישיון ${licenseType}`);
             }
         }
@@ -3737,26 +4295,26 @@
             const urlParams = new URLSearchParams(window.location.search);
             const paymentStatus = urlParams.get('payment');
             const licenseType = urlParams.get('type');
-            
+
             if (paymentStatus === 'success' && licenseType) {
                 // טעינת נתוני משתמש
                 const savedUser = localStorage.getItem('currentUser');
                 const savedLicensing = localStorage.getItem('licensingData');
-                
+
                 if (savedUser && savedLicensing) {
                     currentUser = JSON.parse(savedUser);
                     licensingData = JSON.parse(savedLicensing);
-                    
+
                     // עדכון רישיון המשתמש
                     currentUser.licenseType = licenseType;
                     currentUser.licenseExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-                    
+
                     // עדכון במערכת
                     const userIndex = licensingData.users.findIndex(u => u.id === currentUser.id);
                     if (userIndex !== -1) {
                         licensingData.users[userIndex] = currentUser;
                     }
-                    
+
                     // הוספת תשלום להיסטוריה
                     const payment = {
                         id: Date.now(),
@@ -3768,18 +4326,18 @@
                         status: 'completed',
                         method: 'paypal'
                     };
-                    
+
                     licensingData.payments.push(payment);
-                    
+
                     localStorage.setItem('licensingData', JSON.stringify(licensingData));
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    
+
                     // ניקוי URL
                     window.history.replaceState({}, document.title, window.location.pathname);
-                    
+
                     showAlert('success', `רישיון ${getLicenseTypeText(licenseType)} נרכש בהצלחה!`);
                     log('info', `משתמש ${currentUser.username} רכש רישיון ${licenseType}`);
-                    
+
                     // רענון דף
                     setTimeout(() => location.reload(), 2000);
                 }
@@ -3796,6 +4354,480 @@
                 'enterprise': 399
             };
             return prices[licenseType] || 0;
+        }
+
+        // פונקציות מתקדמות לדאשבורד
+        function showInventoryAnalysis() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h3>📊 ניתוח מלאי מתקדם</h3>
+                    <div class="analysis-content">
+                        <div class="analysis-section">
+                            <h4>📈 מגמות מלאי</h4>
+                            <p>ניתוח מגמות המלאי לפי קטגוריות וזמנים</p>
+                            <canvas id="inventoryTrendChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="analysis-section">
+                            <h4>⚠️ התראות מלאי</h4>
+                            <div id="inventory-alerts">
+                                ${generateInventoryAlerts()}
+                            </div>
+                        </div>
+                        <div class="analysis-section">
+                            <h4>💰 ערך מלאי לפי קטגוריה</h4>
+                            <div id="category-value-breakdown">
+                                ${generateCategoryValueBreakdown()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showCustomerSegmentation() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h3>👥 חלוקת לקוחות</h3>
+                    <div class="segmentation-content">
+                        <div class="segment-card">
+                            <h4>🏆 לקוחות VIP</h4>
+                            <p>לקוחות עם מכירות מעל ₪10,000</p>
+                            <div id="vip-customers-list">${generateVIPCustomers()}</div>
+                        </div>
+                        <div class="segment-card">
+                            <h4>📈 לקוחות גדלים</h4>
+                            <p>לקוחות עם עלייה במכירות</p>
+                            <div id="growing-customers-list">${generateGrowingCustomers()}</div>
+                        </div>
+                        <div class="segment-card">
+                            <h4>⚠️ לקוחות בסיכון</h4>
+                            <p>לקוחות עם ירידה במכירות</p>
+                            <div id="at-risk-customers-list">${generateAtRiskCustomers()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showProfitAnalysis() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h3>💰 ניתוח רווחיות</h3>
+                    <div class="profit-content">
+                        <div class="profit-section">
+                            <h4>📊 רווחיות לפי מוצר</h4>
+                            <canvas id="productProfitChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="profit-section">
+                            <h4>📈 מגמות רווחיות</h4>
+                            <div id="profit-trends">${generateProfitTrends()}</div>
+                        </div>
+                        <div class="profit-section">
+                            <h4>🎯 המלצות לשיפור רווחיות</h4>
+                            <div id="profit-recommendations">${generateProfitRecommendations()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showTrendAnalysis() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h3>📈 ניתוח מגמות</h3>
+                    <div class="trend-content">
+                        <div class="trend-section">
+                            <h4>📊 מגמות מכירות</h4>
+                            <canvas id="salesTrendChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="trend-section">
+                            <h4>📅 מגמות עונתיות</h4>
+                            <div id="seasonal-trends">${generateSeasonalTrends()}</div>
+                        </div>
+                        <div class="trend-section">
+                            <h4>🔮 תחזיות</h4>
+                            <div id="forecasts">${generateForecasts()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showSeasonalAnalysis() {
+            showAlert('info', 'ניתוח עונתי - פונקציה תגיע בקרוב');
+        }
+
+        function showCompetitorAnalysis() {
+            showAlert('info', 'ניתוח מתחרים - פונקציה תגיע בקרוב');
+        }
+
+        function showCashFlowAnalysis() {
+            showAlert('info', 'ניתוח תזרים מזומנים - פונקציה תגיע בקרוב');
+        }
+
+        function showRiskAnalysis() {
+            showAlert('info', 'ניתוח סיכונים - פונקציה תגיע בקרוב');
+        }
+
+        function showOptimizationSuggestions() {
+            showAlert('info', 'הצעות אופטימיזציה - פונקציה תגיע בקרוב');
+        }
+
+        function showPerformanceMetrics() {
+            showAlert('info', 'מדדי ביצועים - פונקציה תגיע בקרוב');
+        }
+
+        // פונקציות עזר לניתוחים
+        function generateInventoryAlerts() {
+            const lowStockProducts = appData.products.filter(p => p.stock < 10);
+            if (lowStockProducts.length === 0) return '<p>✅ אין התראות מלאי</p>';
+            
+            return lowStockProducts.map(p => 
+                `<div class="alert-item">⚠️ ${p.name} - נותרו ${p.stock} יחידות</div>`
+            ).join('');
+        }
+
+        function generateCategoryValueBreakdown() {
+            const categories = {};
+            appData.products.forEach(p => {
+                if (!categories[p.category]) categories[p.category] = 0;
+                categories[p.category] += p.price * p.stock;
+            });
+            
+            return Object.entries(categories).map(([cat, value]) => 
+                `<div class="category-item">${cat}: ₪${value.toLocaleString()}</div>`
+            ).join('');
+        }
+
+        function generateVIPCustomers() {
+            const vipCustomers = appData.customers.filter(c => {
+                const customerSales = appData.sales.filter(s => s.customerId === c.id);
+                const totalSales = customerSales.reduce((sum, s) => sum + s.total, 0);
+                return totalSales > 10000;
+            });
+            
+            if (vipCustomers.length === 0) return '<p>אין לקוחות VIP</p>';
+            
+            return vipCustomers.map(c => 
+                `<div class="customer-item">${c.name} - ₪${getCustomerTotalSales(c.id).toLocaleString()}</div>`
+            ).join('');
+        }
+
+        function generateGrowingCustomers() {
+            return '<p>ניתוח לקוחות גדלים - פונקציה תגיע בקרוב</p>';
+        }
+
+        function generateAtRiskCustomers() {
+            return '<p>ניתוח לקוחות בסיכון - פונקציה תגיע בקרוב</p>';
+        }
+
+        function generateProfitTrends() {
+            return '<p>מגמות רווחיות - פונקציה תגיע בקרוב</p>';
+        }
+
+        function generateProfitRecommendations() {
+            return '<p>המלצות לשיפור רווחיות - פונקציה תגיע בקרוב</p>';
+        }
+
+        function generateSeasonalTrends() {
+            return '<p>מגמות עונתיות - פונקציה תגיע בקרוב</p>';
+        }
+
+        function generateForecasts() {
+            return '<p>תחזיות - פונקציה תגיע בקרוב</p>';
+        }
+
+        function getCustomerTotalSales(customerId) {
+            return appData.sales
+                .filter(s => s.customerId === customerId)
+                .reduce((sum, s) => sum + s.total, 0);
+        }
+
+        // פונקציות מתקדמות למוצרים
+        function showBulkImportForm() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h3>📥 ייבוא מוצרים המוני</h3>
+                    <div class="import-content">
+                        <div class="import-section">
+                            <h4>📋 העלאת קובץ CSV</h4>
+                            <input type="file" id="csv-file" accept=".csv" onchange="handleCSVUpload()">
+                            <p>פורמט נדרש: שם,קטגוריה,מחיר,מלאי,תיאור</p>
+                        </div>
+                        <div class="import-section">
+                            <h4>📝 הזנת נתונים ידנית</h4>
+                            <textarea id="bulk-products-data" placeholder="הזן נתוני מוצרים בפורמט JSON..." rows="10" style="width: 100%;"></textarea>
+                            <button class="btn btn-primary" onclick="importBulkProducts()">📥 ייבא מוצרים</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showProductAnalysis() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h3>📊 ניתוח מוצרים מתקדם</h3>
+                    <div class="analysis-content">
+                        <div class="analysis-section">
+                            <h4>📈 ביצועי מוצרים</h4>
+                            <canvas id="productPerformanceChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="analysis-section">
+                            <h4>💰 רווחיות לפי מוצר</h4>
+                            <div id="product-profitability">${generateProductProfitability()}</div>
+                        </div>
+                        <div class="analysis-section">
+                            <h4>📊 התפלגות לפי קטגוריות</h4>
+                            <canvas id="categoryDistributionChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showProductComparison() {
+            showAlert('info', 'השוואת מוצרים - פונקציה תגיע בקרוב');
+        }
+
+        function showPriceOptimization() {
+            showAlert('info', 'אופטימיזציית מחירים - פונקציה תגיע בקרוב');
+        }
+
+        function showInventoryForecast() {
+            showAlert('info', 'תחזית מלאי - פונקציה תגיע בקרוב');
+        }
+
+        function showProductLifecycle() {
+            showAlert('info', 'מחזור חיי מוצר - פונקציה תגיע בקרוב');
+        }
+
+        function showSupplierAnalysis() {
+            showAlert('info', 'ניתוח ספקים - פונקציה תגיע בקרוב');
+        }
+
+        function showProductPerformance() {
+            showAlert('info', 'ביצועי מוצרים - פונקציה תגיע בקרוב');
+        }
+
+        function showSeasonalTrends() {
+            showAlert('info', 'מגמות עונתיות - פונקציה תגיע בקרוב');
+        }
+
+        function showCompetitorPricing() {
+            showAlert('info', 'מחירי מתחרים - פונקציה תגיע בקרוב');
+        }
+
+        function showProductRecommendations() {
+            showAlert('info', 'המלצות מוצרים - פונקציה תגיע בקרוב');
+        }
+
+        function showInventoryOptimization() {
+            showAlert('info', 'אופטימיזציית מלאי - פונקציה תגיע בקרוב');
+        }
+
+        function filterProducts() {
+            const searchTerm = document.getElementById('product-search').value.toLowerCase();
+            const categoryFilter = document.getElementById('category-filter').value;
+            const minPrice = parseFloat(document.getElementById('min-price-filter').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('max-price-filter').value) || Infinity;
+            const lowStockOnly = document.getElementById('low-stock-filter').checked;
+
+            let filteredProducts = appData.products.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = !categoryFilter || product.category === categoryFilter;
+                const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
+                const matchesStock = !lowStockOnly || product.stock < 10;
+
+                return matchesSearch && matchesCategory && matchesPrice && matchesStock;
+            });
+
+            renderProducts(filteredProducts);
+        }
+
+        function sortProducts() {
+            const sortBy = document.getElementById('sort-products').value;
+            let sortedProducts = [...appData.products];
+
+            switch(sortBy) {
+                case 'name':
+                    sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'price':
+                    sortedProducts.sort((a, b) => b.price - a.price);
+                    break;
+                case 'stock':
+                    sortedProducts.sort((a, b) => b.stock - a.stock);
+                    break;
+                case 'category':
+                    sortedProducts.sort((a, b) => a.category.localeCompare(b.category));
+                    break;
+                case 'date':
+                    sortedProducts.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
+                    break;
+            }
+
+            renderProducts(sortedProducts);
+        }
+
+        function toggleProductView(viewType) {
+            const productsList = document.getElementById('products-list');
+            if (viewType === 'table') {
+                productsList.className = 'product-table';
+                renderProductsAsTable();
+            } else {
+                productsList.className = 'product-grid';
+                renderProducts();
+            }
+        }
+
+        function exportProducts() {
+            const csvContent = generateProductsCSV();
+            downloadCSV(csvContent, 'products.csv');
+        }
+
+        function printProducts() {
+            window.print();
+        }
+
+        function handleCSVUpload() {
+            const file = document.getElementById('csv-file').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csv = e.target.result;
+                    parseAndImportCSV(csv);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function importBulkProducts() {
+            const data = document.getElementById('bulk-products-data').value;
+            try {
+                const products = JSON.parse(data);
+                if (Array.isArray(products)) {
+                    products.forEach(product => {
+                        if (product.name && product.price) {
+                            addProduct(product);
+                        }
+                    });
+                    showAlert('success', `יובאו ${products.length} מוצרים בהצלחה`);
+                    closeModal();
+                } else {
+                    showAlert('error', 'פורמט JSON לא תקין');
+                }
+            } catch (error) {
+                showAlert('error', 'שגיאה בפרסור JSON');
+            }
+        }
+
+        function generateProductProfitability() {
+            return appData.products.map(p => 
+                `<div class="profit-item">${p.name}: ₪${(p.price * p.stock).toLocaleString()}</div>`
+            ).join('');
+        }
+
+        function generateProductsCSV() {
+            const headers = ['שם', 'קטגוריה', 'מחיר', 'מלאי', 'תיאור'];
+            const rows = appData.products.map(p => [p.name, p.category, p.price, p.stock, p.description]);
+            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function parseAndImportCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',');
+            const products = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length >= 4) {
+                    products.push({
+                        name: values[0],
+                        category: values[1],
+                        price: parseFloat(values[2]),
+                        stock: parseInt(values[3]),
+                        description: values[4] || ''
+                    });
+                }
+            }
+
+            products.forEach(product => addProduct(product));
+            showAlert('success', `יובאו ${products.length} מוצרים מהקובץ`);
+            closeModal();
+        }
+
+        function renderProductsAsTable() {
+            const productsList = document.getElementById('products-list');
+            productsList.innerHTML = `
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>קטגוריה</th>
+                            <th>מחיר</th>
+                            <th>מלאי</th>
+                            <th>ערך</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${appData.products.map(p => `
+                            <tr>
+                                <td>${p.name}</td>
+                                <td>${p.category}</td>
+                                <td>₪${p.price.toLocaleString()}</td>
+                                <td>${p.stock}</td>
+                                <td>₪${(p.price * p.stock).toLocaleString()}</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="editProduct(${p.id})">ערוך</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">מחק</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
         }
 
         // Initialize app

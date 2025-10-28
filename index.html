@@ -1963,8 +1963,60 @@
             </div>
 
             <div id="suppliers" class="section">
-                <h2>ספקים</h2>
-                <div class="product-grid" id="suppliers-list"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>🏭 ספקים מתקדמים</h2>
+                    <div class="supplier-actions">
+                        <button class="btn btn-primary" onclick="showAddSupplierForm()">➕ הוסף ספק חדש</button>
+                        <button class="btn btn-success" onclick="showSupplierAnalysis()">📊 ניתוח ספקים</button>
+                        <button class="btn btn-info" onclick="showSupplierComparison()">⚖️ השוואת ספקים</button>
+                    </div>
+                </div>
+
+                <!-- סטטיסטיקות ספקים -->
+                <div class="suppliers-stats">
+                    <h3>📊 סטטיסטיקות ספקים</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">סה"כ ספקים:</span>
+                            <span class="stat-value" id="total-suppliers-count">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ספק פעיל:</span>
+                            <span class="stat-value" id="active-suppliers-count">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ספקים מומלצים:</span>
+                            <span class="stat-value" id="recommended-suppliers-count">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ממוצע מוצרים לספק:</span>
+                            <span class="stat-value" id="avg-products-per-supplier">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- כלי ניהול ספקים -->
+                <div class="suppliers-tools">
+                    <h3>🛠️ כלי ניהול ספקים</h3>
+                    <div class="tools-grid">
+                        <button class="tool-btn" onclick="showSupplierPerformance()">📈 ביצועי ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierReliability()">🎯 אמינות ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierPricing()">💰 מחירי ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierTerms()">📋 תנאי ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierOrders()">📦 הזמנות ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierHistory()">📜 היסטוריית ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierRatings()">⭐ דירוגי ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierContracts()">📄 חוזי ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierCommunication()">📞 תקשורת ספקים</button>
+                        <button class="tool-btn" onclick="showSupplierOptimization()">🎯 אופטימיזציית ספקים</button>
+                    </div>
+                </div>
+
+                <!-- רשימת ספקים -->
+                <div class="suppliers-list-section">
+                    <h3>📋 רשימת ספקים</h3>
+                    <div id="suppliers-list" class="supplier-grid"></div>
+                </div>
             </div>
 
             <div id="reports" class="section">
@@ -6291,12 +6343,12 @@
                             const isVIP = totalSales > 10000;
                             const isNew = new Date(customer.dateCreated) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
                             const isInactive = !lastSale || new Date(lastSale) < new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-                            
+
                             let statusBadge = '';
                             if (isVIP) statusBadge = '<span class="vip-badge">VIP</span>';
                             else if (isNew) statusBadge = '<span class="new-customer-badge">חדש</span>';
                             else if (isInactive) statusBadge = '<span class="inactive-customer-badge">לא פעיל</span>';
-                            
+
                             return `
                                 <tr>
                                     <td>${customer.name}</td>
@@ -6393,14 +6445,14 @@
             const paymentFilter = document.getElementById('sales-payment-filter').value;
 
             let filteredSales = appData.sales.filter(sale => {
-                const matchesSearch = searchTerm === '' || 
+                const matchesSearch = searchTerm === '' ||
                     sale.customerName.toLowerCase().includes(searchTerm) ||
                     sale.items.some(item => {
                         const product = appData.products.find(p => p.id === item.productId);
                         return product && product.name.toLowerCase().includes(searchTerm);
                     });
 
-                const matchesDate = (!dateFrom || sale.date >= dateFrom) && 
+                const matchesDate = (!dateFrom || sale.date >= dateFrom) &&
                                   (!dateTo || sale.date <= dateTo);
 
                 const matchesCustomer = !customerFilter || sale.customerId.toString() === customerFilter;
@@ -6479,7 +6531,7 @@
             const todaySales = appData.sales.filter(s => s.date.startsWith(today));
             const totalSales = todaySales.reduce((sum, s) => sum + s.total, 0);
             const salesCount = todaySales.length;
-            
+
             showAlert('success', `דוח יומי: ${salesCount} מכירות בסך ₪${totalSales.toLocaleString()}`);
         }
 
@@ -6488,7 +6540,7 @@
             const todaySales = appData.sales.filter(s => s.date.startsWith(today));
             const totalSales = todaySales.reduce((sum, s) => sum + s.total, 0);
             const salesCount = todaySales.length;
-            
+
             return `
                 <div class="report-summary">
                     <div class="report-item">מכירות היום: ${salesCount}</div>
@@ -6522,8 +6574,8 @@
             const topSales = appData.sales
                 .sort((a, b) => b.total - a.total)
                 .slice(0, 5);
-            
-            return topSales.map(sale => 
+
+            return topSales.map(sale =>
                 `<div class="top-sale-item">${sale.customerName}: ₪${sale.total.toLocaleString()}</div>`
             ).join('');
         }
@@ -6540,7 +6592,7 @@
 
             return Object.entries(monthlySales)
                 .sort(([a], [b]) => b.localeCompare(a))
-                .map(([month, total]) => 
+                .map(([month, total]) =>
                     `<div class="monthly-item">${month}: ₪${total.toLocaleString()}</div>`
                 ).join('');
         }
@@ -6591,11 +6643,11 @@
                     </thead>
                     <tbody>
                         ${appData.sales.map(sale => {
-                            const statusClass = sale.status === 'completed' ? 'status-completed' : 
+                            const statusClass = sale.status === 'completed' ? 'status-completed' :
                                                sale.status === 'pending' ? 'status-pending' : 'status-cancelled';
-                            const statusText = sale.status === 'completed' ? 'הושלם' : 
+                            const statusText = sale.status === 'completed' ? 'הושלם' :
                                              sale.status === 'pending' ? 'ממתין' : 'בוטל';
-                            
+
                             return `
                                 <tr>
                                     <td>${new Date(sale.date).toLocaleDateString('he-IL')}</td>
